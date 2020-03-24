@@ -20,19 +20,37 @@ def two_pow_n_inverse (n : nat) : real := (1/2)^n
 
 lemma two_pow_n_fact_inverse_ge_0 (n : nat) : two_pow_n_fact_inverse n ≥ 0 :=
 begin
-  unfold two_pow_n_fact_inverse,
-  have H := @nat.pow_pos 2 _ n.fact,
-  replace H := nat.le_of_lt H,
-  norm_num, norm_cast, exact H, norm_num, done,
+    unfold two_pow_n_fact_inverse,
+    simp, have h := le_of_lt (@pow_pos _ _ (2:real)⁻¹ _ n.fact),
+    norm_cast at h, exact h, norm_num, done
+end
+
+lemma useless_elsewhere : ∀ n : nat, n ≤ n.fact
+| 0                         := by norm_num
+| 1                         := by norm_num
+| (nat.succ (nat.succ n))   := begin 
+    have H := useless_elsewhere n.succ,
+    conv_rhs {rw (nat.fact_succ n.succ)},
+    have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.fact, {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (useless_elsewhere (nat.succ n))},
+    suffices ineq2 : n.succ.succ ≤ n.succ.succ * n.succ, {exact nat.le_trans ineq2 ineq1},
+    have H' : ∀ m : nat, m.succ.succ ≤ m.succ.succ * m.succ,
+    {
+        intro m, induction m with m hm,
+        norm_num,
+        simp [nat.succ_mul, nat.mul_succ, nat.succ_eq_add_one] at hm ⊢, linarith,
+    },
+    exact H' n,
 end
 
 
 lemma two_pow_n_fact_inverse_le_two_pow_n_inverse (n : nat) : two_pow_n_fact_inverse n ≤ two_pow_n_inverse n :=
 begin
   unfold two_pow_n_fact_inverse,
-  unfold two_pow_n_inverse, type_check @pow_le_pow _ _ 2 n n.fact ,
-  -- norm_cast, simp, norm_num,
-  
+  unfold two_pow_n_inverse,
+  simp, have h := @pow_le_pow_of_le_one _ _ (2:real)⁻¹ _ _ n n.fact _,
+  norm_cast at h, exact h, norm_num, norm_num,
+  exact useless_elsewhere n,
+
 end
 
 theorem summable_two_pow_n_inverse : summable two_pow_n_inverse :=
