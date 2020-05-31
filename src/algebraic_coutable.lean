@@ -240,12 +240,12 @@ theorem strange_fun_inj : function.injective strange_fun :=
 begin
 {
     intros q1 q2 hq,
-    by_cases (q1.2 = 1 ∨ q1.1 = 0);
-    by_cases (q2.2 = 1 ∨ q2.1 = 0); rename h q2_int; rename h q1_int,
+    by_cases (q1.2 = 1 ∨ q1.1 = 0); rename h q1_int;
+    by_cases (q2.2 = 1 ∨ q2.1 = 0); rename h q2_int,
     
     {
       simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
-      by_cases (q1 < 0); by_cases (q2 < 0); rename h q2_neg; rename h q1_neg,
+      by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg,
       
       simp [q1_neg, q2_neg] at hq, exact hq,
       simp [q1_neg, q2_neg] at hq, linarith,
@@ -255,7 +255,7 @@ begin
 
     {
       simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
-      by_cases (q1 < 0); by_cases (q2 < 0); rename h q2_neg; rename h q1_neg,
+      by_cases (q1 < 0);  rename h q1_neg; by_cases (q2 < 0); rename h q2_neg,
       simp [q1_neg, q2_neg] at hq, assumption,
       simp [q1_neg, q2_neg] at hq, assumption,
       simp [q1_neg, q2_neg] at hq, linarith,
@@ -282,7 +282,8 @@ begin
 
     {
       simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
-      by_cases (q1 < 0); by_cases (q2 < 0); rename h q2_neg; rename h q1_neg; simp [q1_neg, q2_neg] at hq,
+      by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg;
+      simp [q1_neg, q2_neg] at hq,
       
       assumption, linarith, assumption,
       cases q2_int with q22 q21,
@@ -302,7 +303,7 @@ begin
 
     {
       simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
-      by_cases (q1 < 0); by_cases (q2 < 0); rename h q2_neg; rename h q1_neg; assumption,    
+      by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg; assumption,
     },
   },
 end
@@ -322,7 +323,13 @@ begin
         cases q_int, left,
         have h'' : q.1 + (-1 : rat) = q', linarith, rw rat.add_num_denom at h'', simp [q_int] at h'', 
         have h''' : ({ num := -1 + q.1.1, denom := 1, pos := (by linarith), cop := (nat.coprime_one_right (int.nat_abs (-1 + q.1.1))) } : rat) = rat.mk (-1 + q.1.1) 1,
-        rw rat.num_denom', norm_cast, rw <-h''' at h'', rw <-h'',
+        rw rat.num_denom', norm_cast,
+        -- rw <-h''' at h'', 
+        have H : q' = ({ num := -1 + q.1.1, denom := 1, pos := (by linarith), cop := (nat.coprime_one_right (int.nat_abs (-1 + q.1.1))) } : rat),
+        {
+          rw <-h'', rw add_comm, rw <-h''',
+        },
+        rw H,
         left, rw <-rat.zero_iff_num_zero at q_int, simp [q_int] at h', rw <-h', exact rfl,
       },
 
@@ -870,7 +877,7 @@ begin
   rw algebraic_set'_n,
   have h := @set.countable_Union (poly_n' n.succ) real (fun p, roots_real p.1) (poly_n'_denumerable n).1,
   simp at h, apply h,
-  intro q, apply set.countable_finite, exact roots_finite q.1 q.2.1,
+  intro q, apply set.finite.countable, exact roots_finite q.1 q.2.1,
   done
 end
 

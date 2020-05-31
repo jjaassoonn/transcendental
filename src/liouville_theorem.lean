@@ -86,50 +86,62 @@ lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial �
   ∃ A : real, ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
-   generalize hDf: f_ℝ.derivative = Df_ℝ,
+  generalize hDf: f_ℝ.derivative = Df_ℝ,
   have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) _ (abs_f_eval_around_α_continuous Df_ℝ α),
   choose x0 hx0 using H,
   generalize M_def: abs (Df_ℝ.eval x0) = M,
   have hM := hx0.2, rw M_def at hM,
   have M_non_zero : M ≠ 0,
   {
-    by_contra absurd,
-    simp at absurd, rw absurd at hM,
-    replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
-    {
-      intros y hy,
-      have H := hM y hy, simp at H, rw H,
-    },
-    replace hM : Df_ℝ = 0,
-    {
-      exact f_zero_on_interval_f_zero Df_ℝ hM,
-    },
-    rename hM Df_ℝ_zero,
-    have f_ℝ_0 : f_ℝ.nat_degree = 0,
-    {
-      have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
-      rw [<-hDf] at Df_ℝ_zero, assumption,
-    },
-    replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,
-    choose c hc using f_ℝ_0,
-    -- f = c constant
-    -- c is nonzero
-    by_cases absurd2 : (c = 0),
-    -- if c is zero contradiction to f_nonzero
-    {
-      rw absurd2 at hc,
-      have f_zero : f = 0,
-      {
-        ext,
-        have f_ℝ_n : f_ℝ.coeff n = 0, 
-        have H := @polynomial.coeff_map _ _ _ f _ ℤembℝ n,
-        rw [hfℝ, hc] at H, simp at H, rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp [H], simp,
-
-      }
-    }
+    -- by_contra absurd,
+    -- simp at absurd, rw absurd at hM,
+    -- replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
+    -- {
+    --   intros y hy,
+    --   have H := hM y hy, simp at H, rw H,
+    -- },
+    -- replace hM : Df_ℝ = 0,
+    -- {
+    --   exact f_zero_on_interval_f_zero Df_ℝ hM,
+    -- },
+    -- rename hM Df_ℝ_zero,
+    -- have f_ℝ_0 : f_ℝ.nat_degree = 0,
+    -- {
+    --   have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
+    --   rw [<-hDf] at Df_ℝ_zero, assumption,
+    -- },
+    -- replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,
+    -- choose c hc using f_ℝ_0,
+    -- -- f = c constant
+    -- -- c must be 0 because f(α) = 0
+    -- have absurd2 : c = 0,
+    -- {
+    --   rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp at α_root, assumption,
+    -- },
+    -- -- if c is zero contradiction to f_nonzero
+    -- -- {
+    -- rw absurd2 at hc,
+    -- have f_zero : f = 0,
+    -- {
+    --   ext,
+    --   have f_ℝ_n : f_ℝ.coeff n = 0, 
+    --   have H := @polynomial.coeff_map _ _ _ f _ ℤembℝ n,
+    --   rw [hfℝ, hc] at H, simp at H, 
+    --   rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp at H ⊢, norm_cast at H, exact eq.symm H,
+    --   simp, rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n] at f_ℝ_n, simp at f_ℝ_n, assumption,
+    -- },
+    -- exact f_nonzero f_zero,
+    sorry -- compiles, but too slow
+  },
+  have M_pos : M > 0,
+  {
+    rw <-M_def at M_non_zero ⊢,
+    have H := abs_pos_iff.2 M_non_zero, simp [abs_abs] at H, exact H,
   },
   generalize roots_def :  f_ℝ.roots = f_roots,
-  generalize roots_distance_to_α : f_roots.image (λ x, abs (α - x)) = distances,
+  -- type_check @singleton ℝ (set ℝ) _ α,
+  generalize roots'_def : f_roots.erase α = f_roots', 
+  generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
   generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
   have hnon_empty: distances'.nonempty,
   {
@@ -145,10 +157,28 @@ begin
     cases hx,
     {
       -- 1 / M
-      rw hx, simp,
-    }
+      rw hx, simp, exact M_pos,
+    },
+    cases hx,
+    {
+      -- 1
+      rw hx, exact zero_lt_one,
+    },
+    {
+      -- x is abs (root - α) with root not α
+      simp [<-roots_distance_to_α] at hx,
+      choose α0 hα0 using hx,
+      rw [<-roots'_def, finset.mem_erase] at hα0,
+      rw <-(hα0.2), simp, apply (@abs_pos_iff ℝ _ (α - α0)).2,
+      by_contra absurd, simp at absurd, rw sub_eq_zero_iff_eq at absurd,
+      have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
+    },
   },
   have A_pos : A > 0,
+  {
+    have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
+    rw <-hA, assumption,
+  },
   use A,
   by_contra absurd, simp at absurd,
   choose a ha using absurd,
@@ -241,37 +271,37 @@ def divide_f_by_gcd_of_coeff_make_leading_term_pos (f : polynomial ℤ) : polyno
 --   end
 -- }
 
-lemma neg_f_f_have_same_nat_deg (f : polynomial ℤ) (n : ℕ) : f.nat_degree = (-f).nat_degree :=
-begin
-  rw [polynomial.nat_degree, polynomial.nat_degree],
-end
+-- lemma neg_f_f_have_same_nat_deg (f : polynomial ℤ) (n : ℕ) : f.nat_degree = (-f).nat_degree :=
+-- begin
+--   rw [polynomial.nat_degree, polynomial.nat_degree],
+-- end
 
 
 #reduce (1: int) / (2 : int)
 
-lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime_trivial_subcase
-  (α : real) (hα : irrational α) (f : polynomial ℤ) 
-  (f_nonzero : f ≠ 0)
-  (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
-  (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
-  (α_root : (f.map ℤembℝ).eval α = 0) :
-  ∀ a b : ℤ, b > 0 -> abs(α - a / b) ≥ 1 -> abs(α - a / b) > (1 / b ^ (f.nat_degree)) := 
-begin
-  intros a b hb h,
-  sorry
-end
+-- lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime_trivial_subcase
+--   (α : real) (hα : irrational α) (f : polynomial ℤ) 
+--   (f_nonzero : f ≠ 0)
+--   (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
+--   (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
+--   (α_root : (f.map ℤembℝ).eval α = 0) :
+--   ∀ a b : ℤ, b > 0 -> abs(α - a / b) ≥ 1 -> abs(α - a / b) > (1 / b ^ (f.nat_degree)) := 
+-- begin
+--   intros a b hb h,
+--   sorry
+-- end
 
-lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime
-  (α : real) (hα : irrational α) (f : polynomial ℤ) 
-  (f_nonzero : f ≠ 0)
-  (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
-  (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
-  (α_root : (f.map ℤembℝ).eval α = 0) :
-  ∃ A : real, ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := 
+-- lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime
+--   (α : real) (hα : irrational α) (f : polynomial ℤ) 
+--   (f_nonzero : f ≠ 0)
+--   (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
+--   (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
+--   (α_root : (f.map ℤembℝ).eval α = 0) :
+--   ∃ A : real, ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := 
 
-begin
+-- begin
 
-end
+-- end
 
 #check rat.of_int
 
@@ -311,7 +341,7 @@ lemma useless_elsewhere : ∀ n : nat, n ≤ n.fact
     {
         intro m, induction m with m hm,
         norm_num,
-        simp [nat.succ_mul, nat.mul_succ, nat.succ_eq_add_one] at hm ⊢, linarith,
+        simp [nat.succ_mul, nat.mul_succ, nat.succ_eq_add_one] at hm ⊢,
     },
     exact H' n,
 end
