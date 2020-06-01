@@ -157,6 +157,50 @@ begin
     rw zero3, rw zero2, exact nat.succ_pos n,
 end
 
+
+-- -- prove using induction on polynomial
+-- theorem induction_on_degree {a : Type} {inst : comm_semiring a} (M : polynomial a -> Prop)
+--     (deg_0 : ∀ p : polynomial a, (p.degree = 0) -> M p)
+--     (inductive_hyp : ∀ n : ℕ, (∀ p : polynomial a, (p.degree ≤ n) -> M p) -> (∀ q : polynomial a, (q.degree = n.succ) -> M q)) :
+--     ∀ f : polynomial a, M f :=
+
+-- begin
+--     classical,
+--     -- let S be all polynomials not satisfying M,
+--     generalize hS : {f : polynomial a | ¬ M f} = S,
+--     suffices : S = ∅,
+--     {
+--         intro f, by_contra absurd, have rid : f ∈ S,
+--         rw <-hS, simp, exact absurd, rw this at rid, simpa,
+--     },
+--     by_contra rid,
+--     generalize hS_deg : S.image (λ f : polynomial a, f.degree) = S_deg,
+--     -- then S_deg is non_empty
+--     have S_deg_nonempty : S_deg ≠ ∅, rw [<-hS_deg],
+--     {   
+--         by_contra rid', simp at rid', exact rid rid',
+--     },
+--     replace S_deg_nonempty : S_deg.nonempty, exact set.nmem_singleton_empty.mp S_deg_nonempty,
+--     -- then S_deg has min element
+--     -- have H := @with_bot.well_founded_lt (with_bot ℕ) _ (<),
+--     choose m hm using (@well_founded.has_min (with_bot ℕ) (<) (with_bot.well_founded_lt nat.lt_wf) S_deg S_deg_nonempty),
+--     have hm1 := hm.1, have hm2 := hm.2,
+--     rw [<-hS_deg, set.mem_image] at hm1,
+--     choose f hf using hm1,
+--     have M_g : ∀ g : polynomial a, (g.degree) < m -> M g, {
+--         by_contra rid, simp at rid,
+--         choose g hg using rid,
+--         have rid' : g.degree ∈ S_deg, rw [<-hS_deg, set.mem_image],
+--         use g, simp, rw [<-hS], simp, exact hg.2,
+--         replace rid' := hm2 g.degree rid',
+--         exact rid' hg.1,
+--     },
+
+
+-- end
+
+
+
 namespace gcd_int
 
 theorem int_gcd_nat_gcd (m n : ℤ) : m.gcd n = nat.gcd (m.nat_abs) (n.nat_abs) :=

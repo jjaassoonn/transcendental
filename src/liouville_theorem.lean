@@ -1,5 +1,7 @@
 import data.rat.basic
-import data.real.basic data.real.nnreal data.real.ennreal
+import data.real.basic
+import data.finsupp algebra.big_operators
+import algebra.ring
 import ring_theory.algebraic
 import field_theory.minimal_polynomial
 import tactic.linarith
@@ -7,7 +9,7 @@ import tactic
 import topology.metric_space.basic
 import topology.basic
 import topology.algebra.polynomial
-import analysis.normed_space.basic analysis.specific_limits
+import analysis.normed_space.basic analysis.specific_limits analysis.calculus.mean_value
 import small_things
 
 noncomputable theory
@@ -66,6 +68,12 @@ Then there is a constant A = A(α) > 0 such that
 
 def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := (f.map ℤembℝ).eval α
 
+-- deriv (f_eval_on_ℝ f)
+-- theorem deriv_f_ℝ (f : polynomial ℤ) : ∀ x : ℝ, deriv (f_eval_on_ℝ f) x = (f.map ℤembℝ).derivative.eval x :=
+-- begin
+--   -- intro x, type_check (f_eval_on_ℝ f),
+-- end
+
 theorem abs_f_eval_around_α_continuous (f : polynomial ℝ) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
 begin
   have H : (λ x : ℝ, (abs (f.eval x))) = abs ∘ (λ x, f.eval x),
@@ -80,17 +88,182 @@ end
 
 -- theorem f_nonzero_max_abs_f (f : polynomial ℝ) (f_nonzero : f ≠ 0) : ∃ 
 
+-- private lemma f_eq_g_sum_f_eq_sum_g (f g : ℕ -> ℝ) (s : finset ℕ) : (∀ x ∈ s, f x = g x) -> (s.sum f) = (s.sum g) :=
+
+private lemma same_coeff (f : polynomial ℤ) (n : ℕ): ℤembℝ (f.coeff n) = ((f.map ℤembℝ).coeff n) :=
+begin
+  simp, rw [polynomial.coeff_map], simp,
+end
+
+private lemma same_support (f : polynomial ℤ) : f.support = (f.map ℤembℝ).support :=
+begin
+  ext, split,
+  {
+    intro ha, replace ha : f.coeff a ≠ 0, exact finsupp.mem_support_iff.mp ha,
+    have ineq1 : ℤembℝ (f.coeff a) ≠ 0, norm_num, exact ha,
+    suffices : (polynomial.map ℤembℝ f).coeff a ≠ 0, exact finsupp.mem_support_iff.mpr this,
+    rwa [polynomial.coeff_map],
+  },
+  {
+    intro ha, replace ha : (polynomial.map ℤembℝ f).coeff a ≠ 0, exact finsupp.mem_support_iff.mp ha,
+    rw [<-same_coeff] at ha,
+    have ineq1 : f.coeff a ≠ 0,  simp at ha, exact ha,
+    exact finsupp.mem_support_iff.mpr ineq1,
+  }
+end
+
+-- private lemma same_function (f : polynomial ℤ) (a b : ℤ) (b_non_zero : b ≠ 0) : 
+--   (λ (x : ℕ), (polynomial.map ℤembℝ f).coeff x * (↑a ^ x / ↑b ^ x)) =
+--   (λ (x : ℕ), (1/b^f.nat_degree) * ((polynomial.map ℤembℝ f).coeff x * (↑a ^ x * ↑b ^ (f.nat_degree - x)))) :=
+-- begin
+--   ext, conv_rhs {
+--     rw [mul_comm, mul_assoc],
+--   }, 
+--   suffices : ((a:ℝ) ^ x / (b:ℝ) ^ x) = (↑a ^ x * ↑b ^ (f.nat_degree - x) * (1 / ↑b ^ f.nat_degree)),
+--   exact congr_arg (has_mul.mul ((polynomial.map ℤembℝ f).coeff x)) this,
+--   have eq : (1 / ↑b ^ f.nat_degree) = (b:ℝ)^(-(f.nat_degree:ℤ)), norm_num,
+--   rw div_eq_iff, simp,
+--     conv_rhs {
+--     rw [mul_assoc, mul_assoc, (mul_comm (↑b ^ (f.nat_degree - x))),
+--     (mul_assoc (↑b ^ f.nat_degree)⁻¹), <-pow_add, <-nat.add_sub_assoc],
+--   }, simp,
+-- end
+
+open_locale big_operators
+
+private lemma sum_eq (S : finset ℕ) (f g : ℕ -> ℝ) : (∀ x ∈ S, f x = g x) -> S.sum f = S.sum g :=
+begin
+  intro h,
+  have H := @finset.sum_congr _ _ S S f g _ _ h, exact H, refl,
+end
+
+-- set_option trace.simplify true
+
+-- private lemma pow_div (b : ℝ) (hb : b ≠ 0) (m n : ℕ) : (b ^ m) / (b ^ n) = 1 / b ^ (n - m) :=
+-- begin
+--   sorry
+-- end
+
+theorem abs_f_at_p_div_q_ge_1_div_q_pow_n
+  (f : polynomial ℤ) : (f.nat_degree > 1) -> 
+  (∀ (a b : ℤ), (b ≠ 0) ->
+  abs ((f.map ℤembℝ).eval (↑a/↑b)) > 1/(b^(f.nat_degree))) :=
+begin
+  intros f_deg a b b_non_zero,
+  have eq : ((f.map ℤembℝ).eval (↑a/↑b)) = (∑ n in f.support, ℤembℝ (f.coeff n) * ↑a^n/↑b^n),
+  {
+    rw [polynomial.eval, polynomial.eval₂, finsupp.sum], simp, rw <-same_support,
+    rw sum_eq, intros n hn,
+    have H : (@coe_fn (polynomial ℝ) polynomial.coeff_coe_to_fun (f.map ℤembℝ))= (f.map ℤembℝ).coeff,
+    {
+      exact rfl,
+    },
+    rw H, replace H : (polynomial.map ℤembℝ f).coeff n = ↑(f.coeff n),
+    {
+      rw polynomial.coeff_map, simp,
+    },
+    rw H, ring,
+  },
+  rw eq, simp, -- TODO : I think I am stucked here
+  have eq2 : (∑ n in f.support, ℤembℝ (f.coeff n) * ↑a^n/↑b^n) = (∑ n in f.support, ((ℤembℝ (f.coeff n)) * (↑a^n * ↑b^(f.nat_degree-n))) * (1/↑b^f.nat_degree)),
+  {
+    rw sum_eq, intros m hm,
+    -- have H : (polynomial.map ℤembℝ f).coeff m = ↑(f.coeff m), rw polynomial.coeff_map, simp,
+    -- simp only [eq,]
+    conv_lhs {
+      rw mul_div_assoc,
+    },
+    conv_rhs {rw mul_assoc},
+    have eq3 := @mul_div_assoc ℝ _ (↑a ^ m * ↑b ^ (f.nat_degree - m)) 1 (↑b ^ f.nat_degree),
+    rw <-eq3,
+    simp only [mul_one],
+    conv_rhs {rw mul_div_assoc}, 
+    --rw (pow_div ↑b _ (f.nat_degree - m) f.nat_degree),
+  }
+  -- rw [polynomial.eval, polynomial.eval₂, finsupp.sum], simp, rw <-same_support,
+
+  -- generalize fun1_def : (λ (x:ℕ), ((polynomial.map ℤembℝ f).coeff x) * ((a:ℝ)^x / (b:ℝ)^x)) = fun1,
+  -- generalize fun2_def : (λ (x:ℕ), ((polynomial.map ℤembℝ f).coeff x) * (↑a^x * ↑b^(f.nat_degree-x)) * (1/(b^f.nat_degree:ℝ))) = fun2,
+
+  -- have eq1 : (f.support.sum fun1) = (f.support.sum fun2),
+  -- {
+  --   suffices eq2 : (f.support.sum fun1) - (f.support.sum fun2) = 0, linarith,
+  --   type_check @finsupp.sum_sub _ _ _ _ _ f fun1 fun2,
+  -- }
+  -- (f.support.sum 
+    -- (λ (x : ℕ), ⇑(polynomial.map ℤembℝ f) x * (↑a ^ x / ↑b ^ x))) =
+    -- f.support.sum 
+
+  --abs (f.support.sum (λ (x : ℕ), ⇑f x * (↑a ^ x / ↑b ^ x))
+end
+
+-- theorem abs_f_at_p_div_q_ge_1_div_q_pow_n
+--   (f : polynomial ℝ) : (f.degree > 1) -> 
+--   (∀ (a b : ℤ), (b ≠ 0) ->
+--   abs (f.eval (↑a/↑b)) > 1/(b^(f.nat_degree))) :=
+-- begin
+--   apply polynomial.induction_on f,
+--   {
+--     -- constant case,
+--     -- not possible
+--     intros c absurd,
+--     by_cases (c = 0), rw h at absurd, simp at absurd, exfalso, assumption, 
+--     have h' := polynomial.degree_C h, rw h' at absurd,  simp at absurd, exfalso,
+--     exact option.not_is_some_iff_eq_none.mpr absurd rfl,
+--   },
+--   {
+--     intros p q hp hq p_add_q_deg a b b_non_zero,
+--     -- degree_add_le
+--     rw polynomial.eval_add,
+
+--     have h := abs_abs_sub_abs_le_abs_sub (polynomial.eval (↑a / ↑b) p) (- polynomial.eval (↑a / ↑b) q),
+--     simp at h,
+--     suffices : abs (abs (polynomial.eval (↑a / ↑b) p) - abs (polynomial.eval (↑a / ↑b) q)) > 1 / ↑b ^ (p + q).nat_degree,
+--     linarith,
+--     by_cases hpq : (p.degree ≥ q.degree),
+--     {
+--       have p_deg : p.degree > 1,
+--       {
+--         by_contra absurd, simp at absurd,
+--         -- because otherwise q has degree ≤ 1
+--         have q_deg : q.degree ≤ 1, exact le_trans hpq absurd,
+--         -- then p + q degree < 1
+--         have ineq := polynomial.degree_add_le p q,
+--         have ineq2 := max_le absurd q_deg, 
+--         replace absurd : (p + q).degree ≤ 1, exact le_trans ineq ineq2,
+--         rw [gt_iff_lt, lt_iff_not_ge, ge_iff_le] at p_add_q_deg, exact p_add_q_deg absurd,
+--       },
+--       replace hp := hp p_deg a b b_non_zero,
+--     }
+--     -- type_check abs_add (polynomial.eval (↑a / ↑b) p) (polynomial.eval (↑a / ↑b) q),
+--   }
+-- end
+
 
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
   (f_nonzero : f ≠ 0) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
+  have hfℝ_nonzero : f_ℝ ≠ 0,
+  {
+    by_contra absurd, simp at absurd, rw [polynomial.ext_iff] at absurd,
+    have absurd2 : f = 0,
+    {
+      ext, replace absurd := absurd n, simp at absurd ⊢,
+      rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
+      simp at absurd, exact absurd,
+    },
+    exact f_nonzero absurd2,
+  },
   generalize hDf: f_ℝ.derivative = Df_ℝ,
-  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) _ (abs_f_eval_around_α_continuous Df_ℝ α),
-  choose x0 hx0 using H,
-  generalize M_def: abs (Df_ℝ.eval x0) = M,
-  have hM := hx0.2, rw M_def at hM,
+  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) 
+              begin rw set.nonempty, use α, rw set.mem_Icc, split, linarith, linarith end
+              (abs_f_eval_around_α_continuous Df_ℝ α),
+
+  choose x_max hx_max using H,
+  generalize M_def: abs (Df_ℝ.eval x_max) = M,
+  have hM := hx_max.2, rw M_def at hM,
   have M_non_zero : M ≠ 0,
   {
     -- by_contra absurd,
@@ -213,10 +386,51 @@ begin
     rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
   },
   -- a/b is not a root
-  have hab1 : (↑a/↑b:ℝ) ∉ f_roots,
+  have hab1 : (↑a/↑b:ℝ) ≠ α,
   {
-    
+    have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
   },
+  have hab2 : (↑a/↑b:ℝ) ∉ f_roots,
+  {
+    by_contra absurd,
+    have H : ↑a/↑b ∈ f_roots',
+    {
+      rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
+    },
+    have H2 : abs (α - ↑a/↑b) ∈ distances',
+    {
+      rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
+      rw [<-roots_distance_to_α, finset.mem_image], use ↑a/↑b, split, exact H, refl,
+    },
+    have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,
+    rw hB at H3, linarith,
+  },
+  -- either α > a/b or α < a/b, two cases essentially have the same proof
+  have hab3 := ne_iff_lt_or_gt.1 hab1,
+  cases hab3,
+  {
+    -- α > a/b subcase
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
+    choose x0 hx0 using H,
+    have hx0l := hx0.1,
+    have hx0r := hx0.2,
+    -- clean hx0 a bit to be more usable,
+    rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
+    rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
+
+    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
+    {
+      norm_num [hx0r], 
+      rw [neg_div, div_neg, abs_neg, div_div_cancel'],
+      rw [<-roots_def] at hab2, by_contra absurd, simp at absurd,
+      have H := polynomial.mem_roots _, rw polynomial.is_root at H,
+      replace H := H.2 absurd, exact hab2 H,
+      exact hfℝ_nonzero,
+    },
+
+  }
+
+
 end
 
 -- #reduce (polynomial ℤ)
