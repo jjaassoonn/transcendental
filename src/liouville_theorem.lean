@@ -1,5 +1,5 @@
 import data.rat.basic
-import data.real.basic
+import data.real.basic data.real.nnreal data.real.ennreal
 import ring_theory.algebraic
 import field_theory.minimal_polynomial
 import tactic.linarith
@@ -139,7 +139,6 @@ begin
     have H := abs_pos_iff.2 M_non_zero, simp [abs_abs] at H, exact H,
   },
   generalize roots_def :  f_ℝ.roots = f_roots,
-  -- type_check @singleton ℝ (set ℝ) _ α,
   generalize roots'_def : f_roots.erase α = f_roots', 
   generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
   generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
@@ -148,9 +147,7 @@ begin
     rw <-hdistances',
     rw [finset.nonempty], use (1/M), simp,
   },
-  -- generalize hA : distances.min = A',
-  -- have A_is_some : ∃ A ∈ ℝ, A' = @option.some ℝ A,
-  generalize hA : finset.min' distances' hnon_empty = A,
+  generalize hB : finset.min' distances' hnon_empty = B,
   have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,
   {
     intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
@@ -174,11 +171,12 @@ begin
       have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
     },
   },
-  have A_pos : A > 0,
+  have B_pos : B > 0,
   {
     have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
-    rw <-hA, assumption,
+    rw <-hB, assumption,
   },
+  generalize hA : B / 2 = A,
   use A,
   by_contra absurd, simp at absurd,
   choose a ha using absurd,
@@ -196,18 +194,29 @@ begin
   {
     suffices H : (A / b ^ f.nat_degree) ≤ A,
     have H2 := hb.2, exact le_trans H2 H,
-    --div_le_self
-
-  }
-
-  -- type_check compact_Icc
-
-  -- -- we can assume f has leading coeff > 0
-  -- by_cases ((f.coeff (f.nat_degree) > 0) ∧ gcd_int.gcd_of_list (list_coeff f) = 1), 
-  -- -- if f has positive leading term and coeffs are coprime the previous lemma will do
-  -- exact about_irrational_root_f_leading_term_pos_all_coeffs_coprime α hα f f_nonzero h.1 h.2 α_root,
-
-  -- -- if f has negative leading term, then multiply -1
+    apply (@div_le_iff ℝ _ A (b ^ f.nat_degree) A _).2,
+    apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at hb2 ⊢, exact hb2,
+    norm_cast, linarith, norm_cast, linarith,
+  },
+  have hb22 : abs (α - a/b) < B,
+  {
+    have H := half_lt_self B_pos, rw hA at H, exact gt_of_gt_of_ge H hb21,
+  },
+  -- then a / b is in [α-1, α+1]
+  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),
+  {
+    suffices H : abs (α - a/b) ≤ 1, 
+    have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
+    rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, eq1, abs_neg], exact H,
+    suffices : B ≤ 1, linarith,
+    rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
+    rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
+  },
+  -- a/b is not a root
+  have hab1 : (↑a/↑b:ℝ) ∉ f_roots,
+  {
+    
+  },
 end
 
 -- #reduce (polynomial ℤ)
@@ -303,7 +312,6 @@ def divide_f_by_gcd_of_coeff_make_leading_term_pos (f : polynomial ℤ) : polyno
 
 -- end
 
-#check rat.of_int
 
 lemma liouville_numbers_irrational: ∀ (x : real), (liouville_number x) -> irrational x :=
 begin
@@ -351,10 +359,16 @@ lemma useless_elsewhere2 : 2 ≠ 0 := by norm_num
 lemma two_pow_n_fact_inverse_le_two_pow_n_inverse (n : nat) : two_pow_n_fact_inverse n ≤ two_pow_n_inverse n :=
 begin
   unfold two_pow_n_fact_inverse,
-  unfold two_pow_n_inverse,
-  have h := @pow_le_pow_of_le_one _ _ (2:real)⁻¹ _ _ n n.fact _,
-  norm_cast at h ⊢, simp, rw pow_inv, rw pow_inv, exact h, norm_num, norm_num, norm_num, norm_num,
-  exact useless_elsewhere n,
+  unfold two_pow_n_inverse, simp,
+  by_cases (n = 0),
+  -- if n is 0
+  rw h, simp, norm_num,
+  -- if n > 0
+  have n_pos : n > 0 := by exact bot_lt_iff_ne_bot.mpr h,
+  have H := (@inv_le_inv ℝ _ (2 ^ n.fact) (2 ^ n) _ _).2 _, exact H,
+  have H := @pow_pos ℝ _ 2 _ n.fact,  exact H, exact two_pos,
+  have H := @pow_pos ℝ _ 2 _ n, exact H, exact two_pos,
+  have H := @pow_le_pow ℝ _ 2 n n.fact _ _, exact H, norm_num, exact useless_elsewhere n,
 end
 
 -- Σᵢ 1/2ⁱ exists
