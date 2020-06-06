@@ -200,6 +200,19 @@ end
 -- end
 
 
+-- power manipulation
+theorem pow_sub_ℝ (r : ℝ) (hr : r ≠ 0) (m n : ℕ) : r^(m-n) = r^m / r^n :=
+begin
+    sorry,
+end
+
+
+-- inequality
+lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : a > b) (b_nonneg : b ≥ 0) (hc : c > 0) : a / c > b / c :=
+begin
+    have H := @div_lt_div ℝ _ b c a c hab _ _ hc,
+    exact H, exact le_refl c, exact le_of_lt (gt_of_gt_of_ge hab b_nonneg),
+end
 
 namespace gcd_int
 

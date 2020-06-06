@@ -146,7 +146,7 @@ end
 
 theorem abs_f_at_p_div_q_ge_1_div_q_pow_n
   (f : polynomial ℤ) : (f.nat_degree > 1) -> 
-  (∀ (a b : ℤ), (b ≠ 0) ->
+  (∀ (a b : ℤ), (b > 0) ->
   abs ((f.map ℤembℝ).eval (↑a/↑b)) > 1/(b^(f.nat_degree))) :=
 begin
   intros f_deg a b b_non_zero,
@@ -179,7 +179,9 @@ begin
     simp only [mul_one],
     conv_rhs {rw mul_div_assoc}, 
     --rw (pow_div ↑b _ (f.nat_degree - m) f.nat_degree),
-  }
+  },
+
+  sorry
   -- rw [polynomial.eval, polynomial.eval₂, finsupp.sum], simp, rw <-same_support,
 
   -- generalize fun1_def : (λ (x:ℕ), ((polynomial.map ℤembℝ f).coeff x) * ((a:ℝ)^x / (b:ℝ)^x)) = fun1,
@@ -241,9 +243,16 @@ end
 
 
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
-  (f_nonzero : f ≠ 0) (α_root : f_eval_on_ℝ f α = 0) :
+  (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
+  have f_nonzero : f ≠ 0,
+  {
+    -- by_contra rid,
+    -- simp at rid, have f_nat_deg_zero : f.nat_degree = 0, exact (congr_arg polynomial.nat_degree rid).trans rfl,
+    -- rw f_nat_deg_zero at f_deg, linarith,
+    sorry --compiles, but slow, comment out to edit
+  },
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
   have hfℝ_nonzero : f_ℝ ≠ 0,
   {
@@ -417,6 +426,14 @@ begin
     -- clean hx0 a bit to be more usable,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
+    -- we have Df(x0) ≠ 0
+    have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
+    {
+      -- rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
+      -- rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
+      -- exact hfℝ_nonzero, linarith,
+      sorry,
+    },
 
     have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
     {
@@ -428,6 +445,34 @@ begin
       exact hfℝ_nonzero,
     },
 
+    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
+    {
+      rw [H2, abs_div],
+      have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1,
+      rw [<-hfℝ],
+      -- have ineq2 : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) > 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ),
+      -- type_check @div_le_iff ℝ _ (abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f))) (abs (polynomial.eval x0 Df_ℝ)),
+      
+      have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
+      {
+        -- have H := hM x0 _, exact H,
+        -- have h1 := hx0.1,
+        -- have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
+        -- have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
+        -- have h4 : set.Ioo (↑a / ↑b) α ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
+        -- exact set.mem_of_subset_of_mem h4 h1, split,
+        -- rw set.mem_Icc at hab0, exact hab0.1, linarith,
+        sorry,
+      },
+      
+      have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
+      suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      {
+        have ineq : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+        
+
+      }
+    }
   }
 
 
@@ -498,9 +543,6 @@ def divide_f_by_gcd_of_coeff_make_leading_term_pos (f : polynomial ℤ) : polyno
 -- begin
 --   rw [polynomial.nat_degree, polynomial.nat_degree],
 -- end
-
-
-#reduce (1: int) / (2 : int)
 
 -- lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime_trivial_subcase
 --   (α : real) (hα : irrational α) (f : polynomial ℤ) 
