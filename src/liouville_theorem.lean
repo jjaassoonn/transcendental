@@ -123,7 +123,7 @@ end
 
 open_locale big_operators
 
-private lemma sum_eq (S : finset ℕ) (f g : ℕ -> ℝ) : (∀ x ∈ S, f x = g x) -> S.sum f = S.sum g :=
+private lemma sum_eq (S : finset ℕ) (f g : ℕ -> ℝ) : (∀ x ∈ S, f x = g x) -> ∑ i in S, f i = ∑ i in S, g i :=
 begin
   intro h,
   have H := @finset.sum_congr _ _ S S f g _ _ h, exact H, refl,
@@ -138,101 +138,31 @@ end
 
 -- set_option pp.all true
 
-private lemma sum_a_pow_i_b_pow_n_sub_i (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval (↑a/↑b) ≠ 0) :
-  ∑ i in f.support, ((f.coeff i))*(a^i)*(b^(f.nat_degree - i)) ≠ 0 := sorry
+-- private lemma sum_a_pow_i_b_pow_n_sub_i (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval (↑a/↑b) ≠ 0) :
+--   ∑ i in f.support, ((f.coeff i))*(a^i)*(b^(f.nat_degree - i)) ≠ 0 := 
+-- begin
+
+-- end
+
+-- private lemma without_abs (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval (↑a/↑b) ≠ 0):
+--   ((f.map ℤembℝ).eval ((a:ℝ)/↑b)) = (b^f.nat_degree)⁻¹ * ∑ i in f.support, ((f.coeff i) : ℝ) * (a:ℝ)^i * (b:ℝ)^(f.nat_degree-i) :=
+
+-- begin
+--   rw [polynomial.eval_map, polynomial.eval₂, finsupp.sum], norm_num, 
+--   conv_rhs {rw mul_comm},rw finset.sum_mul, rw sum_eq,
+--   intros i hi, rw <-fpow_inv, have eq := @fpow_mul ℝ _ (b:ℝ) (f.nat_degree) (-1),
+
+-- end
 
 theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval (↑a/↑b) ≠ 0) :
-  abs ((f.map ℤembℝ).eval (↑a/↑b)) ≥ 1/(b^(f.nat_degree)) := -- sorry
+  @abs ℝ _ ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) ≥ 1/(b:ℝ)^f.nat_degree :=
 begin
-  have b_non_zero' : (b:ℝ) ≠ 0, norm_cast, linarith,
-  have eq : ((f.map ℤembℝ).eval (↑a/↑b)) = (∑ n in f.support, ℤembℝ (f.coeff n) * ↑a^n/↑b^n),
-  {
-    rw [polynomial.eval, polynomial.eval₂, finsupp.sum], simp, rw <-same_support,
-    rw sum_eq, intros n hn,
-    have H : (@coe_fn (polynomial ℝ) polynomial.coeff_coe_to_fun (f.map ℤembℝ))= (f.map ℤembℝ).coeff,
-    {
-      exact rfl,
-    },
-    rw H, replace H : (polynomial.map ℤembℝ f).coeff n = ↑(f.coeff n),
-    {
-      rw polynomial.coeff_map, simp,
-    },
-    rw H, ring,
-  },
-  rw eq, simp,
-  have eq2 : (∑ n in f.support, ℤembℝ (f.coeff n) * ↑a^n/↑b^n) = (∑ n in f.support, ((ℤembℝ (f.coeff n)) * (↑a^(n:ℤ) * ↑b^((f.nat_degree:ℤ)-n))) * (1/↑b^(f.nat_degree:ℤ))),
-  {
-    rw sum_eq, intros m hm,
-    -- have H : (polynomial.map ℤembℝ f).coeff m = ↑(f.coeff m), rw polynomial.coeff_map, simp,
-    -- simp only [eq,]
-    conv_lhs {
-      rw mul_div_assoc,
-    },
-    conv_rhs {rw mul_assoc},
-    have eq3 := @mul_div_assoc ℝ _ (↑a ^ (m:ℤ) * ↑b ^ ((f.nat_degree:ℤ) - m)) 1 (↑b ^ (f.nat_degree:ℤ)),
-    rw <-eq3,
-    simp only [mul_one],
-    conv_rhs {rw mul_div_assoc},
-    have eq2 := (small_things.pow_sub_ℝ ↑b b_non_zero' f.nat_degree m), 
-    conv_rhs {rw [eq2, div_div_eq_div_mul, (mul_comm (↑b ^ ↑m) (↑b ^ (f.nat_degree:ℤ))), <-div_div_eq_div_mul]},
-    -- have H := @div_div_cancel ℝ _ ((b : ℝ) ^ (f.nat_degree:ℤ)) ((b:ℝ) ^ (m:ℤ)) _, rw H,
-    have H := @div_self ℝ _ ((b:ℝ) ^ (f.nat_degree:ℤ)) _, rw [H],
-    replace H := @mul_div_assoc ℝ _ ((a:ℝ) ^ (m:ℤ)) 1 ((b:ℝ) ^ (m:ℤ)), rw <-H, simp,
-
-    have H := @pow_pos ℝ _ (b:ℝ) _ (f.nat_degree), have eq' : (b:ℝ) ^ (f.nat_degree:ℤ) = (b:ℝ) ^ f.nat_degree, simp, rw eq',
-    linarith, norm_cast, exact b_non_zero,
-  }, simp at eq2, rw eq2, rw [<-finset.sum_mul, mul_comm, abs_mul, abs_inv],
-  have eq4 : abs ((b:ℝ)^ f.nat_degree) = (b:ℝ) ^ f.nat_degree, rw abs_of_pos, 
-  have H := @pow_pos ℝ _ (b:ℝ) _ (f.nat_degree), exact H, norm_cast, assumption, rw eq4,
-  have eq4 : abs (∑ (x : ℕ) in f.support, (f.coeff x:ℝ) * ((a:ℝ) ^ (x:ℤ) * (b:ℝ) ^ ((f.nat_degree:ℤ) - x))) = 
-    (abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ (x:ℤ) * b ^ ((f.nat_degree:ℤ) - x))) : ℝ), simp,
-  have eq5 : abs (∑ (x : ℕ) in f.support, (f.coeff x:ℝ) * ((a:ℝ) ^ x * (b:ℝ) ^ ((f.nat_degree:ℤ) - ↑x))) = 
-    abs (∑ (x : ℕ) in f.support, (f.coeff x:ℝ) * ((a:ℝ) ^ (x:ℤ) * (b:ℝ) ^ ((f.nat_degree:ℤ) - ↑x))), norm_num, rw eq5, rw eq4,
-
-  -- suffices ineq : 1 ≤ (abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ (x:ℤ) * b ^ ((f.nat_degree:ℤ) - x))) : ℝ),
-
-  apply (le_mul_iff_one_le_right _).2, have eq6 := sum_a_pow_i_b_pow_n_sub_i f f_deg a b b_non_zero a_div_b_not_root,
-  by_contra rid, simp at rid,
-  -- the integer version
-  have eq' : (abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ x * b ^ ((f.nat_degree) - x))):ℝ) = abs (∑ (x : ℕ) in f.support, (f.coeff x:ℝ) * ((a:ℝ) ^ x * (b:ℝ) ^ ((f.nat_degree:ℤ) - ↑x))),
-  {
-    -- rw sum_eq,
-    sorry,
-  },
-  
-  have rid' : abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ x * b ^ ((f.nat_degree) - x))) < 1,
-  {
-    suffices rid'' : ((abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ x * b ^ ((f.nat_degree) - x)))) : ℝ) < 1,
-    norm_cast at rid'', sorry,
-  },
-  -- replace eq6 := abs_pos_iff.2 eq6, norm_cast,
-  -- have eq6' : abs (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)) ≥ 1,
-  -- {
-  --   linarith,
-  -- },
-  -- have eq7 : abs (∑ (x : ℕ) in f.support, (f.coeff x:ℝ) * ((a:ℝ) ^ (x:ℤ) * ↑b ^ ((f.nat_degree:ℤ) - x))) = abs (∑ (x : ℕ) in f.support, ((f.coeff x) * (a ^ x * ↑b ^ (f.nat_degree - x)):ℝ)),
-  -- rw sum_eq, intros i hi, simp,
-  -- {
-  --   have triv : ((f.nat_degree:ℤ) - ↑i) = (int.of_nat (f.nat_degree - (i:ℕ))), rw int.of_nat_sub, simp,
-  --   have H := @polynomial.le_nat_degree_of_ne_zero ℤ i _ f _, exact H, rw finsupp.mem_support_iff at hi,
-  --   rw polynomial.coeff, exact hi, rw triv, simp,
-  -- },
-  -- rw eq7,
-  -- have eq8 : abs (∑ (x : ℕ) in f.support, ((f.coeff x) * (a ^ x * ↑b ^ (f.nat_degree - x))):ℝ) 
-  --   = ((abs (∑ (x : ℕ) in f.support, (f.coeff x) * (a ^ x * ↑b ^ (f.nat_degree - x)))) : ℝ),
-  -- {
-  --   simp,
-  -- },
-  -- rw eq8,
-  -- norm_cast,
   sorry,
-
-  -- simp, have H := @pow_pos ℝ _ (b:ℝ) _ (f.nat_degree), exact H, norm_cast, assumption,
 end
 
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
-  ∃ A : real, ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := -- sorry -- compiles in terminal but is very slow
+  ∃ A : real, A > 0 ∧ ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := -- sorry -- compiles in terminal but is very slow
 begin
   have f_nonzero : f ≠ 0,
   {
@@ -346,7 +276,10 @@ begin
     rw <-hB, assumption,
   },
   generalize hA : B / 2 = A,
-  use A,
+  use A, split,
+  -- A > 0
+  rw [<-hA], apply half_pos, assumption,
+
   by_contra absurd, simp at absurd,
   choose a ha using absurd,
   choose b hb using ha,
@@ -613,7 +546,7 @@ begin
       exact @polynomial.differentiable_on ℝ _ (set.Ioo α (↑a / ↑b)) f_ℝ,
     },
   },
-
+done
 end
 
 
@@ -753,12 +686,42 @@ begin
   have about_root : f_eval_on_ℝ f x = 0,
   {
     rw f_eval_on_ℝ, have H := hf.2, rw [polynomial.aeval_def] at H,
-    rw [polynomial.eval, polynomial.eval₂_map], rw [polynomial.eval₂, finsupp.sum] at H ⊢, rw [<-H, sum_eq],  
-    -- rw <-H, rw sum_eq,
+    rw [polynomial.eval, polynomial.eval₂_map], rw [polynomial.eval₂, finsupp.sum] at H ⊢, rw [<-H, sum_eq], 
     intros m hm, simp,
   },
 
   choose A hA using about_irrational_root x irr_x f f_deg about_root,
+  have A_pos := hA.1,
+  have exists_r := pow_big_enough A A_pos,
+  choose r hr using exists_r,
+  have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
+  generalize hm : r + f.nat_degree = m, rw liouville_number at li_x,
+  replace li_x := li_x m,
+  choose a ha using li_x,
+  choose b hb using ha,
+
+  have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
+  have eq1 := div_mul_eq_div_mul_one_div' 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
+  -- since b > 1, 1/b^r ≤ 1/2^r
+  have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),
+  {
+    apply (@one_div_le_one_div ℝ _ ((b:ℝ)^r) ((2:ℝ)^r) _ _).2,
+    suffices suff : 2 ^ r ≤ b^r,  norm_cast, norm_num, exact suff,
+    have ineq' := @pow_le_pow_of_le_left ℝ _ 2 b _ _ r, norm_cast at ineq', norm_num at ineq', exact ineq',
+    linarith, norm_cast, linarith, norm_cast, apply pow_pos, linarith, apply pow_pos, linarith,
+  },
+  have ineq3 : 1 / ↑b ^ r ≤ A, exact le_trans ineq2 hr',
+  have ineq4 : 1 / ↑b ^ r * (1 / ↑b ^ f.nat_degree) ≤ A * (1 / ↑b ^ f.nat_degree),
+  {
+    have H := (@mul_le_mul_right ℝ _ (1 / ↑b ^ r) A (1 / ↑b ^ f.nat_degree) _).2 ineq3, exact H,
+    apply div_pos, linarith, norm_cast, apply pow_pos, linarith,
+  },
+  conv_rhs at ineq4 {
+    rw <-mul_div_assoc, rw mul_one
+  },
+  have ineq5 :  abs (x - ↑a / ↑b) < A / ↑b ^ f.nat_degree, linarith,
+  have rid := hA.2 a b _, linarith, linarith,
+done
 end
 
 

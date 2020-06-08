@@ -3,6 +3,7 @@ import data.real.basic
 import data.finset
 import data.int.gcd
 import algebra.gcd_domain
+import data.finsupp algebra.big_operators
 import data.polynomial
 import tactic
 
@@ -252,8 +253,6 @@ begin
     exact gcd_assoc z1 z2 z3
 end
 
-#reduce gcd_int_int_int 0 (-5)
-#reduce @abs ℤ _ (-1)
 @[simp] theorem gcd_int_int_int_0_n (n : ℤ) : gcd_int_int_int 0 n = abs n :=
 begin
     rw [gcd_int_int_int, int.gcd_zero_left], simp, rw int.abs_eq_nat_abs,
@@ -266,7 +265,6 @@ begin
     apply int.dvd_of_mod_eq_zero, rw [int.mod_abs], exact int.mod_self,
 end
 
-#reduce gcd_int_int_int (gcd_int_int_int (-3: int) 6) (-3 : int)
 -- set_option trace.simplify true
 @[simp] theorem gcd_int_int_int_idem (m n : ℤ) :
     gcd_int_int_int (gcd_int_int_int m n) n = gcd_int_int_int m n :=
@@ -319,7 +317,6 @@ begin
     exact gcd_of_insert_a_S_2 S a h, assumption,
 end
 
-#reduce gcd_of_list ∅
 theorem gcd_of_list_dvd_mem_of_list (S : finset ℤ) : ∀ (s ∈ S), gcd_of_list S ∣ s :=
 begin
     apply finset.induction_on S,
@@ -354,5 +351,21 @@ begin
     rw [int.gcd_eq_zero_iff] at absurd, exact ih absurd.2, assumption,
 end
 end gcd_int
+
+
+-- archmedian-like
+theorem pow_big_enough (A : ℝ) (A_pos : A > 0) : ∃ r : nat, 1/A ≤ 2 ^ r :=
+begin
+    have H := @pow_unbounded_of_one_lt ℝ _ _ (1/A) 2 _,
+    choose n hn using H,
+    use n, exact le_of_lt hn, exact lt_add_one 1,
+end
+
+
+theorem eval_sum_eq_sum_eval (S : finset (polynomial ℝ)) (x : ℝ) : polynomial.eval x (S.sum id) = S.sum (λ f, polynomial.eval x f) := 
+begin
+    apply finset.induction_on S, simp,
+    intros a T ha ih, rw finset.sum_insert, rw polynomial.eval_add, simp, rw finset.sum_insert, simp, exact ih, assumption, assumption,
+end
 
 end small_things
