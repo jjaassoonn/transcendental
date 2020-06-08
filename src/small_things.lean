@@ -70,7 +70,7 @@ theorem inf_set_cannot_be_subset_of_fin_set {a : Type} {inst : infinite a} (S : 
 begin
     by_contra absurd,
     generalize hf : set.inclusion absurd = f,
-    type_check set.finite.fintype hT,
+    -- type_check set.finite.fintype hT,
     have absurd2 := @not_injective_infinite_fintype ↥S _ _ (set.finite.fintype hT) f,
     rw <-hf at absurd2,
     have contra := set.inclusion_injective absurd, simpa,
@@ -201,17 +201,22 @@ end
 
 
 -- power manipulation
-theorem pow_sub_ℝ (r : ℝ) (hr : r ≠ 0) (m n : ℕ) : r^(m-n) = r^m / r^n :=
+theorem pow_sub_ℝ (r : ℝ) (hr : r ≠ 0) (m n : ℤ) : r^(m-n) = r^m / r^n :=
 begin
-    sorry,
+    exact @fpow_sub ℝ _ r hr m n,
+end
+
+@[simp] theorem triv (r : ℝ) (hr : r ≠ 0) (n : ℕ) : r ^ n = r ^ (n : ℤ) :=
+begin
+    induction n with n hn, simp, simp, rw pow_succ,
+    rw fpow_add, rw hn, simp, rw mul_comm, exact hr,
 end
 
 
 -- inequality
-lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : a > b) (b_nonneg : b ≥ 0) (hc : c > 0) : a / c > b / c :=
+lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : a ≥ b) (b_nonneg : b ≥ 0) (hc : c > 0) : a / c ≥ b / c :=
 begin
-    have H := @div_lt_div ℝ _ b c a c hab _ _ hc,
-    exact H, exact le_refl c, exact le_of_lt (gt_of_gt_of_ge hab b_nonneg),
+    apply div_le_div, linarith, linarith, linarith, linarith,
 end
 
 namespace gcd_int

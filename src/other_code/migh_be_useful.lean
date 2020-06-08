@@ -355,3 +355,95 @@
 -- begin
 --   choose p hp using (minimal_polynomial_of_x x).mp hx,
 -- end
+
+
+
+
+-- #reduce (polynomial ℤ)
+
+-- def divide_f_by_gcd_of_coeff_make_leading_term_pos (f : polynomial ℤ) : polynomial ℤ :=
+-- {
+--   to_fun := (λ n, if f.coeff (f.nat_degree) > 0 
+--                   then f.coeff n / gcd_int.gcd_of_list (list_coeff f)
+--                   else -(f.coeff n / gcd_int.gcd_of_list (list_coeff f))),
+--   support := f.support,
+--   mem_support_to_fun :=
+--   begin
+--     intro n, split,
+--     by_cases (f.coeff (f.nat_degree) > 0), rename h pos,
+--     {
+--       intro hn, have h := (f.3 n).1 hn, simp [pos],
+--       have H := @int.div_eq_iff_eq_mul_left (f.coeff n) (gcd_int.gcd_of_list (list_coeff f)) 0 (gcd_int.gcd_of_list_non_zero (list_coeff f))
+--         (gcd_int.gcd_of_list_dvd_mem_of_list (list_coeff f) (f.coeff n) (coeff_in_list_coeff f n hn)),
+--       intro absurd,
+--       replace absurd := H.1 absurd, simp at absurd,
+--       exact h absurd,
+--     },
+--     rename h neg,
+--     {
+--       intro hn, simp [neg],
+--       have h := (f.3 n).1 hn,
+--       have H := @int.div_eq_iff_eq_mul_left (f.coeff n) (gcd_int.gcd_of_list (list_coeff f)) 0 (gcd_int.gcd_of_list_non_zero (list_coeff f))
+--         (gcd_int.gcd_of_list_dvd_mem_of_list (list_coeff f) (f.coeff n) (coeff_in_list_coeff f n hn)),
+--       intro absurd,
+--       replace absurd := H.1 absurd, simp at absurd,
+--       exact h absurd,
+--     },
+--     by_cases (f.coeff (f.nat_degree) > 0), rename h pos,
+--     {
+--       contrapose,
+--       intro hn, simp [pos],
+--       have h := (not_in_support_iff_coeff_zero f n).2 hn, rw h, norm_num,
+--     }, rename h neg,
+--     {
+--       contrapose,
+--       intro hn, simp [neg],
+--       have h := (not_in_support_iff_coeff_zero f n).2 hn, rw h, norm_num,
+--     }
+--   end
+-- }
+
+-- def neg_f (f : polynomial ℤ) : polynomial ℤ :=
+-- {
+--   support := f.support,
+--   to_fun := (λ n, - (f.coeff n)),
+--   mem_support_to_fun :=
+--   begin
+--     intro n, split,
+--     {
+--       intro hn,  exact norm_num.ne_zero_neg (polynomial.coeff f n) ((f.3 n).1 hn),
+--     },
+--     {
+--       intro hn, have h := norm_num.ne_zero_neg (-f.coeff n) hn, simp at h, exact finsupp.mem_support_iff.mpr h,
+--     }
+--   end
+-- }
+
+-- lemma neg_f_f_have_same_nat_deg (f : polynomial ℤ) (n : ℕ) : f.nat_degree = (-f).nat_degree :=
+-- begin
+--   rw [polynomial.nat_degree, polynomial.nat_degree],
+-- end
+
+-- lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime_trivial_subcase
+--   (α : real) (hα : irrational α) (f : polynomial ℤ) 
+--   (f_nonzero : f ≠ 0)
+--   (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
+--   (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
+--   (α_root : (f.map ℤembℝ).eval α = 0) :
+--   ∀ a b : ℤ, b > 0 -> abs(α - a / b) ≥ 1 -> abs(α - a / b) > (1 / b ^ (f.nat_degree)) := 
+-- begin
+--   intros a b hb h,
+--   sorry
+-- end
+
+-- lemma about_irrational_root_f_leading_term_pos_all_coeffs_coprime
+--   (α : real) (hα : irrational α) (f : polynomial ℤ) 
+--   (f_nonzero : f ≠ 0)
+--   (f_leading_term_pos : f.coeff (f.nat_degree) > 0)
+--   (f_coeffs_coprime : gcd_int.gcd_of_list (list_coeff f) = 1)
+--   (α_root : (f.map ℤembℝ).eval α = 0) :
+--   ∃ A : real, ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := 
+
+-- begin
+
+-- end
