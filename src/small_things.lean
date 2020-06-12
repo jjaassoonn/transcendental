@@ -23,6 +23,16 @@ begin
   intros m n, norm_num,
 end
 
+theorem ℤembℝ_inj : function.injective ℤembℝ :=
+begin
+    intros a b h, simp at h, assumption,
+end
+
+theorem ℤembℝ_zero : ℤembℝ 0 = 0 := 
+begin 
+    norm_num,
+end
+
 
 -- compute list of coeff of a polynomial
 def list_coeff (f : polynomial ℤ) : (finset ℤ) := f.support.image f.to_fun
@@ -362,10 +372,10 @@ begin
 end
 
 
-theorem eval_sum_eq_sum_eval (S : finset (polynomial ℝ)) (x : ℝ) : polynomial.eval x (S.sum id) = S.sum (λ f, polynomial.eval x f) := 
-begin
-    apply finset.induction_on S, simp,
-    intros a T ha ih, rw finset.sum_insert, rw polynomial.eval_add, simp, rw finset.sum_insert, simp, exact ih, assumption, assumption,
-end
+-- theorem eval_sum_eq_sum_eval (S : finset (polynomial ℝ)) (x : ℝ) : polynomial.eval x (S.sum id) = S.sum (λ f, polynomial.eval x f) := 
+-- begin
+--     apply finset.induction_on S, simp,
+--     intros a T ha ih, rw finset.sum_insert, rw polynomial.eval_add, simp, rw finset.sum_insert, simp, exact ih, assumption, assumption,
+-- end
 
 end small_things
