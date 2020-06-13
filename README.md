@@ -12,8 +12,19 @@ This project is to prove several theorems in transcendental number theory:
 ## Part 1, countability argument:
 The main theorem is in [algebraic_countable.lean](https://github.com/jjaassoonn/transcendental/blob/1d649f2e168383c5322cc96351b98447944a845c/src/algebraic_coutable.lean#L890)
 ```lean
-theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic rat x) 
+theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℚ x) 
 ```
 
 ## Part 2, Liouville theorem and an explicit Liouville number:
+Definition of the explicit liouville number is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/897722f8ed408607ec0a0d30e200e41aa49ed9e3/src/liouville_theorem.lean#L863)
 
+```lean
+def α := ∑' n, ten_pow_n_fact_inverse n
+```
+
+The main theorem is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/897722f8ed408607ec0a0d30e200e41aa49ed9e3/src/liouville_theorem.lean#L694):
+```lean
+theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> ¬(is_algebraic ℤ x)
+
+theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
+```

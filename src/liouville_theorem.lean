@@ -1132,5 +1132,5 @@ begin
   },
   done
 end
-
+ 
 theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
