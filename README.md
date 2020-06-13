@@ -5,7 +5,7 @@
 
 This project is to prove several theorems in transcendental number theory:
 1. [x] Countability argument: abstract existence of transcendental number;
-2. [ ] Liouvielly theorem and hence ![](https://latex.codecogs.com/gif.latex?\sum_{i=0}^\infty&space;\frac{1}{2^{n!}}) is transcendental;
+2. [x] Liouvielly theorem and hence ![](https://latex.codecogs.com/gif.latex?\sum_{i=0}^\infty&space;\frac{1}{10^{n!}}) is transcendental;
 3. [ ] ![](https://latex.codecogs.com/gif.latex?e) is transcendental;
 4. [ ] ![](https://latex.codecogs.com/gif.latex?\pi) is transcendental.
 
@@ -14,3 +14,6 @@ The main theorem is in [algebraic_countable.lean](https://github.com/jjaassoonn/
 ```lean
 theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic rat x) 
 ```
+
+## Part 2, Liouville theorem and an explicit Liouville number:
+
