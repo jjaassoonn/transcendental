@@ -233,392 +233,392 @@ end
 
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
-  ∃ A : real, A > 0 ∧ ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := sorry -- compiles in terminal but is very slow
--- begin
---   have f_nonzero : f ≠ 0,
---   {
---     by_contra rid,
---     simp at rid, have f_nat_deg_zero : f.nat_degree = 0, exact (congr_arg polynomial.nat_degree rid).trans rfl,
---     rw f_nat_deg_zero at f_deg, linarith,
---   },
---   generalize hfℝ: f.map ℤembℝ = f_ℝ,
---   have hfℝ_nonzero : f_ℝ ≠ 0,
---   {
---     by_contra absurd, simp at absurd, rw [polynomial.ext_iff] at absurd,
---     have absurd2 : f = 0,
---     {
---       ext, replace absurd := absurd n, simp at absurd ⊢,
---       rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
---       simp at absurd, exact absurd,
---     },
---     exact f_nonzero absurd2,
---   },
---   generalize hDf: f_ℝ.derivative = Df_ℝ,
---   have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) 
---               begin rw set.nonempty, use α, rw set.mem_Icc, split, linarith, linarith end
---               (abs_f_eval_around_α_continuous Df_ℝ α),
+  ∃ A : real, A > 0 ∧ ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) := -- sorry -- compiles in terminal but is very slow
+begin
+  have f_nonzero : f ≠ 0,
+  {
+    by_contra rid,
+    simp at rid, have f_nat_deg_zero : f.nat_degree = 0, exact (congr_arg polynomial.nat_degree rid).trans rfl,
+    rw f_nat_deg_zero at f_deg, linarith,
+  },
+  generalize hfℝ: f.map ℤembℝ = f_ℝ,
+  have hfℝ_nonzero : f_ℝ ≠ 0,
+  {
+    by_contra absurd, simp at absurd, rw [polynomial.ext_iff] at absurd,
+    have absurd2 : f = 0,
+    {
+      ext, replace absurd := absurd n, simp at absurd ⊢,
+      rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
+      simp at absurd, exact absurd,
+    },
+    exact f_nonzero absurd2,
+  },
+  generalize hDf: f_ℝ.derivative = Df_ℝ,
+  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) 
+              begin rw set.nonempty, use α, rw set.mem_Icc, split, linarith, linarith end
+              (abs_f_eval_around_α_continuous Df_ℝ α),
 
---   choose x_max hx_max using H,
---   generalize M_def: abs (Df_ℝ.eval x_max) = M,
---   have hM := hx_max.2, rw M_def at hM,
---   have M_non_zero : M ≠ 0,
---   {
---     by_contra absurd,
---     simp at absurd, rw absurd at hM,
---     replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
---     {
---       intros y hy,
---       have H := hM y hy, simp at H, rw H,
---     },
---     replace hM : Df_ℝ = 0,
---     {
---       exact f_zero_on_interval_f_zero Df_ℝ hM,
---     },
---     rename hM Df_ℝ_zero,
---     have f_ℝ_0 : f_ℝ.nat_degree = 0,
---     {
---       have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
---       rw [<-hDf] at Df_ℝ_zero, assumption,
---     },
---     replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,
---     choose c hc using f_ℝ_0,
---     -- f = c constant
---     -- c must be 0 because f(α) = 0
---     have absurd2 : c = 0,
---     {
---       rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp at α_root, assumption,
---     },
---     -- if c is zero contradiction to f_nonzero
---     -- {
---     rw absurd2 at hc,
---     have f_zero : f = 0,
---     {
---       ext,
---       have f_ℝ_n : f_ℝ.coeff n = 0, 
---       have H := @polynomial.coeff_map _ _ _ f _ ℤembℝ n,
---       rw [hfℝ, hc] at H, simp at H, 
---       rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp at H ⊢, norm_cast at H, exact eq.symm H,
---       simp, rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n] at f_ℝ_n, simp at f_ℝ_n, assumption,
---     },
---     exact f_nonzero f_zero,
+  choose x_max hx_max using H,
+  generalize M_def: abs (Df_ℝ.eval x_max) = M,
+  have hM := hx_max.2, rw M_def at hM,
+  have M_non_zero : M ≠ 0,
+  {
+    by_contra absurd,
+    simp at absurd, rw absurd at hM,
+    replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
+    {
+      intros y hy,
+      have H := hM y hy, simp at H, rw H,
+    },
+    replace hM : Df_ℝ = 0,
+    {
+      exact f_zero_on_interval_f_zero Df_ℝ hM,
+    },
+    rename hM Df_ℝ_zero,
+    have f_ℝ_0 : f_ℝ.nat_degree = 0,
+    {
+      have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
+      rw [<-hDf] at Df_ℝ_zero, assumption,
+    },
+    replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,
+    choose c hc using f_ℝ_0,
+    -- f = c constant
+    -- c must be 0 because f(α) = 0
+    have absurd2 : c = 0,
+    {
+      rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp at α_root, assumption,
+    },
+    -- if c is zero contradiction to f_nonzero
+    -- {
+    rw absurd2 at hc,
+    have f_zero : f = 0,
+    {
+      ext,
+      have f_ℝ_n : f_ℝ.coeff n = 0, 
+      have H := @polynomial.coeff_map _ _ _ f _ ℤembℝ n,
+      rw [hfℝ, hc] at H, simp at H, 
+      rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp at H ⊢, norm_cast at H, exact eq.symm H,
+      simp, rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n] at f_ℝ_n, simp at f_ℝ_n, assumption,
+    },
+    exact f_nonzero f_zero,
     
---   },
---   have M_pos : M > 0,
---   {
---     rw <-M_def at M_non_zero ⊢,
---     have H := abs_pos_iff.2 M_non_zero, simp [abs_abs] at H, exact H,
---   },
---   generalize roots_def :  f_ℝ.roots = f_roots,
---   generalize roots'_def : f_roots.erase α = f_roots', 
---   generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
---   generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
---   have hnon_empty: distances'.nonempty,
---   {
---     rw <-hdistances',
---     rw [finset.nonempty], use (1/M), simp,
---   },
---   generalize hB : finset.min' distances' hnon_empty = B,
---   have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,
---   {
---     intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
---     cases hx,
---     {
---       -- 1 / M
---       rw hx, simp, exact M_pos,
---     },
---     cases hx,
---     {
---       -- 1
---       rw hx, exact zero_lt_one,
---     },
---     {
---       -- x is abs (root - α) with root not α
---       simp [<-roots_distance_to_α] at hx,
---       choose α0 hα0 using hx,
---       rw [<-roots'_def, finset.mem_erase] at hα0,
---       rw <-(hα0.2), simp, apply (@abs_pos_iff ℝ _ (α - α0)).2,
---       by_contra absurd, simp at absurd, rw sub_eq_zero_iff_eq at absurd,
---       have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
---     },
---   },
---   have B_pos : B > 0,
---   {
---     have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
---     rw <-hB, assumption,
---   },
---   generalize hA : B / 2 = A,
---   use A, split,
---   -- A > 0
---   rw [<-hA], apply half_pos, assumption,
+  },
+  have M_pos : M > 0,
+  {
+    rw <-M_def at M_non_zero ⊢,
+    have H := abs_pos_iff.2 M_non_zero, simp [abs_abs] at H, exact H,
+  },
+  generalize roots_def :  f_ℝ.roots = f_roots,
+  generalize roots'_def : f_roots.erase α = f_roots', 
+  generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
+  generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
+  have hnon_empty: distances'.nonempty,
+  {
+    rw <-hdistances',
+    rw [finset.nonempty], use (1/M), simp,
+  },
+  generalize hB : finset.min' distances' hnon_empty = B,
+  have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,
+  {
+    intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
+    cases hx,
+    {
+      -- 1 / M
+      rw hx, simp, exact M_pos,
+    },
+    cases hx,
+    {
+      -- 1
+      rw hx, exact zero_lt_one,
+    },
+    {
+      -- x is abs (root - α) with root not α
+      simp [<-roots_distance_to_α] at hx,
+      choose α0 hα0 using hx,
+      rw [<-roots'_def, finset.mem_erase] at hα0,
+      rw <-(hα0.2), simp, apply (@abs_pos_iff ℝ _ (α - α0)).2,
+      by_contra absurd, simp at absurd, rw sub_eq_zero_iff_eq at absurd,
+      have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
+    },
+  },
+  have B_pos : B > 0,
+  {
+    have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
+    rw <-hB, assumption,
+  },
+  generalize hA : B / 2 = A,
+  use A, split,
+  -- A > 0
+  rw [<-hA], apply half_pos, assumption,
 
---   by_contra absurd, simp at absurd,
---   choose a ha using absurd,
---   choose b hb using ha,
+  by_contra absurd, simp at absurd,
+  choose a ha using absurd,
+  choose b hb using ha,
 
 
---   have hb2 : b ^ f.nat_degree ≥ 1,
---   {
---     rw <-(pow_zero b),
---     have hbge1 : b ≥ 1 := hb.1,
---     have htrivial : 0 ≤ f.nat_degree := by exact bot_le,
---     exact pow_le_pow hbge1 htrivial,
---   },
---   have hb21 : abs (α - a / b) ≤ A,
---   {
---     suffices H : (A / b ^ f.nat_degree) ≤ A,
---     have H2 := hb.2, exact le_trans H2 H,
---     apply (@div_le_iff ℝ _ A (b ^ f.nat_degree) A _).2,
---     apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at hb2 ⊢, exact hb2,
---     norm_cast, linarith, norm_cast, linarith,
---   },
---   have hb21' : abs (α - a / b) ≤ A / (b^f.nat_degree),
---   {
---     exact hb.2,
---   },
+  have hb2 : b ^ f.nat_degree ≥ 1,
+  {
+    rw <-(pow_zero b),
+    have hbge1 : b ≥ 1 := hb.1,
+    have htrivial : 0 ≤ f.nat_degree := by exact bot_le,
+    exact pow_le_pow hbge1 htrivial,
+  },
+  have hb21 : abs (α - a / b) ≤ A,
+  {
+    suffices H : (A / b ^ f.nat_degree) ≤ A,
+    have H2 := hb.2, exact le_trans H2 H,
+    apply (@div_le_iff ℝ _ A (b ^ f.nat_degree) A _).2,
+    apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at hb2 ⊢, exact hb2,
+    norm_cast, linarith, norm_cast, linarith,
+  },
+  have hb21' : abs (α - a / b) ≤ A / (b^f.nat_degree),
+  {
+    exact hb.2,
+  },
 
---   have hb22 : abs (α - a/b) < B,
---   {
---     have H := half_lt_self B_pos, rw hA at H, exact gt_of_gt_of_ge H hb21,
---   },
---   -- then a / b is in [α-1, α+1]
---   have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),
---   {
---     suffices H : abs (α - a/b) ≤ 1, 
---     have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
---     rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, eq1, abs_neg], exact H,
---     suffices : B ≤ 1, linarith,
---     rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
---     rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
---   },
---   -- a/b is not a root
---   have hab1 : (↑a/↑b:ℝ) ≠ α,
---   {
---     have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
---   },
---   have hab2 : (↑a/↑b:ℝ) ∉ f_roots,
---   {
---     by_contra absurd,
---     have H : ↑a/↑b ∈ f_roots',
---     {
---       rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
---     },
---     have H2 : abs (α - ↑a/↑b) ∈ distances',
---     {
---       rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
---       rw [<-roots_distance_to_α, finset.mem_image], use ↑a/↑b, split, exact H, refl,
---     },
---     have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,
---     rw hB at H3, linarith,
---   },
---   -- either α > a/b or α < a/b, two cases essentially have the same proof
---   have hab3 := ne_iff_lt_or_gt.1 hab1,
---   cases hab3,
---   {
---     -- α > a/b subcase
---     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
---     choose x0 hx0 using H,
---     have hx0l := hx0.1,
---     have hx0r := hx0.2,
---     -- clean hx0 a bit to be more usable,
---     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
---     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
---     -- we have Df(x0) ≠ 0
---     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
---     {
---       rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
---       rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
---       exact hfℝ_nonzero, linarith,
---       -- sorry,
---     },
+  have hb22 : abs (α - a/b) < B,
+  {
+    have H := half_lt_self B_pos, rw hA at H, exact gt_of_gt_of_ge H hb21,
+  },
+  -- then a / b is in [α-1, α+1]
+  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),
+  {
+    suffices H : abs (α - a/b) ≤ 1, 
+    have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
+    rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, eq1, abs_neg], exact H,
+    suffices : B ≤ 1, linarith,
+    rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
+    rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
+  },
+  -- a/b is not a root
+  have hab1 : (↑a/↑b:ℝ) ≠ α,
+  {
+    have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
+  },
+  have hab2 : (↑a/↑b:ℝ) ∉ f_roots,
+  {
+    by_contra absurd,
+    have H : ↑a/↑b ∈ f_roots',
+    {
+      rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
+    },
+    have H2 : abs (α - ↑a/↑b) ∈ distances',
+    {
+      rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
+      rw [<-roots_distance_to_α, finset.mem_image], use ↑a/↑b, split, exact H, refl,
+    },
+    have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,
+    rw hB at H3, linarith,
+  },
+  -- either α > a/b or α < a/b, two cases essentially have the same proof
+  have hab3 := ne_iff_lt_or_gt.1 hab1,
+  cases hab3,
+  {
+    -- α > a/b subcase
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
+    choose x0 hx0 using H,
+    have hx0l := hx0.1,
+    have hx0r := hx0.2,
+    -- clean hx0 a bit to be more usable,
+    rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
+    rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
+    -- we have Df(x0) ≠ 0
+    have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
+    {
+      rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
+      rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
+      exact hfℝ_nonzero, linarith,
+      -- sorry,
+    },
 
---     have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
---     {
---       norm_num [hx0r], 
---       rw [neg_div, div_neg, abs_neg, div_div_cancel'],
---       rw [<-roots_def] at hab2, by_contra absurd, simp at absurd,
---       have H := polynomial.mem_roots _, rw polynomial.is_root at H,
---       replace H := H.2 absurd, exact hab2 H,
---       exact hfℝ_nonzero,
---     },
+    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
+    {
+      norm_num [hx0r], 
+      rw [neg_div, div_neg, abs_neg, div_div_cancel'],
+      rw [<-roots_def] at hab2, by_contra absurd, simp at absurd,
+      have H := polynomial.mem_roots _, rw polynomial.is_root at H,
+      replace H := H.2 absurd, exact hab2 H,
+      exact hfℝ_nonzero,
+    },
 
---     have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
---     {
---       rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
---       exact hab2 rid, exact hfℝ_nonzero,
---     },
+    have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
+    {
+      rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
+      exact hab2 rid, exact hfℝ_nonzero,
+    },
 
---     have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
---     {
---       rw [H2, abs_div],
---       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
---       rw [<-hfℝ],
---       -- have ineq2 : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) > 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ),
---       -- type_check @div_le_iff ℝ _ (abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f))) (abs (polynomial.eval x0 Df_ℝ)),
+    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
+    {
+      rw [H2, abs_div],
+      have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
+      rw [<-hfℝ],
+      -- have ineq2 : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) > 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ),
+      -- type_check @div_le_iff ℝ _ (abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f))) (abs (polynomial.eval x0 Df_ℝ)),
       
---       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
---       {
---         have H := hM x0 _, exact H,
---         have h1 := hx0.1,
---         have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
---         have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
---         have h4 : set.Ioo (↑a / ↑b) α ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
---         exact set.mem_of_subset_of_mem h4 h1, split,
---         rw set.mem_Icc at hab0, exact hab0.1, linarith,
---         -- sorry,
---       },
+      have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
+      {
+        have H := hM x0 _, exact H,
+        have h1 := hx0.1,
+        have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
+        have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
+        have h4 : set.Ioo (↑a / ↑b) α ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
+        exact set.mem_of_subset_of_mem h4 h1, split,
+        rw set.mem_Icc at hab0, exact hab0.1, linarith,
+        -- sorry,
+      },
       
---       have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
---       suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
---       {
---         have ineq : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
---         linarith,
---         exact ineq,
---       },
---       rw [div_div_eq_div_mul] at ineq3,
---       have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
---       {
---         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
---         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
---         replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
---         exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
---         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
---       },
---       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
---       exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
---     },
+      have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
+      suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      {
+        have ineq : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+        linarith,
+        exact ineq,
+      },
+      rw [div_div_eq_div_mul] at ineq3,
+      have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      {
+        rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
+        have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
+        replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
+        exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
+        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
+      },
+      rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
+      exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+    },
 
---     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
---     {
---       have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
---       have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
---       rw [<-hdistances', finset.mem_insert], left, refl,
---       have ineq3 : A < 1/M, linarith,
---       rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
---       rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
---     },
---     -- hb21 : abs (α - ↑a / ↑b) ≤ A,
---     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree,
---     {
---       linarith,
---     },
---     have ineq4 : abs (α - a / b) > abs (α - a / b), {linarith}, linarith,
+    have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
+    {
+      have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
+      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
+      rw [<-hdistances', finset.mem_insert], left, refl,
+      have ineq3 : A < 1/M, linarith,
+      rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
+      rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
+    },
+    -- hb21 : abs (α - ↑a / ↑b) ≤ A,
+    have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree,
+    {
+      linarith,
+    },
+    have ineq4 : abs (α - a / b) > abs (α - a / b), {linarith}, linarith,
 
 
---     -- continuity
---     {
---       exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,
---     },
+    -- continuity
+    {
+      exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,
+    },
 
---     -- differentiable
---     {
---       exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,
---     },
---   },
+    -- differentiable
+    {
+      exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,
+    },
+  },
 
---   {
---     -- α < a/b subcase
---     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
---     choose x0 hx0 using H,
---     have hx0l := hx0.1,
---     have hx0r := hx0.2,
---     -- clean hx0 a bit to be more usable,
---     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
---     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
---     -- we have Df(x0) ≠ 0
---     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
---     {
---       rw hx0r, intro rid, rw [div_eq_zero_iff] at rid,
---       rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
---       exact hfℝ_nonzero, linarith,
---       -- sorry,
---     },
+  {
+    -- α < a/b subcase
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
+    choose x0 hx0 using H,
+    have hx0l := hx0.1,
+    have hx0r := hx0.2,
+    -- clean hx0 a bit to be more usable,
+    rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
+    rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp at hx0r,
+    -- we have Df(x0) ≠ 0
+    have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
+    {
+      rw hx0r, intro rid, rw [div_eq_zero_iff] at rid,
+      rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
+      exact hfℝ_nonzero, linarith,
+      -- sorry,
+    },
 
---     have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
---     {
---       norm_num [hx0r], 
---       rw [div_div_cancel'], have : ↑a / ↑b - α = - (α - ↑a / ↑b), linarith, rw [this, abs_neg],
---       by_contra absurd, simp at absurd,
---       have H := polynomial.mem_roots _, rw polynomial.is_root at H,
---       replace H := H.2 absurd, rw roots_def at H, exact hab2 H,
---       exact hfℝ_nonzero,
---     },
+    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
+    {
+      norm_num [hx0r], 
+      rw [div_div_cancel'], have : ↑a / ↑b - α = - (α - ↑a / ↑b), linarith, rw [this, abs_neg],
+      by_contra absurd, simp at absurd,
+      have H := polynomial.mem_roots _, rw polynomial.is_root at H,
+      replace H := H.2 absurd, rw roots_def at H, exact hab2 H,
+      exact hfℝ_nonzero,
+    },
 
---     have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
---     {
---       rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
---       exact hab2 rid, exact hfℝ_nonzero,
---     },
+    have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
+    {
+      rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
+      exact hab2 rid, exact hfℝ_nonzero,
+    },
 
---     have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
---     {
---       rw [H2, abs_div],
---       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
---       rw [<-hfℝ],
---       -- have ineq2 : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) > 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ),
---       -- type_check @div_le_iff ℝ _ (abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f))) (abs (polynomial.eval x0 Df_ℝ)),
+    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
+    {
+      rw [H2, abs_div],
+      have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
+      rw [<-hfℝ],
+      -- have ineq2 : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) > 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ),
+      -- type_check @div_le_iff ℝ _ (abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f))) (abs (polynomial.eval x0 Df_ℝ)),
       
---       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
---       {
---         have H := hM x0 _, exact H,
---         have h1 := hx0.1,
---         have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
---         have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
---         have h4 : set.Ioo α (↑a / ↑b) ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
---         exact set.mem_of_subset_of_mem h4 h1, split,
---         rw set.mem_Icc at hab0, linarith,
---         exact (set.mem_Icc.1 hab0).2,
---         -- sorry,
---       },
+      have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
+      {
+        have H := hM x0 _, exact H,
+        have h1 := hx0.1,
+        have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
+        have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
+        have h4 : set.Ioo α (↑a / ↑b) ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
+        exact set.mem_of_subset_of_mem h4 h1, split,
+        rw set.mem_Icc at hab0, linarith,
+        exact (set.mem_Icc.1 hab0).2,
+        -- sorry,
+      },
       
---       have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
---       suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
---       {
---         have ineq : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
---         linarith,
---         exact ineq,
---       },
---       rw [div_div_eq_div_mul] at ineq3,
---       have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
---       {
---         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
---         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
---         replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
---         exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
---         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
---       },
---       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
---       exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
---     },
+      have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
+      suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      {
+        have ineq : abs (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f)) / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+        linarith,
+        exact ineq,
+      },
+      rw [div_div_eq_div_mul] at ineq3,
+      have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      {
+        rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
+        have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
+        replace ineq := pow_pos hb.1 f.nat_degree, norm_cast, exact ineq, have ineq' : (b:ℝ) ^ f.nat_degree > 0, norm_cast,
+        exact pow_pos hb.1 f.nat_degree, exact (mul_pos M_pos ineq'),
+        apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
+      },
+      rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
+      exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+    },
 
---     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
---     {
---       have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
---       have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
---       rw [<-hdistances', finset.mem_insert], left, refl,
---       have ineq3 : A < 1/M, linarith,
---       rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
---       rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
---     },
---     -- hb21 : abs (α - ↑a / ↑b) ≤ A,
---     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree,
---     {
---       linarith,
---     },
---     have ineq4 : abs (α - a / b) > abs (α - a / b), {linarith}, linarith,
+    have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
+    {
+      have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
+      have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
+      rw [<-hdistances', finset.mem_insert], left, refl,
+      have ineq3 : A < 1/M, linarith,
+      rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
+      rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
+    },
+    -- hb21 : abs (α - ↑a / ↑b) ≤ A,
+    have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree,
+    {
+      linarith,
+    },
+    have ineq4 : abs (α - a / b) > abs (α - a / b), {linarith}, linarith,
 
 
---     -- continuity
---     {
---       exact @polynomial.continuous_on ℝ _ (set.Icc α (↑a / ↑b)) f_ℝ,
---     },
+    -- continuity
+    {
+      exact @polynomial.continuous_on ℝ _ (set.Icc α (↑a / ↑b)) f_ℝ,
+    },
 
---     -- differentiable
---     {
---       exact @polynomial.differentiable_on ℝ _ (set.Ioo α (↑a / ↑b)) f_ℝ,
---     },
---   },
--- done
--- end
+    -- differentiable
+    {
+      exact @polynomial.differentiable_on ℝ _ (set.Ioo α (↑a / ↑b)) f_ℝ,
+    },
+  },
+done
+end
 
 
 
@@ -838,10 +838,10 @@ begin
   rw h, simp, norm_num,
   -- if n > 0
   have n_pos : n > 0 := by exact bot_lt_iff_ne_bot.mpr h,
-  have H := (@inv_le_inv ℝ _ (2 ^ n.fact) (2 ^ n) _ _).2 _, exact H,
-  have H := @pow_pos ℝ _ 2 _ n.fact,  exact H, exact two_pos,
-  have H := @pow_pos ℝ _ 2 _ n, exact H, exact two_pos,
-  have H := @pow_le_pow ℝ _ 2 n n.fact _ _, exact H, norm_num, exact useless_elsewhere n,
+  have H := (@inv_le_inv ℝ _ (10 ^ n.fact) (10 ^ n) _ _).2 _, exact H,
+  have H := @pow_pos ℝ _ 10 _ n.fact,  exact H, linarith,
+  have H := @pow_pos ℝ _ 10 _ n, exact H, linarith,
+  have H := @pow_le_pow ℝ _ 10 n n.fact _ _, exact H, norm_num, exact useless_elsewhere n,
 end
 
 -- Σᵢ 1/10ⁱ exists
@@ -851,13 +851,15 @@ begin
   rw abs_of_pos, linarith, linarith,
 end
 
--- Hence Σᵢ 1/2^i! exists by comparison test
+def β : ℝ := classical.some summable_ten_pow_n_inverse
+
+-- Hence Σᵢ 1/10^i! exists by comparison test
 theorem summable_ten_pow_n_fact_inverse : summable ten_pow_n_fact_inverse :=
 begin
   exact @summable_of_nonneg_of_le _ ten_pow_n_inverse ten_pow_n_fact_inverse ten_pow_n_fact_inverse_ge_0 ten_pow_n_fact_inverse_le_ten_pow_n_inverse summable_ten_pow_n_inverse,
 end
 
--- define α to be Σᵢ 1/2^i!
+-- define α to be Σᵢ 1/10^i!
 def α := ∑' n, ten_pow_n_fact_inverse n
 
 
@@ -904,6 +906,21 @@ begin
   have H := has_sum_ite_eq 0 (f 0), exact H,
 end
 
+private lemma sum_eq_sum (f g : ℕ -> ℝ) (h : ∀ x, f x = g x) : (∑' i, f i) = (∑' i, g i) :=
+begin
+  have h' : f = g, ext, exact h x, rw h',
+end
+
+theorem β_eq :  (∑' (b : ℕ), ten_pow_n_inverse b) = (10 / 9:ℝ) :=
+begin
+  have eq0 := @tsum_geometric_of_abs_lt_1 (1/10) _,
+  have eq1 : (∑' (n : ℕ), (1 / 10:ℝ) ^ n) = (∑' (b : ℕ), ten_pow_n_inverse b),
+  {
+    rw sum_eq_sum, intro i, rw ten_pow_n_inverse,
+  }, 
+  rw eq1 at eq0, rw eq0, norm_num, rw abs_of_pos, linarith, linarith,
+end
+
 theorem α_k_rest_pos (k : ℕ) : α_k_rest k > 0 :=
 begin
   rw α_k_rest,
@@ -932,13 +949,118 @@ begin
   have h : n.fact > 0, exact nat.fact_pos n, exact h
 end
 
-private lemma useless3 (n : ℕ) : 2^(n.fact) > 1 :=
+private lemma useless3 (n : ℕ) : 10^(n.fact) > 1 :=
 begin
   induction n with n h,
   simp, simp, rw nat.pow_mul, 
-  have h' := @nat.lt_pow_self (2 ^ n.succ) _ n.fact,
-  have ineq := useless3' n, have ineq2 : 1 < (2 ^ n.succ) ^ n.fact, exact gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 0
+  have h' := @nat.lt_pow_self (10 ^ n.succ) _ n.fact,
+  have ineq := useless3' n, have ineq2 : 1 < (10 ^ n.succ) ^ n.fact, exact gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 8,
   
+end
+
+private lemma nat.fact_succ' (n : ℕ) : n.succ.fact = n.fact * n.succ :=
+begin
+  rw nat.fact_succ, ring,
+end
+
+
+private lemma lemma_ineq3 (n:ℕ) : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) :=
+begin
+  rw tsum_mul_right,
+  have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp, rw <-nat.fact_succ,
+  rw div_le_div_iff, norm_cast, conv_rhs {rw <-nat.mul_assoc},
+  have triv : 2 * 9 = 18 := by norm_num, rw triv,
+  apply nat.mul_le_mul, linarith, linarith,
+  {
+    have triv : ∀ m : ℕ, 0 ≤ 10 ^ m, intro m, induction m with m hm, simp, simp, exact triv (nat.succ n).fact,
+  },
+  linarith,
+  {
+    apply mul_pos, linarith, apply pow_pos, linarith,
+  },
+  apply pow_pos, linarith,
+  have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b), ext, rw ten_pow_n_inverse,
+  rw <-triv, exact h,
+end
+
+private lemma aux_ineq (n:ℕ) : 2 < 10 ^ n.fact := 
+begin
+  induction n with n ih, simp,
+  rw [nat.fact_succ, nat.pow_mul],
+  have ineq : 10 ^ n.fact ≤ (10 ^ n.succ) ^ n.fact, rw nat.pow_le_iff_le_left,
+  {
+    have h : ∀ m : ℕ, 10 ≤ 10 ^ m.succ,
+    {
+      intro m, induction m with m hm, simp, rw nat.pow_succ, linarith,
+    },
+    exact h n
+  },
+  {
+    have h := nat.fact_pos n, linarith,
+  },
+
+  linarith,  
+end
+
+private lemma lemma_ineq4 (n:ℕ) : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) :=
+begin
+  rw div_lt_div_iff, rw one_mul,
+  conv_rhs {rw nat.succ_eq_add_one, rw mul_add, rw pow_add, rw mul_one, rw pow_mul, rw mul_comm},
+  apply mul_lt_mul,
+  {
+    norm_cast,
+    exact aux_ineq n,
+  },
+  {
+    linarith,
+  },
+  {
+    apply pow_pos, apply pow_pos, linarith,
+  },
+  {
+    apply pow_nonneg, linarith,
+  },
+  {
+    apply pow_pos, linarith,
+  },
+  {
+    apply pow_pos, apply pow_pos, linarith
+  }
+end
+
+private lemma ineq_i (i n : ℕ) : i + n.succ.fact ≤ (i + n.succ).fact :=
+begin
+  induction n with n hn, simp, rw <-nat.succ_eq_add_one, have h := (@nat.mul_le_mul_right 1 i.fact i.succ) _, rw [one_mul, mul_comm] at h, exact h, 
+  replace h := nat.fact_pos i, exact h,
+
+  generalize hm : n.succ = m, rw hm at hn,
+  have triv : i + m.succ = (m+i).succ, rw nat.add_succ, rw add_comm, rw triv, 
+  conv_rhs {
+    rw nat.fact_succ, rw nat.succ_eq_add_one,
+  },
+
+  have ineq1 : (m + i + 1) * (i + m.fact) ≤ (m + i + 1) * (m + i).fact,
+  {
+    apply mul_le_mul, linarith, rw add_comm m, assumption, linarith, linarith,
+  },
+  suffices ineq2 : i + m.succ.fact ≤ (m + i + 1) * (i + m.fact),
+  {
+    exact le_trans ineq2 ineq1,
+  },
+  rw mul_add,
+  have ineq2 : (m + i + 1) * m.fact ≤ (m + i + 1) * i + (m + i + 1) * m.fact,
+  {
+    apply nat.le_add_left,
+  },
+  suffices ineq3 : i + m.succ.fact ≤ (m + i + 1) * m.fact,
+  {
+    exact le_trans ineq3 ineq2,
+  },
+  replace triv :  (m + i + 1) = (m + 1 + i), ring, rw triv, rw add_mul, rw <-nat.succ_eq_add_one, rw <-nat.fact_succ, rw add_comm,
+  apply add_le_add, linarith, 
+  replace triv := (@nat.mul_le_mul_right 1 m.fact i) _, simp at triv, rw mul_comm at triv, exact triv,
+
+  replace triv := nat.fact_pos m, exact triv,
 end
 
 -- Then α is a Liouville number hence a transcendental number.
@@ -948,7 +1070,7 @@ begin
 
   have lemma1 := α_k_rat n,
   choose p hp using lemma1,
-  use p, use 2^(n.fact),
+  use p, use 10^(n.fact),
   have lemma2 := α_truncate_wd n,
   split,
   {
@@ -968,12 +1090,47 @@ begin
       {
         rw abs_of_pos, exact α_k_rest_pos n,
       },
-      rw triv,
+      rw triv, rw α_k_rest,
+
+      have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
+      {
+        apply tsum_le_tsum, intro i,
+        rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
+        {
+          rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
+          exact ineq_i _ _,
+        },
+        apply pow_pos, linarith, rw <-pow_add, apply pow_pos, linarith,
+        -- exact ten_pow_n_fact_inverse_le_ten_pow_n_inverse (i + (n + 1)),
+        exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (n+1)).2 summable_ten_pow_n_fact_inverse,
+        {
+          have s0 : summable (λ (b : ℕ), (1 / 10:ℝ) ^ b),
+          {
+            have triv : (λ (b : ℕ), (1 / 10:ℝ) ^ b) = ten_pow_n_inverse, ext, rw ten_pow_n_inverse, rw triv,
+            exact summable_ten_pow_n_inverse,
+          },
+        
+          apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).fact > 0, apply pow_pos, linarith, linarith,
+        }
+      },
+      have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ),
+      {
+        exact lemma_ineq3 _,
+      },
+      rw nat.fact_succ' at ineq3,
+      have ineq4 : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n),
+      {
+        exact lemma_ineq4 _,
+      },
+      have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) < (1 / ((10:ℝ) ^ n.fact) ^ n),
+      {
+        apply @lt_of_le_of_lt ℝ _ (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) (∑' (i : ℕ), (1 / 10) ^ i * (1 / 10) ^ (n + 1).fact) (1 / (10 ^ n.fact) ^ n),
+        exact ineq2, norm_cast at ineq2 ineq3 ineq4 ⊢, rw <-nat.succ_eq_add_one, rw nat.fact_succ', exact gt_of_gt_of_ge ineq4 ineq3,
+      },
+      norm_cast at ineq5, simp at ineq5 ⊢, exact ineq5,
     }
-  }
-  -- generalize hα_fin : α_k n = αfin,
-  -- use αfin.num, use αfin.denom,
-  -- split, norm_cast, type_check αfin.3,
+  },
+  done
 end
 
 theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
