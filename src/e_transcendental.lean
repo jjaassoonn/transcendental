@@ -35,12 +35,12 @@ begin
   refine hf a _ ha.2, simp at ha ⊢, exact nat.lt.step ha.left,
 end
 
-def f_p (p : ℕ) (hp : prime p) (n : ℕ): polynomial ℤ := polynomial.X ^ (p - 1) * (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1)))^p)
+def f_p (p : ℕ) (hp : nat.prime p) (n : ℕ): polynomial ℤ := polynomial.X ^ (p - 1) * (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p)
 
-theorem deg_f_p (p : ℕ) (hp : prime p) (n : ℕ) : (f_p p hp n).nat_degree = (n+1)*p - 1 :=
+theorem deg_f_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p hp n).nat_degree = (n+1)*p - 1 :=
 begin
   rw f_p,
-  have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1)))^p) _ _,
+  have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
   
   rw eq1,
   have triv : (polynomial.X : polynomial ℤ).degree = 1,
@@ -62,34 +62,51 @@ begin
   have triv' : (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree 
               = ∑ i in finset.range n, ((polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree,
   {
-    apply prod_deg, intros i hi, intro rid, replace rid := @pow_eq_zero (polynomial ℤ) _ (polynomial.X - polynomial.C ↑i) p rid,
+    apply prod_deg, 
+    intros i hi, intro rid, 
+    replace rid := @pow_eq_zero (polynomial ℤ) _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
     rw sub_eq_zero_iff_eq at rid,
-    have rid' : (polynomial.C (i:ℤ)).nat_degree = 1, rw <-rid, exact triv, simp at rid', exact rid',
-  },
+    have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
+    rw <-rid, exact triv, have rid'' := polynomial.nat_degree_C (i+1:ℤ), rw rid' at rid'', linarith,
+  }, simp at triv',
   rw triv',
-  have triv'' : (∑ (i : ℕ) in finset.range n.succ, ((polynomial.X - polynomial.C (i:ℤ)) ^ p).nat_degree) = ∑ i in finset.range n.succ, p,
+  have triv'' : (∑ (x : ℕ) in finset.range n, p * (polynomial.X - (polynomial.C ↑x + 1)).nat_degree) = ∑ x in finset.range n, p,
   {
     apply congr_arg, ext, rename x i,
-    rw polynomial.nat_degree_pow_eq,
-    
-
-    have tirv_d : (polynomial.X - polynomial.C (i:ℤ)).degree = 1,
+    have eq1 : (polynomial.X - (polynomial.C (i:ℤ) + 1)) =  (polynomial.X - (polynomial.C (i + 1:ℤ))),
     {
-      cases i, norm_cast, simp,
+      simp,
+    },
+    rw eq1,
+    have deg1 : (polynomial.X - polynomial.C (i + 1:ℤ)).degree = 1,
+    {
       apply polynomial.degree_X_sub_C,
     },
-    replace tirv_d : (polynomial.X - polynomial.C (i:int)).nat_degree = 1,
+    have deg2 : (polynomial.X - polynomial.C (i + 1:ℤ)).nat_degree = 1,
     {
-      rw polynomial.nat_degree, rw tirv_d, exact rfl,
+      rw polynomial.nat_degree, rw deg1, exact rfl,
     },
-    rw tirv_d, simp,
+    rw deg2, rw mul_one,
   },
-  rw triv'',
-  rw finset.sum_const, simp, rw nat.succ_eq_add_one, 
+  rw triv'', rw finset.sum_const, simp, ring, have eq2 := (@nat.add_sub_assoc p 1 _ (p*n)),
+  rw eq2, rw add_comm,
+  linarith [((@nat.prime_def_lt p).1 hp).1],
+
+  {
+    intro rid, replace rid := pow_eq_zero rid, exact polynomial.X_ne_zero rid,
+  },
+
+  {
+    intro rid, rw finset.prod_eq_zero_iff at rid,
+    choose i hi using rid,
+    have hi1 := hi.1, have hi2 := hi.2, replace hi2 := pow_eq_zero hi2,
+    have deg1 := polynomial.degree_X_sub_C (i+1:ℤ), rw hi2 at deg1, simp at deg1,
+    have triv := @ne_bot_of_gt ℕ _ 0 1 _, exact option.not_mem_none 1 deg1, exact lt_add_one 0,
+  }
 end
 
 
-def J (g : polynomial ℤ) (p : ℕ) (hp : prime p) : ℝ := 
+def J (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : ℝ := 
   ∑ i in finset.range g.nat_degree.succ, (g.coeff i : ℝ) * (II (f_p p hp g.nat_degree) i (nonneg_nat i))
 
 
