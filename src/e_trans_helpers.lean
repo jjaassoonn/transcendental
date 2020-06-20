@@ -14,9 +14,30 @@ local attribute [instance] classical.prop_decidable
 open small_things
 open_locale big_operators
 
+theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
+begin
+exact finset.sum_congr rfl h,
+end
+
 
 -- derivative n times
 def deriv_n (f : polynomial ℤ) (n : ℕ) : polynomial ℤ := polynomial.derivative ^[n] f
+
+lemma deriv_zero (f : polynomial ℤ) : deriv_n f 0 = f :=
+begin
+    rw deriv_n, simp,
+end
+
+lemma deriv_succ (f : polynomial ℤ) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
+begin
+    rw deriv_n, rw deriv_n, rw function.iterate_succ',
+end
+
+lemma deriv_zero_p (n : ℕ) : deriv_n 0 n = 0 :=
+begin
+    induction n with n hn; simp [deriv_n], rw <-deriv_n, assumption,
+end
+
 
 lemma deriv_n_coeff (f : polynomial ℤ) (k : ℕ) : ∀ n : ℕ, (deriv_n f k).coeff n = (∏ i in finset.range k, (n+k-i)) * (f.coeff (n+k)) :=
 begin
@@ -49,13 +70,6 @@ private lemma deriv_too_much (a : ℤ) : (deriv_n (polynomial.C a) ((polynomial.
 begin
     simp, rw deriv_n, simp,
 end
-
--- private lemma deriv_too_much_add (p q : polynomial ℤ) (hp : (deriv_n p (p.nat_degree + 1)) = 0) (hq : (deriv_n q (q.nat_degree + 1)) = 0) :
---     (deriv_n (p+q) ((p+q).nat_degree + 1)) = 0 :=
--- begin
---     rw deriv_n_add,
-
--- end
 
 theorem deriv_too_much (f : polynomial ℤ): (deriv_n f (f.nat_degree + 1)) = 0 :=
 begin
@@ -372,3 +386,90 @@ begin
 end
 
 
+------ about differentiation
+
+private lemma nat_sub_eq (n i : ℕ) (h : i + 1 ≤ n) : (n - (i + 1) + 1) = n - i :=
+begin
+    have triv : n - (i+1) = n - i - 1, exact rfl,
+    rw triv, apply nat.sub_add_cancel, exact nat.le_sub_left_of_add_le h,
+end
+
+private lemma nat_choose_eq (n k : ℕ) : (n.choose (k+1)) + (n.choose k) = (n+1).choose (k+1) :=
+begin
+    exact add_comm (nat.choose n (k + 1)) (nat.choose n k),
+end
+
+
+theorem deriv_n_poly_prod (p q : polynomial ℤ) (n : ℕ) : deriv_n (p * q) n = ∑ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) :=
+begin
+    induction n with n IH,
+    simp [deriv_zero],
+
+    {
+        rw deriv_n, rw function.iterate_succ', simp, rw <-deriv_n,
+        rw IH, simp, rw finset.sum_add_distrib,
+        conv_lhs {rw finset.sum_range_succ', rw finset.sum_range_succ, simp[deriv_zero]},
+        have eq1 :
+        ∑ (i : ℕ) in finset.range n,
+          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1) +
+        (deriv_n p n).derivative * q +
+        (p * (deriv_n q n).derivative +
+         ∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) = 
+        (∑ (i : ℕ) in finset.range n,
+          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1)) +
+        (∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) +
+        ((deriv_n p n).derivative * q + (p * (deriv_n q n).derivative)),
+        {
+            ring,
+        },
+        rw eq1,
+        rw <-finset.sum_add_distrib,
+
+        
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - (x + 1))).derivative * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative)) =
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))),
+        {
+            apply finset.sum_congr, exact rfl, intros i hi, simp [deriv_succ], simp at hi,
+            replace hi : i + 1 ≤ n,
+            {
+                exact hi,
+            },
+            rw nat_sub_eq, exact hi,
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, ring,
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, simp,
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C ((n+1).choose (x + 1):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, rw <-nat_choose_eq, simp,
+        }, rw eq,
+
+        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp [deriv_succ, deriv_zero, nat.succ_eq_add_one], ring,6
+    }
+end
