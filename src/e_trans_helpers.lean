@@ -65,7 +65,6 @@ begin
     rw [deriv_n, deriv_n, deriv_n, function.iterate_succ'], simp, rw [<-deriv_n,<-deriv_n,<-deriv_n, ih], simp, 
 end
 
-
 private lemma deriv_too_much (a : ℤ) : (deriv_n (polynomial.C a) ((polynomial.C a).nat_degree + 1)) = 0 :=
 begin
     simp, rw deriv_n, simp,
@@ -470,6 +469,6 @@ begin
             apply congr_arg, rw function.funext_iff, intro i, rw <-nat_choose_eq, simp,
         }, rw eq,
 
-        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp [deriv_succ, deriv_zero, nat.succ_eq_add_one], ring,6
+        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp [deriv_succ, deriv_zero, nat.succ_eq_add_one], ring,
     }
 end
