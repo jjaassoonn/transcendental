@@ -384,7 +384,6 @@ begin
     exact le_trans (abs_II_le1 f t ht) (II_le2' f t ht),
 end
 
-
 ------ about differentiation
 
 private lemma nat_sub_eq (n i : ℕ) (h : i + 1 ≤ n) : (n - (i + 1) + 1) = n - i :=

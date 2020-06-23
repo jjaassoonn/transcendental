@@ -38,7 +38,6 @@ end
 
 def f_p (p : ℕ) (hp : nat.prime p) (n : ℕ): polynomial ℤ := polynomial.X ^ (p - 1) * (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p)
 
-
 theorem f_eval_on_ℝ_add (f g : polynomial ℤ) (t : ℝ) : f_eval_on_ℝ (f + g) t = (f_eval_on_ℝ f t) + (f_eval_on_ℝ g t) :=
 begin
   simp [f_eval_on_ℝ],
@@ -128,9 +127,61 @@ begin
   }
 end
 
+-- theorem f_bar_p (p : ℕ) (hp : nat.prime p) (n i : ℕ) : i ≤ n -> polynomial.eval (i : ℤ) (f_bar (f_p p hp n)) ≤ (2*n:ℤ)^(f_p p hp n).nat_degree :=
+-- begin
+--   generalize hfp : f_p p hp n = fp,
+--   generalize hm : fp.nat_degree = m,
+--   induction n with n IH,
+--   {
+--     simp, intro hi, rw hi, rw <-hfp at hm, rw deg_f_p at hm, simp at hm, rw zero_pow, simp [f_p] at hfp, rw <-hfp,
+--     simp [f_bar],
+--   }
+-- end
+
+
 
 def J (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : ℝ := 
   ∑ i in finset.range g.nat_degree.succ, (g.coeff i : ℝ) * (II (f_p p hp g.nat_degree) i (nonneg_nat i))
+
+
+theorem abs_J_ineq1' (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) :
+  abs (J g p hp) ≤ ∑ i in finset.range g.nat_degree.succ, (abs (g.coeff i)) * (i : ℝ) * (i:ℝ).exp * (f_eval_on_ℝ (f_bar (f_p p hp g.nat_degree)) (i:ℝ)) :=
+begin
+  have ineq1 : abs (J g p hp) ≤ (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ) * (II (f_p p hp g.nat_degree) i (nonneg_nat i)))),
+  {
+    apply finset.abs_sum_le_sum_abs,
+  },
+
+  have triv : 
+    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ) * (II (f_p p hp g.nat_degree) i (nonneg_nat i)))) =
+    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * abs((II (f_p p hp g.nat_degree) i (nonneg_nat i)))),
+  {
+    apply finset.sum_congr, refl, intros, rw abs_mul,
+  },
+
+  rw triv at ineq1,
+
+  have ineq2:
+    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * abs((II (f_p p hp g.nat_degree) i (nonneg_nat i)))) ≤
+    (∑ i in finset.range g.nat_degree.succ, abs ((g.coeff i : ℝ)) * (i:ℝ)*(i:ℝ).exp * (f_eval_on_ℝ (f_bar (f_p p hp g.nat_degree)) (i:ℝ))),
+  {
+    apply finset.sum_le_sum, intros x hx, replace triv : (x:ℝ) ≥ 0, {norm_cast, exact bot_le,},
+    have ineq3 := abs_II_le2 (f_p p hp g.nat_degree) (x:ℝ) triv, 
+    have triv2 : (II (f_p p hp g.nat_degree) ↑x _) = (II (f_p p hp g.nat_degree) ↑x triv),
+    {
+      rw II,
+    }, rw triv2, rw mul_assoc, rw mul_assoc, apply mul_le_mul, exact le_refl (abs ↑(polynomial.coeff g x)),
+    rw <-mul_assoc, exact ineq3, exact abs_nonneg (II (f_p p hp (polynomial.nat_degree g)) ↑x triv), exact abs_nonneg _,
+  },
+  exact le_trans ineq1 ineq2,
+end
+
+
+-- lemma coe_f_eval (f : polynomial ℤ) (i : ℕ) : f_eval_on_ℝ f (i:ℝ) = ((@polynomial.eval ℤ _ (i : ℤ) f):ℝ) :=
+-- begin
+--   simp [f_eval_on_ℝ], 
+-- end
+
 
 private lemma J_eq1 (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : 
   (J g p hp) = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p hp g.nat_degree) i (nonneg_nat i)) :=
@@ -194,6 +245,7 @@ theorem J_eq (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0
 begin
   rw J_eq1, rw J_eq2, rw J_eq3, simp, apply congr_arg, ext, rw finset.mul_sum, assumption,
 end
+
 
 
 theorem sum_swap_index (s1 s2 : finset ℕ) (g : ℕ -> ℕ -> ℝ) : ∑ i in s1, (∑ j in s2, g i j) = ∑ j in s2, (∑ i in s1, g i j) :=
@@ -261,22 +313,6 @@ begin
   intros a s ha ih, rw finset.prod_insert, rw polynomial.eval_mul, rw ih, rw finset.prod_insert, exact ha, exact ha,
 end
 
--- private theorem deriv_X_2_0 : deriv_n (polynomial.X^2) 0 = (polynomial.X)^2 := 
--- begin
---   simp [deriv_zero],
--- end
-
--- private theorem deriv_X_2_1 : deriv_n ((polynomial.X:polynomial ℤ)^2) 1 = 2 • (polynomial.X:polynomial ℤ) :=
--- begin
---   simp [deriv_n, polynomial.derivative], rw finsupp.sum,
---   have triv : ((polynomial.X:polynomial ℤ) ^ 2).support = ({2}:finset ℕ),
---   {
-    
---   }
--- end
--- | deriv_n 1 (polynomial.X^2) = 2 • polynomial.X := sorry
--- | deriv_n 2 (polynomial.X^2) = polynomial.C 2 := sorry
-
 private lemma succ_pred (a b : ℕ) (h : a.succ = b) : a = b.pred :=
 begin
   induction a with a IH, rw [<-h], exact rfl, exact (congr_arg nat.pred h).congr_right.mp rfl,
@@ -318,11 +354,29 @@ begin
   rw deriv_X_pow, ext, rw polynomial.coeff_smul,  rw polynomial.coeff_C_mul, assumption,
 end
 
--- lemma coeff_X_sub_pow (n i : ℕ) (c : ℤ) : ((polynomial.X - polynomial.C c)^n).coeff i = (n.choose i : ℤ) * (-c)^(n-i) :=
--- begin
---   induction n with n ih, simp,
---   split_ifs, rw h, simp, simp, have eq := nat.choose_zero_succ i.pred,
--- end
+lemma deriv_X_pow_too_much (n : ℕ) (k : ℕ) (hk : k > n) :
+  (deriv_n (polynomial.X^n) k) = 0 :=
+begin
+  induction k with k IH, exfalso, linarith,
+  {
+    replace hk : n ≤ k,
+    {
+      exact nat.lt_succ_iff.mp hk,
+    },
+    replace hk : n < k ∨ n = k,
+    {
+      exact lt_or_eq_of_le hk,
+    },
+    cases hk,
+    {
+      have IH' := IH hk,
+      rw <-deriv_succ, rw IH', simp,
+    },
+    {
+      rw <-hk, rw <-deriv_succ, rw deriv_X_pow', simp, exact le_refl n,
+    }
+  }
+end
 
 lemma deriv1_X_sub_pow (c:ℤ) (m:ℕ) : ((polynomial.X - polynomial.C c)^m).derivative = (polynomial.C (m:ℤ)) * (polynomial.X - polynomial.C c)^ (m-1) :=
 begin
@@ -352,10 +406,13 @@ begin
     {
       rw this, ring,
     },
-    have triv : (polynomial.C (n:ℤ) - polynomial.C (k:ℤ)) = (polynomial.C (n-k:ℤ)), simp,
-    ext, rename n_1 m, rw triv, rw polynomial.coeff_C_mul, rw polynomial.coeff_derivative,
-    
-
+    have triv : (polynomial.C (n:ℤ) - polynomial.C (k:ℤ)) = (polynomial.C (n-k:ℤ)), simp, rw deriv1_X_sub_pow, rw triv,
+    suffices : polynomial.C ↑(n - k) = polynomial.C (n - k:ℤ),
+    {
+      rw this, refl,
+    },
+    ext, rw polynomial.coeff_C, split_ifs, rw h, simp,
+    suffices : int.of_nat (n-k) = ↑n - ↑k, rw <-this, simp, apply int.of_nat_sub, exact le_of_lt hk, rw polynomial.coeff_C, simp [h], exact le_of_lt hk,
   },
 end
 
@@ -450,15 +507,193 @@ begin
   },
 end
 
+lemma fact_eq_prod (n : ℕ) : (n.fact:ℤ) = ∏ i in finset.range n, (i+1:ℤ) :=
+begin
+  induction n with n ih, simp,
+  {
+    rw nat.fact_succ, rw finset.prod_range_succ, simp, rw ih,
+  },
+end
+
+lemma fact_eq_prod' (n : ℕ) : (n.fact:ℤ) = ∏ i in finset.range n, (n-i:ℤ) :=
+begin
+  induction n with n ih, simp,
+  {
+    rw nat.fact_succ, rw finset.prod_range_succ', simp, rw ih, rw mul_comm,
+  },
+end
+
+theorem deriv_f_p_p_sub1_0 (p : ℕ) (hp : nat.prime p) (n : ℕ) : 
+  polynomial.eval 0 (deriv_n (f_p  p hp n) (p-1)) = (p-1).fact * (-1)^(n*p)*(n.fact)^p :=
+begin
+  rw f_p, rw deriv_n_poly_prod, rw eval_sum',
+  have triv : ∑ (i : ℕ) in
+      finset.range (p - 1).succ,
+      polynomial.eval 0
+        (polynomial.C ↑((p - 1).choose i) * deriv_n (polynomial.X ^ (p - 1)) (p - 1 - i) *
+           deriv_n (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (↑i + 1)) ^ p) i) = 
+      ∑ (i : ℕ) in
+      finset.range (p - 1).succ,
+      polynomial.eval 0
+        (polynomial.C ↑((p - 1).choose i) * deriv_n (polynomial.X ^ (p - 1)) (p - 1 - i)) *
+      polynomial.eval 0 (deriv_n (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (↑i + 1)) ^ p) i),
+  {
+    apply congr_arg, ext, rw polynomial.eval_mul,
+  }, rw triv,
+
+  replace triv : ((p - 1).fact:ℤ) * (-1) ^ (n * p) * (n.fact:ℤ) ^ p = ∑ i in finset.range 1, polynomial.eval 0 (polynomial.C ↑((p - 1).choose i) * deriv_n (polynomial.X ^ (p - 1)) (p - 1 - i)) *
+        polynomial.eval 0 (deriv_n (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (↑i + 1)) ^ p) i),
+  {
+    simp, simp [deriv_zero], rw eval_prod', simp,
+    have eq1 : ∏ (x : ℕ) in finset.range n, (-1 + -(x:ℤ)) ^ p = ∏ (x : ℕ) in finset.range n, (-(1+x)) ^ p,
+    {
+      apply congr_arg, ext, simp, rw add_comm,
+    },
+    rw eq1,
+    replace eq1 : ∏ (x : ℕ) in finset.range n, (-(1+x:ℤ)) ^ p = ∏ (x : ℕ) in finset.range n, (-1)^p * (1+x:ℤ) ^ p,
+    {
+      apply congr_arg, ext, rw neg_pow,
+    }, rw eq1, rw finset.prod_mul_distrib, simp, rw <-pow_mul, rw mul_comm p n, rw finset.prod_pow,
+    replace eq1 : (∏ (x : ℕ) in finset.range n, (1 + x:ℤ)) = (n.fact:ℤ),
+    {
+      rw fact_eq_prod, apply congr_arg, ext, rw add_comm,
+    }, rw eq1,
+    rw deriv_X_pow', rw polynomial.eval_mul, simp, rw <-fact_eq_prod', exact mul_assoc ↑((p - 1).fact) ((-1) ^ (n * p)) (↑(nat.fact n) ^ p),
+    exact le_refl (p - 1),
+  },
+  rw triv, apply eq.symm, apply finset.sum_subset, simp, intros x hx1 hx2,rw deriv_X_pow', rw polynomial.eval_mul, simp, left, right, right,
+  apply zero_pow, simp at hx1 hx2 ⊢, replace triv : (p-1).succ = p, 
+  {
+    rw nat.sub_one, apply nat.succ_pred_eq_of_pos, exact nat.prime.pos hp, 
+  }, rw triv at hx1, suffices : (p - 1 - x) < p - 1, exact nat.sub_pos_of_lt this,
+  replace triv : x ≤ p - 1, exact nat.le_pred_of_lt hx1, apply nat.sub_lt_of_pos_le, exact bot_lt_iff_ne_bot.mpr hx2, assumption, exact (p - 1).sub_le x,
+end
+
+theorem f_p_n_succ (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p hp n.succ) = (f_p p hp n) * (polynomial.X- polynomial.C (n+1:ℤ))^p :=
+begin
+  rw f_p, rw f_p, rw finset.prod_range_succ, ring,
+end
+
+
+
+
+theorem deriv_f_p_sub1 (p : ℕ) (hp : nat.prime p) (n : ℕ) : ∀ x : ℕ, ∀ j : ℕ, j < p ->
+  x > 0 -> x < n.succ -> polynomial.eval (x:ℤ) (deriv_n (f_p p hp n) j) = 0 :=
+begin
+  induction n with n hn,
+  {
+    intros x j hj hx1 hx2,
+    rw f_p, linarith,
+  },
+  {
+    intros x j hj hx1 hx2,
+    rw f_p_n_succ, rw deriv_n_poly_prod, rw eval_sum', apply finset.sum_eq_zero, intros y hy, simp at hy,
+    rw polynomial.eval_mul, rw polynomial.eval_mul, rw polynomial.eval_C,
+    replace hx2 : x < n.succ ∨ x = n.succ, exact nat.lt_succ_iff_lt_or_eq.mp hx2,
+    replace triv : j - y ≤ j, exact nat.sub_le j y,
+    have y_p : j - y < p, exact gt_of_gt_of_ge hj triv,
+    have hn' : ∀ (x : ℕ), x > 0 → x < n.succ → polynomial.eval ↑x (deriv_n (f_p p hp n) (j-y)) = 0,
+    {
+      intros, apply hn, assumption, assumption, assumption,
+    },
+    cases hx2,
+    {
+      -- x < n.succ
+      have hn'' := hn' x hx1 hx2, rw hn'', rw mul_zero, rw zero_mul,
+    },
+    {
+      -- x = n.succ
+      rw mul_eq_zero, right, rw hx2, rw deriv_X_sub_pow, rw polynomial.eval_mul, rw polynomial.eval_pow, simp, right, apply zero_pow,
+      replace triv : y < p, exact gt_of_ge_of_gt hj hy, exact nat.sub_pos_of_lt triv,
+      replace triv : y < p, exact gt_of_ge_of_gt hj hy, exact le_of_lt triv,
+    },
+  }
+end
+
+theorem when_j_eq_p_sub1 (p : ℕ) (hp : nat.prime p) (g : polynomial ℤ): 
+  (∑ k in finset.range g.nat_degree.succ,
+              (g.coeff k) * (polynomial.eval (k:ℤ) (deriv_n (f_p p hp g.nat_degree) (p-1)))) = (g.coeff 0) * (polynomial.eval 0 (deriv_n (f_p  p hp g.nat_degree) (p-1))) :=
+begin
+  have triv : g.coeff 0 * polynomial.eval 0 (deriv_n (f_p p hp g.nat_degree) (p - 1)) = ∑ (k : ℕ) in finset.range 1, g.coeff k * polynomial.eval ↑k (deriv_n (f_p p hp g.nat_degree) (p - 1)),
+  {
+     simp,
+  }, rw triv, apply eq.symm, apply finset.sum_subset, simp,
+  intros x hx1 hx2, simp at hx1 hx2, 
+  rw deriv_f_p_sub1, simp, 
+  have triv := @nat.sub_one_sub_lt p 0 _, simp at triv, exact triv, exact nat.prime.pos hp, exact bot_lt_iff_ne_bot.mpr hx2, assumption,
+end
+
+
+
+-- theorem when_j_ge_p_k_eq_zero (p : ℕ) (hp : nat.prime p) (n:ℕ) : ∀ j : ℕ, j > p -> (p.fact:ℤ) ∣ polynomial.eval 0 (deriv_n (f_p p hp n) j) :=
+-- begin
+--    induction n with n IHn,
+--    {
+--      rw f_p, simp, intros j hj, rw deriv_X_pow_too_much, simp, have triv : p - 1 ≤ p, exact nat.sub_le p 1, exact gt_of_gt_of_ge hj triv,
+--    },
+--    {
+--      intros j hj,
+--      rw f_p_n_succ, rw deriv_n_poly_prod, rw eval_sum',
+--      apply finset.dvd_sum,
+--      intros y hy, simp at hy IHn,
+--      rw polynomial.eval_mul, rw polynomial.eval_mul,
+--    }
+-- end
+
+
+def set_of_abs_coeff (g : polynomial ℤ) : finset ℤ := finset.image (λ i : ℕ, abs (g.coeff i)) g.support
+def set_of_1_abs_coeff (g : polynomial ℤ) : finset ℤ := insert 1 (set_of_abs_coeff g)
+theorem set_of_1_abs_coeff_nonempty (g : polynomial ℤ) : finset.nonempty (set_of_1_abs_coeff g) :=
+begin
+  rw set_of_1_abs_coeff, use 1, simp,
+end
+
+def max_abs_coeff_1 (g : polynomial ℤ) := finset.max' (set_of_1_abs_coeff g) (set_of_1_abs_coeff_nonempty g)
+def M (g : polynomial ℤ) : ℝ := ((max_abs_coeff_1 g:ℝ) * (g.nat_degree:ℝ) * (g.nat_degree:ℝ).exp * (2*g.nat_degree:ℝ)^(g.nat_degree+1))
+
+
+theorem abs_J_ineq1 (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : abs (J g p hp) ≤ (M g)^p :=
+begin
+  sorry
+end
+
+
+theorem abs_J_ineq2 (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
+begin
+  sorry
+end
+
+theorem contradiction (M : ℝ) (z : ℤ) : ∃ p : nat.primes, (p.val:ℤ) > z ∧ ((p.val-1).fact:ℝ) > M^p :=
+begin
+  sorry
+end
+
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
 begin
+-- main part
   by_contra e_algebraic,
   rw is_algebraic at e_algebraic,
   choose g g_def using e_algebraic,
   have g_nonzero := g_def.1,
   have e_root_g := g_def.2,
+  have contradiction := contradiction (M g) (max g.nat_degree (abs (g.coeff 0))),
+  choose p Hp using contradiction,
+  have abs_J_ineq1 := abs_J_ineq1 g p.val p.property,
+  simp at Hp,
+  have abs_J_ineq2 := abs_J_ineq2 g p.val p.property _,
+  have rid := le_trans abs_J_ineq2 abs_J_ineq1,
+  have rid2 := Hp.right, replace rid2 : ¬ ((M g ^ p) ≥ ((p.val - 1).fact:ℝ)),
+  {
+    exact not_le.mpr rid2,
+  },  exact rid2 rid,
 
-  sorry
+
+-- assumptions I used in part and lemmas 
+  {
+    split,
+    have triv := Hp.left.left, exact triv,
+    have triv := Hp.left.right, rw int.abs_eq_nat_abs at triv, simp at triv, assumption,
+  },
 end
 
 
