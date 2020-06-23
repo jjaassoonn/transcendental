@@ -649,6 +649,11 @@ begin
 end
 
 def max_abs_coeff_1 (g : polynomial ℤ) := finset.max' (set_of_1_abs_coeff g) (set_of_1_abs_coeff_nonempty g)
+lemma max_abs_coeff_1_ge_1 (g : polynomial ℤ) : 1 ≤ max_abs_coeff_1 g :=
+begin
+  rw max_abs_coeff_1, apply finset.le_max', rw set_of_1_abs_coeff, simp,
+end
+
 def M (g : polynomial ℤ) : ℝ := ((max_abs_coeff_1 g:ℝ) * (g.nat_degree:ℝ) * (g.nat_degree:ℝ).exp * (2*g.nat_degree:ℝ)^(g.nat_degree+1))
 
 
@@ -663,9 +668,50 @@ begin
   sorry
 end
 
-theorem contradiction (M : ℝ) (z : ℤ) : ∃ p : nat.primes, (p.val:ℤ) > z ∧ ((p.val-1).fact:ℝ) > M^p :=
+lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, n > N -> (n.fact) > M ^ (n+1) :=
 begin
   sorry
+end
+
+lemma fact_grows_fast (M : ℝ) (hM : M ≥ 0) : ∃ N : ℕ, ∀ n : ℕ, n > N -> (n.fact : ℝ) > M^(n+1) :=
+begin
+  have triv := (@archimedean_iff_nat_lt ℝ _).1 _ M,
+  choose M' hM' using triv,
+  replace triv := fact_grows_fast' M',
+  choose N hN using triv, use N, intros n hn,
+  replace hN := hN n hn,
+  have ineq : (M':ℝ) ^ (n + 1) > M ^ (n+1),
+  {
+    apply pow_lt_pow_of_lt_left, assumption, assumption, exact nat.succ_pos n,
+  },
+  suffices : (n.fact:ℝ) > (M':ℝ) ^ (n + 1),
+  {
+    exact gt.trans this ineq,
+  },
+  norm_cast, assumption, exact real.archimedean,
+end
+
+
+theorem contradiction (M : ℝ) (hM : M ≥ 0) (z : ℤ) : ∃ p : nat.primes, (p.val:ℤ) > z ∧ ((p.val-1).fact:ℝ) > M^p.val :=
+begin
+  have grow_rate := fact_grows_fast M hM,
+  choose N hN using grow_rate,
+  have p_exists := nat.exists_infinite_primes (max (N+2) (z.nat_abs+1)),
+  choose p Hp using p_exists, use (⟨p, Hp.right⟩ : nat.primes), simp at Hp ⊢,
+  split,
+  {
+    have triv : z ≤ (z.nat_abs:ℤ), rw <-int.abs_eq_nat_abs, exact le_max_left z (-z),
+    have hp := Hp.left.right,
+    replace hp : (z.nat_abs + 1:ℤ) ≤ p, norm_cast, assumption,
+    have triv2 : (z.nat_abs : ℤ) < (z.nat_abs:ℤ) + 1, exact lt_add_one ↑(int.nat_abs z), exact gt_of_gt_of_ge hp triv,
+  },
+  {
+    have triv := hN (p-1) _, simp at triv,
+    have eq1 : (p - 1 + 1) = p, {apply nat.sub_add_cancel, exact le_of_lt Hp.right.one_lt,},
+    rw eq1 at triv, assumption,
+    have triv := Hp.left.left,
+    replace triv : N + 1 < p , exact triv, exact nat.lt_pred_iff.mpr triv,
+  },
 end
 
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
@@ -676,7 +722,7 @@ begin
   choose g g_def using e_algebraic,
   have g_nonzero := g_def.1,
   have e_root_g := g_def.2,
-  have contradiction := contradiction (M g) (max g.nat_degree (abs (g.coeff 0))),
+  have contradiction := contradiction (M g) _ (max g.nat_degree (abs (g.coeff 0))),
   choose p Hp using contradiction,
   have abs_J_ineq1 := abs_J_ineq1 g p.val p.property,
   simp at Hp,
@@ -693,6 +739,12 @@ begin
     split,
     have triv := Hp.left.left, exact triv,
     have triv := Hp.left.right, rw int.abs_eq_nat_abs at triv, simp at triv, assumption,
+  },
+
+  {
+    rw M, apply mul_nonneg, apply mul_nonneg, apply mul_nonneg, norm_cast, exact ge_trans (max_abs_coeff_1_ge_1 g) trivial,
+    norm_cast, exact bot_le, have triv : (g.nat_degree : ℝ).exp > 0, exact (polynomial.nat_degree g:ℝ).exp_pos, exact le_of_lt triv,
+    norm_num, apply pow_nonneg, apply mul_nonneg, linarith, norm_cast, exact bot_le,
   },
 end
 
