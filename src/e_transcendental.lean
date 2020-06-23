@@ -668,9 +668,39 @@ begin
   sorry
 end
 
+-- lemma test (a : ℕ) (n : ℕ) : tendsto
+
+lemma sum_sub_sum1 (m : ℕ) (f : ℕ -> ℂ) : (∑ i in finset.range m.succ, f i) - (∑ i in finset.range m, f i) = f m :=
+begin
+  rw finset.sum_range_succ, simp,
+end
+
 lemma fact_grows_fast' (M : ℕ) : ∃ N : ℕ, ∀ n : ℕ, n > N -> (n.fact) > M ^ (n+1) :=
 begin
-  sorry
+by_cases (M = 0),
+{
+  rw h, use 1, intros n hn, simp, rw nat.zero_pow, exact nat.fact_pos n, exact nat.succ_pos n,
+},
+  have H := complex.is_cau_exp (M:ℂ),
+  have triv : (1/M:ℝ) > 0, apply one_div_pos_of_pos, norm_cast, exact bot_lt_iff_ne_bot.mpr h,
+  have H2 := is_cau_seq.cauchy₂ H triv,
+  choose i hi using H2, use i, intros n hn,
+  have H3 := hi n.succ n _ _, rw finset.sum_range_succ at H3, simp at H3,
+  have triv2 : ((M:ℂ) ^ n).abs = (↑M ^ n),
+  {
+    have eq1 : ↑((M:ℝ)^n) = (M:ℂ)^n, simp, rw <-eq1, rw complex.abs_of_real, rw abs_of_pos, apply pow_pos, norm_num, exact bot_lt_iff_ne_bot.mpr h,
+  },
+  rw triv2 at H3, norm_num at H3, rw div_lt_iff at H3,
+  replace triv2 : (M:ℝ) > 0, norm_num, exact bot_lt_iff_ne_bot.mpr h,
+  have H4 := (mul_lt_mul_right triv2).2 H3,
+  replace triv2 : (M:ℝ)^n * (M:ℝ) = (M:ℝ)^(n+1), rw pow_add, simp, rw triv2 at H4,
+  replace triv2 : (↑M)⁻¹ * ↑(n.fact) * ↑M = (n.fact:ℝ),
+  {
+    rw mul_comm, rw <-mul_assoc, 
+    have triv3 : (M:ℝ) * (↑M)⁻¹ = 1, rw mul_comm, apply inv_mul_cancel, norm_num, assumption, rw triv3, simp,
+  },
+  rw triv2 at H4, norm_cast at H4, assumption, norm_cast, exact nat.fact_pos n, 
+  suffices : n.succ > i, exact le_of_lt this, exact nat.lt.step hn, exact le_of_lt hn,
 end
 
 lemma fact_grows_fast (M : ℝ) (hM : M ≥ 0) : ∃ N : ℕ, ∀ n : ℕ, n > N -> (n.fact : ℝ) > M^(n+1) :=
