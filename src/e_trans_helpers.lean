@@ -305,6 +305,28 @@ begin
 end
 
 
+theorem f_bar_0 : f_bar 0 = 0 :=
+begin
+    ext, rw bar_coeff, simp,
+end
+
+theorem f_bar_eq_0 (f : polynomial ℤ) : f_bar f = 0 -> f = 0 :=
+begin
+    intro h, rw polynomial.ext_iff at h, ext,
+    have hn := h n, simp at hn, rw bar_coeff at hn, simp at hn ⊢, assumption,
+end
+
+theorem f_bar_eq (f : polynomial ℤ) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
+begin
+    ext, rw bar_coeff, simp, split_ifs, refl, replace h : n ≥ f.nat_degree.succ, exact not_lt.mp h, replace h : n > f.nat_degree, exact h,
+    rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
+end
+
+theorem coeff_f_bar_mul (f g : polynomial ℤ) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
+begin
+    rw bar_coeff (f*g) n, rw polynomial.coeff_mul,
+end
+
 theorem f_bar_ineq (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
 begin
     intros x hx,
