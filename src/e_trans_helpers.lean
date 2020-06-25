@@ -493,3 +493,19 @@ begin
         conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp [deriv_succ, deriv_zero, nat.succ_eq_add_one], ring,
     }
 end
+
+
+theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
+begin
+    induction n with n IH, simp,
+    {
+        cases n, simp,
+        replace IH := IH _,
+        rw nat.succ_eq_add_one, rw pow_add, simp, rw IH, simp,
+        have eq1 : (polynomial.C ↑n + 1) * f ^ n * f.derivative * f = (polynomial.C ↑n + 1) * f ^ (n+1) * f.derivative,
+        {
+            rw pow_add, simp, ring,
+        } ,
+        rw eq1, rw nat.succ_eq_add_one, repeat {rw add_mul}, simp, exact nat.succ_pos n,
+    }
+end
