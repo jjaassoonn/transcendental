@@ -6,7 +6,7 @@
 This project is to prove several theorems in transcendental number theory:
 1. [x] Countability argument: abstract existence of transcendental number;
 2. [x] Liouvielle theorem and hence ![](https://latex.codecogs.com/gif.latex?\sum_{i=0}^\infty&space;\frac{1}{10^{n!}}) is transcendental;
-3. [ ] ![](https://latex.codecogs.com/gif.latex?e) is transcendental;
+3. [x] ![](https://latex.codecogs.com/gif.latex?e) is transcendental;
 4. [ ] ![](https://latex.codecogs.com/gif.latex?\pi) is transcendental.
 
 ## Part 1, countability argument:
