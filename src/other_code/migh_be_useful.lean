@@ -576,3 +576,58 @@ have b_non_zero' : (b:ℝ) ≠ 0, norm_cast, linarith,
   -- simp, have H := @pow_pos ℝ _ (b:ℝ) _ (f.nat_degree), exact H, norm_cast, assumption,
 
 -/
+
+
+/-
+
+  have J_eq := J_eq_final g e_root_g p hp,
+  choose M hM using J_eq, have H1 := hM.1, have H2 := hM.2, rw H2, simp,
+  have triv : p = (p-1).succ,
+  {
+    rw nat.sub_one, apply eq.symm, apply nat.succ_pred_eq_of_pos, exact nat.prime.pos hp,
+  },
+  replace triv : p.fact = (p-1).fact * p,
+  {
+    rw triv, simp, ring,
+  }, rw triv,
+  norm_cast, simp,
+  generalize Ndef : (-1:ℝ) ^ (↑(g.nat_degree) * ↑p) * ↑(g.nat_degree.fact) ^ p = N,
+  replace triv : N * ((p - 1).fact * p:ℝ) + ↑(g.coeff 0) * ↑M * ((p - 1).fact:ℝ) = 
+    ((p - 1).fact:ℝ) * (N * (p:ℝ) + ↑(g.coeff 0) * ↑M),
+  {
+    rw mul_add, ring,
+  }, rw triv, repeat {rw abs_mul,}, rw <-Ndef, norm_num, 
+  -- replace triv : abs ((-1) ^ (↑(g.nat_degree) * ↑p) * ↑(g.nat_degree.fact) ^ p * ↑p + ↑(g.coeff 0) * ↑M)
+
+  -- replace triv : abs (((p - 1).fact):ℤ) = ↑(p - 1).fact,
+  -- {
+  --   apply abs_of_pos, norm_cast, exact (p - 1).fact_pos,
+  -- },
+  -- rw triv,
+  suffices : 1 ≤ abs ((-1:ℤ) ^ (↑(g.nat_degree) * ↑p) * ↑(g.nat_degree.fact) ^ p * ↑p + ↑(g.coeff 0) * ↑M),
+  {
+    have triv : ((p - 1).fact:ℤ) = ↑((p - 1).fact) * 1, simp, 
+  }
+  -- {
+  --   have triv : ((p - 1).fact:ℤ) = ↑((p - 1).fact) * 1,
+  --   {
+  --     simp,
+  --   },
+  --   conv_lhs {rw triv}, apply mul_le_mul, exact le_refl ↑((p - 1).fact), exact this, norm_num, norm_cast, exact bot_le,
+  -- },
+  -- rw int.abs_eq_nat_abs, norm_cast, apply int.nat_abs_pos_of_ne_zero,
+  -- intro rid,
+  -- have rid' : (p:ℤ) ∣ N * ↑p + g.coeff 0 * M, rw rid, exact dvd_zero ↑p,
+  -- replace rid': (p:ℤ) ∣ g.coeff 0 * M, rw <-dvd_add_iff_right at rid', exact rid', exact dvd_mul_left ↑p N,
+  -- rw <-int.dvd_nat_abs at rid', 
+  -- norm_cast at rid', rw int.nat_abs_mul at rid',
+  -- rw nat.prime.dvd_mul at rid',
+  -- cases rid',
+  -- {
+  --   rw dvd_iff_mul_nat at rid', choose c hc using rid',
+    
+  -- },
+  -- rw <-int.abs_eq_nat_abs at rid',
+
+
+-/
