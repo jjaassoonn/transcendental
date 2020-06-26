@@ -28,3 +28,18 @@ theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> �
 
 theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
 ```
+
+
+## Part 3, the transcendence of $e$:
+
+We defined $e$ in [e_transcendental.lean](https://github.com/jjaassoonn/transcendental/blob/5f979324fec29793760873c2c202579693c011c1/src/e_transcendental.lean#L13) as :
+
+``` lean
+def e : ℝ := real.exp 1
+```
+
+The main theorem is at [e_transcendental.lean](https://github.com/jjaassoonn/transcendental/blob/5f979324fec29793760873c2c202579693c011c1/src/e_transcendental.lean#L1680):
+
+```lean
+theorem e_transcendental : ¬ is_algebraic ℤ e :=
+```

@@ -1672,9 +1672,7 @@ end
 
 theorem nat_degree_decrease : Π (f:polynomial ℤ) (hf : f ≠ 0), (make_const_term_nonzero f hf).nat_degree ≤ f.nat_degree :=
 begin
-
-sorry
-
+  sorry
 end
 
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
