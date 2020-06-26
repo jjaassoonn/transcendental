@@ -891,7 +891,7 @@ begin
   intros, simp, norm_cast, exact a,
 end
 
-theorem abs_J_ineq2 (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
+theorem abs_J_ineq2 (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (coeff_nonzero : (g.coeff 0) ≠ 0)(p : ℕ) (hp : nat.prime p) (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
 begin
   have J_eq := J_eq_final g e_root_g p hp,
   choose c eq1 using J_eq, rw eq1, 
@@ -948,13 +948,70 @@ begin
     replace rid2 := int.dvd_nat_abs_of_of_nat_dvd rid2,
     rw int.nat_abs_mul at rid2,
     rw nat.prime.dvd_mul at rid2,
-    sorry,
+    cases rid2,
+    {
+      have ineq1 : (g.coeff 0).nat_abs > 0,
+      {
+        apply int.nat_abs_pos_of_ne_zero, exact coeff_nonzero,
+      },
 
+      rw dvd_iff_mul_nat at rid2, choose m hm using rid2,
+      cases m,
+      {
+        rw mul_zero at hm, linarith,
+      },
+      {
+        have ineq2 : p * m.succ ≥ p, exact nat.le_add_left p (nat.mul p m), rw <-hm at ineq2,
+        have contra : ¬(p > (g.coeff 0).nat_abs), exact not_lt.mpr ineq2, exact contra hp2.2,
+      },
+    },
+    {
+      rw int.nat_abs_pow at rid2,
+      have H := nat.prime.dvd_of_dvd_pow hp rid2,
+      have eq1 : (g.nat_degree.fact:ℤ).nat_abs = g.nat_degree.fact,
+      {
+        suffices : ((g.nat_degree.fact:ℤ).nat_abs:ℤ)= (g.nat_degree.fact:ℤ), norm_cast, rw <-int.abs_eq_nat_abs,
+        rw abs_of_pos, norm_cast, exact (polynomial.nat_degree g).fact_pos,
+      }, rw eq1 at H,
+      rw nat.prime.dvd_fact at H,
+      replace H : ¬(p > g.nat_degree), exact not_lt.mpr H, exact H hp2.1, exact hp,
+    },
     exact hp,
   },
   {
     rw triv_1 at rid2, simp at rid2,
-    sorry,
+    replace rid2 := int.dvd_nat_abs_of_of_nat_dvd rid2,
+    rw int.nat_abs_mul at rid2,
+    rw nat.prime.dvd_mul at rid2,
+    cases rid2,
+    {
+      have ineq1 : (g.coeff 0).nat_abs > 0,
+      {
+        apply int.nat_abs_pos_of_ne_zero, exact coeff_nonzero,
+      },
+
+      rw dvd_iff_mul_nat at rid2, choose m hm using rid2,
+      cases m,
+      {
+        rw mul_zero at hm, linarith,
+      },
+      {
+        have ineq2 : p * m.succ ≥ p, exact nat.le_add_left p (nat.mul p m), rw <-hm at ineq2,
+        have contra : ¬(p > (g.coeff 0).nat_abs), exact not_lt.mpr ineq2, exact contra hp2.2,
+      },
+    },
+    {
+      rw int.nat_abs_pow at rid2,
+      have H := nat.prime.dvd_of_dvd_pow hp rid2,
+      have eq1 : (g.nat_degree.fact:ℤ).nat_abs = g.nat_degree.fact,
+      {
+        suffices : ((g.nat_degree.fact:ℤ).nat_abs:ℤ)= (g.nat_degree.fact:ℤ), norm_cast, rw <-int.abs_eq_nat_abs,
+        rw abs_of_pos, norm_cast, exact (polynomial.nat_degree g).fact_pos,
+      }, rw eq1 at H,
+      rw nat.prime.dvd_fact at H,
+      replace H : ¬(p > g.nat_degree), exact not_lt.mpr H, exact H hp2.1, exact hp,
+    },
+    exact hp,
   },
   
 end
@@ -1479,6 +1536,147 @@ begin
   },
 end
 
+theorem non_empty_supp (f : polynomial ℤ) (hf : f ≠ 0) : f.support.nonempty :=
+begin
+  contrapose hf, rw finset.nonempty at hf, rw not_exists at hf, simp, ext, simp,
+  have triv := (f.3 n).2 , contrapose triv, rw not_imp, split, exact triv, exact hf n,
+end
+
+def min_degree_term (f : polynomial ℤ) (hf : f ≠ 0) : ℕ := finset.min' (f.support) (non_empty_supp f hf)
+def make_const_term_nonzero (f : polynomial ℤ) (hf : f ≠ 0) : polynomial ℤ := 
+begin
+  constructor, swap 2,
+  {
+    exact finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support,
+  },
+  swap 2, {
+    intro n, exact (f.coeff (n+(min_degree_term f hf))),
+  },
+  {
+    intro n, split, intro hn, rw finset.mem_image at hn, choose a ha using hn, rw <-ha.2, rw nat.sub_add_cancel,
+    have eq2 := (f.3 a).1 ha.1, exact eq2,
+    rw min_degree_term, exact finset.min'_le f.support (non_empty_supp f hf) a ha.1,
+
+    intro hn, rw finset.mem_image, use n + min_degree_term f hf,
+    split,
+    exact (f.3 (n + min_degree_term f hf)).2 hn, simp,
+  },
+end
+
+theorem coeff_after_change (f : polynomial ℤ) (hf : f ≠ 0) (n : ℕ) : (make_const_term_nonzero f hf).coeff n = (f.coeff (n+(min_degree_term f hf))) :=
+begin
+  simp [make_const_term_nonzero],
+end
+
+
+theorem coeff_zero_after_change (f : polynomial ℤ) (hf : f ≠ 0) : (make_const_term_nonzero f hf).coeff 0 ≠ 0 :=
+begin
+  rw coeff_after_change, simp,
+  have triv : min_degree_term f hf ∈ f.support,
+  rw min_degree_term, exact f.support.min'_mem (non_empty_supp f hf),
+  exact (f.3 (min_degree_term f hf)).1 triv,
+end
+
+
+theorem supp_after_change (f : polynomial ℤ) (hf : f ≠ 0) : (make_const_term_nonzero f hf).support = finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support :=
+begin
+  simp [make_const_term_nonzero],
+end
+
+theorem aeval_ (f : polynomial ℤ) (r : ℝ) : (polynomial.aeval ℤ ℝ r) f = ∑ i in f.support, (f.coeff i : ℝ) * r ^ i :=
+begin
+  rw polynomial.aeval_def, rw polynomial.eval₂,  rw finsupp.sum, apply congr_arg, ext, simp, rw mul_eq_mul', simp, exact rfl,
+  refl,
+end
+
+theorem non_zero_root_same (f : polynomial ℤ) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : (polynomial.aeval ℤ ℝ r) f = 0) :
+  (polynomial.aeval ℤ ℝ r) (make_const_term_nonzero f hf) = 0 :=
+
+begin
+  rw aeval_ at root_r ⊢,
+  have H := @finset.sum_bij _ _ _ _ f.1 (make_const_term_nonzero f hf).1
+    (λ i, ↑(f.coeff i) * r ^ (i))
+    (λ i, ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i+ (min_degree_term f hf))),
+  let i : Π (a : ℕ), a ∈ f.support → ℕ,
+  {
+    intros a ha, exact a - (min_degree_term f hf),
+  },
+  have i_eq : i = λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf, exact rfl,
+  replace H := H i,
+  have hi : ∀ (a : ℕ) (ha : a ∈ f.support), i a ha ∈ (make_const_term_nonzero f hf).support,
+  {
+    intros a ha, rw i_eq, 
+    have triv : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha = a - min_degree_term f hf,
+    {
+      exact rfl,
+    },
+    rw triv, rw supp_after_change, rw finset.mem_image, use a, split, exact ha, refl,
+  },
+  replace H := H hi,
+  have assump1 : (∀ (a : ℕ) (ha : a ∈ f.support),
+     (λ (i : ℕ), ↑(f.coeff i) * r ^ i) a =
+       (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + min_degree_term f hf)) (i a ha)),
+  {
+    intros a ha, 
+    have triv1 : (λ (i : ℕ), ↑(f.coeff i) * r ^ i) a = ↑(f.coeff a) * r ^ a,
+    {
+      exact rfl,
+    }, rw triv1,
+    have triv2 : (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + (min_degree_term f hf))) (i a ha) = (↑((make_const_term_nonzero f hf).coeff (i a ha)) * r ^ ((i a ha) + min_degree_term f hf)),
+    {
+      exact rfl,
+    },
+    rw triv2, rw i_eq,
+    have triv3 : ((λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha) = a - min_degree_term f hf,
+    {
+      exact rfl,
+    }, rw triv3, rw coeff_after_change, rw nat.sub_add_cancel, rw min_degree_term, exact f.support.min'_le (non_empty_supp f hf) a ha,
+  },
+  replace H := H assump1,
+  have assump2 : (∀ (a₁ a₂ : ℕ) (ha₁ : a₁ ∈ f.support) (ha₂ : a₂ ∈ f.support),
+     i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂),
+  {
+    intros a1 a2 ha1 ha2 H, rw i_eq at H, 
+    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a1 ha1 = a1 - min_degree_term f hf, exact rfl, rw triv1 at H,
+    have triv2 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a2 ha2 = a2 - min_degree_term f hf, exact rfl, rw triv2 at H,
+    have triv3 := (@add_left_inj ℕ _ (min_degree_term f hf) (a1 - min_degree_term f hf) (a2 - min_degree_term f hf)).2 H,
+    rw nat.sub_add_cancel at triv3, rw nat.sub_add_cancel at triv3, exact triv3, rw min_degree_term, exact f.support.min'_le (non_empty_supp f hf) a2 ha2, exact f.support.min'_le (non_empty_supp f hf) a1 ha1,
+  },
+  replace H := H assump2,
+  have assump3 : ∀ (b : ℕ),
+     b ∈ (make_const_term_nonzero f hf).support → (∃ (a : ℕ) (ha : a ∈ f.support), b = i a ha),
+  {
+    intros b hb, rw supp_after_change at hb, rw finset.mem_image at hb, rw i_eq, choose a Ha using hb, use a, use Ha.1,
+    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a _ = a - min_degree_term f hf, exact rfl, exact Ha.1, rw triv1, exact eq.symm Ha.2,
+  },
+  replace H := H assump3,
+  rw root_r at H, 
+  have triv : ∑ (x : ℕ) in
+      (make_const_term_nonzero f hf).support,
+      (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + min_degree_term f hf)) x = ∑ (x : ℕ) in
+      (make_const_term_nonzero f hf).support,
+      (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ i * r ^ (min_degree_term f hf)) x,
+  {
+    apply congr_arg, ext, simp, rw pow_add, ring,
+  },
+  rw triv at H, simp at H, rw <-finset.sum_mul at H, replace H := eq.symm H, rw mul_eq_zero at H,
+  cases H, rw H, replace H := pow_eq_zero H, exfalso, exact r_nonzero H,
+end
+
+theorem non_zero_after_change (f : polynomial ℤ) (hf : f ≠ 0) : (make_const_term_nonzero f hf) ≠ 0 :=
+begin
+  intro rid, rw polynomial.ext_iff at rid, simp at rid,
+  replace rid := rid 0,
+  exact coeff_zero_after_change f hf rid,
+end
+
+theorem nat_degree_decrease : Π (f:polynomial ℤ) (hf : f ≠ 0), (make_const_term_nonzero f hf).nat_degree ≤ f.nat_degree :=
+begin
+
+sorry
+
+end
+
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
 begin
 -- main part
@@ -1487,13 +1685,23 @@ begin
   choose g g_def using e_algebraic,
   have g_nonzero := g_def.1,
   have e_root_g := g_def.2,
-  have contradiction := contradiction (M g) _ (max g.nat_degree (abs (g.coeff 0))),
+  generalize g'_def : make_const_term_nonzero g g_nonzero = g',
+  have coeff_zero_nonzero : (g'.coeff 0) ≠ 0,
+  {
+    rw <-g'_def, apply coeff_zero_after_change,
+  },
+  have e_root_g' : (polynomial.aeval ℤ ℝ e) g' = 0,
+  {
+    rw <-g'_def,
+    apply non_zero_root_same, rw e, exact (1:ℝ).exp_ne_zero, exact e_root_g,
+  },
+  have contradiction := contradiction (M g') _ (max g.nat_degree (abs (g'.coeff 0))),
   choose p Hp using contradiction,
-  have abs_J_ineq1 := abs_J_ineq1 g p.val p.property,
+  have abs_J_ineq1 := abs_J_ineq1 g' p.val p.property,
   simp at Hp,
-  have abs_J_ineq2 := abs_J_ineq2 g e_root_g p.val p.property _,
+  have abs_J_ineq2 := abs_J_ineq2 g' e_root_g' coeff_zero_nonzero p.val p.property _,
   have rid := le_trans abs_J_ineq2 abs_J_ineq1,
-  have rid2 := Hp.right, replace rid2 : ¬ ((M g ^ p) ≥ ((p.val - 1).fact:ℝ)),
+  have rid2 := Hp.right, replace rid2 : ¬ ((M g' ^ p) ≥ ((p.val - 1).fact:ℝ)),
   {
     exact not_le.mpr rid2,
   },  exact rid2 rid,
@@ -1502,13 +1710,13 @@ begin
 -- assumptions I used in part and lemmas 
   {
     split,
-    have triv := Hp.left.left, exact triv,
+    have triv := Hp.left.left, have ineq := nat_degree_decrease g g_nonzero, rw g'_def at ineq, exact gt_of_gt_of_ge triv ineq,
     have triv := Hp.left.right, rw int.abs_eq_nat_abs at triv, simp at triv, assumption,
   },
 
   {
-    rw M, apply mul_nonneg, norm_cast, exact bot_le, apply mul_nonneg, apply mul_nonneg, norm_cast, apply mul_nonneg, exact ge_trans (max_abs_coeff_1_ge_1 g) trivial,
-    norm_cast, exact bot_le, have triv : (g.nat_degree + 1 : ℝ).exp > 0, exact (g.nat_degree + 1:ℝ).exp_pos, exact le_of_lt triv,
+    rw M, apply mul_nonneg, norm_cast, exact bot_le, apply mul_nonneg, apply mul_nonneg, norm_cast, apply mul_nonneg, exact ge_trans (max_abs_coeff_1_ge_1 g') trivial,
+    norm_cast, exact bot_le, have triv : (g'.nat_degree + 1 : ℝ).exp > 0, exact (g'.nat_degree + 1:ℝ).exp_pos, exact le_of_lt triv,
     norm_num, apply pow_nonneg, apply mul_nonneg, linarith, norm_cast, exact bot_le,
   },
 end
