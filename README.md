@@ -10,11 +10,18 @@ This project is to prove several theorems in transcendental number theory:
 
 ## Part 1, countability argument
 
-The main theorem is in [algebraic_countable.lean](https://github.com/jjaassoonn/transcendental/blob/1d649f2e168383c5322cc96351b98447944a845c/src/algebraic_coutable.lean#L890)
+The main theorem is in [algebraic_countable_over_Q.lean](https://github.com/jjaassoonn/transcendental/blob/12026a8c7f7412e55d457f9626fad454ec1ea0ad/src/algebraic_countable_over_Q.lean#L897)
 
 ```lean
 theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℚ x)
 ```
+
+The other version is in [algebraic_countable_over_Z.lean](https://github.com/jjaassoonn/transcendental/blob/12026a8c7f7412e55d457f9626fad454ec1ea0ad/src/algebraic_over_int.lean#L903)
+
+```lean
+theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℤ x)
+```
+
 
 ## Part 2, Liouville theorem and an explicit Liouville number
 
