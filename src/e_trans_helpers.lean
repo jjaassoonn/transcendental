@@ -7,6 +7,7 @@ import measure_theory.set_integral
 import measure_theory.bochner_integration
 import analysis.calculus.deriv
 import analysis.calculus.fderiv
+import analysis.special_functions.exp_log
 
 noncomputable theory
 local attribute [instance] classical.prop_decidable
@@ -94,7 +95,7 @@ axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (d
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in set.Icc a b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in set.Icc a b, (deriv f x) * (g x))
 
-axiom deriv_exp : deriv real.exp = real.exp
+
 axiom exp_differentiable (x : ℝ) : differentiable_at ℝ real.exp x
 axiom integral_le_integral' (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x)
 
@@ -138,11 +139,13 @@ begin
     have eq := @deriv.scomp ℝ _ ℝ _ _ real.exp x (λ x, t - x) _ _,
     rw eq, rw deriv_exp, simp,
     {
-        simp, exact exp_differentiable (t - x),
+        simp,
     },
     {
         simp,
     },
+    apply differentiable_at.const_sub,
+    exact differentiable_at_id,
 end
 
 theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) := 
