@@ -10,27 +10,27 @@ This project is to prove several theorems in transcendental number theory:
 
 ## Part 1, countability argument
 
-The main theorem is in [algebraic_countable_over_Q.lean](https://github.com/jjaassoonn/transcendental/blob/12026a8c7f7412e55d457f9626fad454ec1ea0ad/src/algebraic_countable_over_Q.lean#L897)
-
-```lean
-theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℚ x)
-```
-
-The other version is in [algebraic_countable_over_Z.lean](https://github.com/jjaassoonn/transcendental/blob/12026a8c7f7412e55d457f9626fad454ec1ea0ad/src/algebraic_over_int.lean#L903)
+The main theorem is in [algebraic_countable_over_Z.lean](https://github.com/jjaassoonn/transcendental/blob/master/src/algebraic_countable_over_Z.lean#L731)
 
 ```lean
 theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℤ x)
 ```
 
+The other version is in [algebraic_countable_over_Q.lean](https://github.com/jjaassoonn/transcendental/blob/master/src/algebraic_countable_over_Q.lean#L897)
+
+```lean
+theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℚ x)
+```
+
 ## Part 2, Liouville theorem and an explicit Liouville number
 
-Definition of the explicit liouville number is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/897722f8ed408607ec0a0d30e200e41aa49ed9e3/src/liouville_theorem.lean#L863)
+Definition of the explicit Liouville number is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/master/src/liouville_theorem.lean#L1136)
 
 ```lean
 def α := ∑' n, ten_pow_n_fact_inverse n
 ```
 
-The main theorem is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/897722f8ed408607ec0a0d30e200e41aa49ed9e3/src/liouville_theorem.lean#L694):
+The main theorem is in [liouville_theorem.lean](https://github.com/jjaassoonn/transcendental/blob/master/src/liouville_theorem.lean#L863):
 
 ```lean
 theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> ¬(is_algebraic ℤ x)

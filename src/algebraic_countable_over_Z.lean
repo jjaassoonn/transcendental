@@ -268,78 +268,34 @@ begin                                                                           
     intros n hn,
     intro q,
     -- we can define a polynomial whose non-zero coefficients are exact at non-zero elements of q;                                                                                                                     -- given an element q in ℤⁿ
-    set support : finset ℕ := 
-      finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n) with hsupport,
-    set to_fun : nat -> ℤ := (λ m : nat, ite (m ∈ support) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0) with hto_fun,
-    
-    let mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0,                                                                      -- checking the polynomial is well-defined
-    {                                                                                                                             -- i.e. everything in support has non-zero coefficient and
-      intro m,                                                                                                                    -- every index with a non-zero coefficient is in support
-      split,
-      intro hm,
-      have hm'' := hm,
-      rw hsupport at hm,
-      have hm' := hm,
-      rw finset.mem_filter at hm',
-      cases hm',
-      rename hm'_right qm_ne_0,
-      rw hto_fun, simp only [ne.def, finset.mem_filter, finset.mem_range, ne.def, finset.mem_filter, finset.mem_range],
-      
-      split_ifs,
-      exact qm_ne_0,
-
-      rw [not_and] at h, simp only [finset.mem_range] at hm'_left,
-      replace h := h hm'_left, simp only [classical.not_not] at h, exfalso, exact qm_ne_0 h,
-
-      intro hm,
-      have hm' := hm,
-      rw hto_fun at hm',
-      dsimp at hm',
-      have g : ite (m ∈ support) (q ⟨m % n, m_mod_n_lt_n n hn m⟩) 0 ≠ 0 -> (m ∈ support),
-      {
-        intro h,
-        by_contra,
-        split_ifs at h,
-        have h' : (0 : ℤ) = 0 := rfl,
-        exact h h',
-      },
-      exact g hm',
-    },
     let p : polynomial ℤ := { support := finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n), 
-      to_fun := (λ m : nat, ite (m ∈ support) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0),
+      to_fun := (λ m : nat, ite (m ∈ (finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n))) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0),
       mem_support_to_fun := begin
         intro m,                                                                                                                    -- every index with a non-zero coefficient is in support
-      split,
-      intro hm,
-      have hm'' := hm,
-      rw hsupport at hm,
-      have hm' := hm,
-      rw finset.mem_filter at hm',
-      cases hm',
-      rename hm'_right qm_ne_0,
-      rw hto_fun, simp only [ne.def, finset.mem_filter, finset.mem_range, ne.def, finset.mem_filter, finset.mem_range],
+        split,
+        intro hm,
+        rw finset.mem_filter at hm,
+        cases hm with hm_left qm_ne0,
+        simp only [ne.def, finset.mem_filter, finset.mem_range, ne.def, finset.mem_filter, finset.mem_range],
       
-      split_ifs,
-      exact qm_ne_0,
+        split_ifs,
+        exact h.2,
 
-      rw [not_and] at h, simp only [finset.mem_range] at hm'_left,
-      replace h := h hm'_left, simp only [classical.not_not] at h, exfalso, exact qm_ne_0 h,
+        simp only [not_and, classical.not_not] at h, simp only [finset.mem_range] at hm_left,
+        replace h := h hm_left, exfalso, exact qm_ne0 h,
 
-      intro hm,
-      have hm' := hm,
-      rw hto_fun at hm',
-      dsimp at hm',
-      have g : ite (m ∈ support) (q ⟨m % n, m_mod_n_lt_n n hn m⟩) 0 ≠ 0 -> (m ∈ support),
-      {
-        intro h,
-        by_contra,
-        split_ifs at h,
-        have h' : (0 : ℤ) = 0 := rfl,
-        exact h h',
-      },
-      exact g hm',
+        intro hm,
+        dsimp at hm,
+        have g : ite (m ∈ (finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n))) (q ⟨m % n, m_mod_n_lt_n n hn m⟩) 0 ≠ 0 -> (m ∈ (finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n))),
+        {
+          intro h,
+          by_contra,
+          split_ifs at h,
+          have h' : (0 : ℤ) = 0 := rfl,
+          exact h h',
+        },
+        exact g hm,
       end},
-    -- have hp_support : p.support =  finset.filter (λ (m : ℕ), q ⟨m % n, m_mod_n_lt_n n hn m⟩ ≠ 0) (finset.range n) := rfl,
     have hp_support2 : ∀ m ∈ p.support, m < n,                                                         
     {
       dsimp,
@@ -393,9 +349,8 @@ begin                                                                           
     {
       ext m,
       simp only [identify, polynomial.coeff_mk],
-      rw hto_fun,
-      dsimp,                                                                      -- So we need to prove that forall m, coefficient at m equals the corresponding elements of q
-      split_ifs,                                                                  -- So we separate this into two cases: m ∈ support and m ∉ support
+      split_ifs,                                                                  -- So we need to prove that forall m, coefficient at m equals the corresponding elements of q
+                                                                                  -- So we separate this into two cases: m ∈ support and m ∉ support
       
       -- m.val ∈ support                                                                             
       {
