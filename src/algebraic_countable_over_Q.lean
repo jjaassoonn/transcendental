@@ -7,7 +7,7 @@ import data.real.basic data.real.cardinality
 import tactic.linarith tactic.fin_cases
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 
 namespace project

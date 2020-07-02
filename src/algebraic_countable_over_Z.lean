@@ -11,13 +11,30 @@ open_locale classical
 
 
 namespace project
-def algebraic_set : set real := {x | is_algebraic ℤ x }
+/--
+- For the purpose of this project, we define a real number $x$ to be algebraic if and only if
+there is a polynomial $p ∈ ℤ[T]$ such that $p(x)=0$. 
 
-def roots_real (p : polynomial ℤ) : set ℝ := {x | polynomial.aeval ℤ real x p = 0}
+- `algebraic_set` is the set of all algebraic number in ℝ.
+- For any polynomial $p ∈ ℤ[T]$, `roots_real p` is the set of real roots of $p$.
+- `poly_int_to_poly_real` is the trivial ring homomorphism $ℤ[T] → ℝ[T]$.
+- We are essentially evaluating polynomial in two ways: one is `polynomial.aeval` used in the definition of `is_algebraic`;
+  the other is to evaluate the polynomial after the embeding `poly_int_to_poly_real`. The reason that we need two method is
+  because the (mathlib) built-in `polynomial.roots` which gives us a `finset ℝ` for any $p ∈ ℝ[T]$.
+  `poly_int_to_poly_real_wd` is assertion that the two evaluation methods produce the same results.
+  `poly_int_to_poly_real_well_defined` proves the assertion.
+
+- Having that the two evaluation methods agree, we can use `polynomial.roots` to show ∀ p ∈ ℤ[T], `roots_real p` is finite.
+  This is `roots_finite`.
+-/
+
+def algebraic_set : set ℝ := {x | is_algebraic ℤ x }
+
+def roots_real (p : polynomial ℤ) : set ℝ := {x | polynomial.aeval ℤ ℝ x p = 0}
 
 def poly_int_to_poly_real (p : polynomial ℤ) : polynomial ℝ := polynomial.map (algebra_map ℤ ℝ) p
 
-def poly_int_to_poly_real_wd (p : polynomial ℤ) : Prop := ∀ x : real, polynomial.aeval ℤ real x p = (poly_int_to_poly_real p).eval x
+def poly_int_to_poly_real_wd (p : polynomial ℤ) : Prop := ∀ x : real, polynomial.aeval ℤ ℝ x p = (poly_int_to_poly_real p).eval x
 
 theorem poly_int_to_poly_real_preserve_deg (p : polynomial ℤ) : p.degree = (poly_int_to_poly_real p).degree :=
 begin
@@ -152,70 +169,78 @@ end
 theorem roots_finite (p : polynomial ℤ) (hp : p ≠ 0) : set.finite (roots_real p) :=
 begin
   rw roots_real_eq_roots,
-  split, exact additive.fintype, assumption, done
+  split, exact additive.fintype, assumption,
 end
 
 
 -- Part I of project
-def nat_set : set nat := @set.univ nat
 
-def int_n (n : nat) := fin n -> ℤ
-def nat_n (n : nat) := fin n -> nat
-def poly_n (n : nat) := {x : polynomial ℤ // x.nat_degree < n}
-def poly_n' (n : nat) := {p : polynomial ℤ // p ≠ 0 ∧ p.nat_degree < n}
-def int_n' (n : nat) := {f : fin n -> ℤ // f ≠ 0}
-def int' := {r : int // r ≠ 0}
+/-- 
+We allow the zero polynomial to have degree zero.
+Otherwise we need to use type `with_bot ℕ` so that the zero polynomial has degree negative infinity
+-/
 
-def strange_fun : ℤ -> int' :=
+def nat_set : set nat := @set.univ nat                                            -- the set of natural numbers
+
+def int_n (n : nat) := fin n -> ℤ                                                 -- the set of ℤⁿ
+def nat_n (n : nat) := fin n -> ℕ                                                 -- the set of ℕⁿ
+def poly_n (n : nat) := {x : polynomial ℤ // x.nat_degree < n}                    -- the set of all polynomials in $ℤ[T]$ with degree < n
+def poly_n' (n : nat) := {p : polynomial ℤ // p ≠ 0 ∧ p.nat_degree < n}           -- the set of all nonzero polynomials in $ℤ[T]$ with degree < n
+def int_n' (n : nat) := {f : fin n -> ℤ // f ≠ 0}                                 -- ℤⁿ - {(0,0,...,0)}
+def int' := {r : int // r ≠ 0}                                                    -- ℤ - {0}
+
+def strange_fun : ℤ -> int' :=                                                    -- This is the bijection from ℤ to ℤ - {0}
 begin
-    intro m,
-    constructor, swap, exact (ite (m<0) m (m+1)),
-    intro rid, split_ifs at rid, linarith, linarith,
+    intro m,                                                                      -- Given by
+    constructor, swap, exact (ite (m<0) m (m+1)),                                 --      | n     if n < 0
+    intro rid, split_ifs at rid, linarith, linarith,                              -- n ↦ -|
+end                                                                               --      | n + 1 if n ≥ 0
+
+theorem strange_fun_inj : function.injective strange_fun :=                       -- This is the proof that the strange function is injective
+begin
+    intros x y H, rw strange_fun at H, simp at H, split_ifs at H, 
+    exact H, linarith, linarith, simp at H, exact H,
 end
 
-theorem strange_fun_inj : function.injective strange_fun :=
-begin
-    intros x y H, rw strange_fun at H, simp at H, split_ifs at H, exact H, linarith, linarith, simp at H, exact H,
-end
-
-theorem int_eqiv_int' : int ≃ int' :=
+theorem int_eqiv_int' : ℤ ≃ int' :=                                               -- So ℤ ≃ ℤ - {0} because the strange function is a bijection
 begin
   suffices H : ∃ f : int -> int', function.bijective f,
   choose f Hf using H, exact equiv.of_bijective Hf,
   use strange_fun,
   split,
   {
-      exact strange_fun_inj,
+      exact strange_fun_inj,                                                      -- The injection part is proved above
   },
   {
-      intro x,
-      by_cases (x.val < 0),
-      use x.val, simp [strange_fun], simp [h], simp at h,
+      intro x,                                                                    -- The surjection part:
+      by_cases (x.val < 0),                                                       -- For any x ∈ ℤ - {0}
+                                                                                  
+      use x.val, simp [strange_fun], simp [h], simp at h,                         -- if x < 0 then x ↦ x
       replace h : 0 = x.val ∨ 0 < x.val, exact eq_or_lt_of_le h, cases h,
       replace h := eq.symm h,
       exfalso, exact x.property h,
       replace h : 1 ≤ x.val, exact h,
       replace h : ¬ (1 > x.val), exact not_lt.mpr h,
       replace h : ¬ (x.val < 1), exact h,
-      use x.val-1,
-      simp [strange_fun], simp [h],
+      use x.val-1,                                                                -- if x ≥ 0 since x ≠ 0, we have x > 0
+      simp [strange_fun], simp [h],                                               -- then x - 1 ↦ x
   },
 end
 
-def zero_rat_n {n : nat} : int_n n.succ := (fun m, 0)
-def zero_poly_n {n : nat} : poly_n n.succ := ⟨0, nat.succ_pos n⟩ 
+def zero_int_n {n : nat} : int_n n.succ := (fun m, 0)                             -- ℤ⁰ = {0}
+def zero_poly_n {n : nat} : poly_n n.succ := ⟨0, nat.succ_pos n⟩                  -- no polynomial in $ℤ[T]$ with degree < 0
 
-def identify (n : nat) : (poly_n n) -> (int_n n) :=
-begin
+def identify (n : nat) : (poly_n n) -> (int_n n) :=                               -- Given a integer polynomial of degree < n,
+begin                                                                             -- we identify it with its coefficients as in ℤⁿ
   intro p,
   intro m,
   exact p.val.coeff m.val,
   done
 end
 
-@[simp] theorem identify_0_eq_0 (n : nat) : (identify n.succ zero_poly_n) = zero_rat_n :=
+@[simp] theorem identify_0_eq_0 (n : nat) : (identify n.succ zero_poly_n) = zero_int_n :=
 begin
- rw [identify, zero_rat_n, zero_poly_n], ext, simp, done
+ rw [identify, zero_int_n, zero_poly_n], ext, simp, done
 end
 
 lemma m_mod_n_lt_n : ∀ n : nat, n ≠ 0 -> ∀ m : nat, m % n < n :=
@@ -267,7 +292,7 @@ begin
   }
 end
 
-theorem identify_nzero_to_nzero (n : nat) (p : poly_n n.succ) (hp : p ≠ zero_poly_n) : (identify n.succ p) ≠ zero_rat_n :=
+theorem identify_nzero_to_nzero (n : nat) (p : poly_n n.succ) (hp : p ≠ zero_poly_n) : (identify n.succ p) ≠ zero_int_n :=
 begin
   have g := inj_identify_n n.succ (nat.succ_ne_zero n),
   have g' := @g p zero_poly_n, simp at g',
