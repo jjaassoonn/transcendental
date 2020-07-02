@@ -13,7 +13,7 @@ open_locale classical
 namespace project
 /--
 - For the purpose of this project, we define a real number $x$ to be algebraic if and only if
-there is a polynomial $p ∈ ℤ[T]$ such that $p(x)=0$. 
+there is a non-zero polynomial $p ∈ ℤ[T]$ such that $p(x)=0$. 
 
 - `algebraic_set` is the set of all algebraic number in ℝ.
 - For any polynomial $p ∈ ℤ[T]$, `roots_real p` is the set of real roots of $p$.
@@ -238,36 +238,38 @@ begin                                                                           
   done
 end
 
-@[simp] theorem identify_0_eq_0 (n : nat) : (identify n.succ zero_poly_n) = zero_int_n :=
+@[simp] theorem identify_0_eq_0 (n : nat) :                                       -- so the zero polynomial is 0
+  (identify n.succ zero_poly_n) = zero_int_n :=
 begin
  rw [identify, zero_int_n, zero_poly_n], ext, simp, done
 end
 
-lemma m_mod_n_lt_n : ∀ n : nat, n ≠ 0 -> ∀ m : nat, m % n < n :=
+lemma m_mod_n_lt_n : ∀ n : nat, n ≠ 0 -> ∀ m : nat, m % n < n :=                  -- the remainder of m dividing n is smaller than n
 begin
   intros n hn m,
   have hn' : 0 < n := zero_lt_iff_ne_zero.mpr hn,
   exact @nat.mod_lt m n hn',
 end
 
-theorem inj_identify_n : ∀ n : nat, (n ≠ 0) -> function.injective (identify n) :=
-begin
+theorem inj_identify_n :                                                          -- identification is injective:
+  ∀ n : nat, (n ≠ 0) -> function.injective (identify n) :=                        -- different polynomial is identified with different m-tuple
+begin                                                                             -- because all the coefficients are the same
   intros n hn,
-  unfold function.injective,
-  intros p1 p2 h,
-  unfold identify at h,
-  simp at h,
-  rw subtype.ext,
-  ext, rename n_1 m,
-  rw function.funext_iff at h,
-  have p1_deg := p1.property,
-  have p2_deg := p2.property,
+  unfold function.injective,                                                      
+  intros p1 p2 h,                                                                 -- given two polynomials p1 p2 and the assumption that 
+  unfold identify at h,                                                           -- p1 and p2 are identified to the same tuple
+  simp at h,                                                                      -- we have that ∀ m < n, the mth coefficient of p1 equals to
+  rw subtype.ext,                                                                 -- the mth coefficient of p2
+  ext, rename n_1 m,                                                              -- we need to prove ∀ m ∈ ℕ, the mth coefficient of p1 equals to
+  rw function.funext_iff at h,                                                    -- the mth coefficent of p2. So we take an arbitrary m ∈ ℕ.
+  have p1_deg := p1.property,                                                     
+  have p2_deg := p2.property,                                                     -- p1 and p2 both have degree < n
 
   -- consider m = n, m < n, m > n seprately,
   cases (nat.lt_trichotomy m n) with ineq,
   -- m < n
   {
-    let m' := (⟨m, ineq⟩ : fin n),
+    let m' := (⟨m, ineq⟩ : fin n),                                                -- for m < n, it is proved using the assumption above.
     have h_m := h m',
     have g : m'.val = m,
     {
@@ -280,39 +282,43 @@ begin
 
   -- m = n
   {
-    rw ineq,
-    rw [(@polynomial.coeff_eq_zero_of_nat_degree_lt int _ p1.val n p1_deg),
-        (@polynomial.coeff_eq_zero_of_nat_degree_lt int _ p2.val n p2_deg)],
+    rw ineq,                                                                      -- for m = n, lhs = rhs = 0
+    rw [(@polynomial.coeff_eq_zero_of_nat_degree_lt ℤ _ p1.val n p1_deg),
+        (@polynomial.coeff_eq_zero_of_nat_degree_lt ℤ _ p2.val n p2_deg)],
   },
 
   -- n < m
   {
-    rw @polynomial.coeff_eq_zero_of_nat_degree_lt int _ p1.val m (lt.trans p1_deg ineq),
-    rw @polynomial.coeff_eq_zero_of_nat_degree_lt int _ p2.val m (lt.trans p2_deg ineq),
+    rw @polynomial.coeff_eq_zero_of_nat_degree_lt ℤ _                             -- for m > n, lhs = rhs = 0
+        p1.val m (lt.trans p1_deg ineq),
+    rw @polynomial.coeff_eq_zero_of_nat_degree_lt ℤ _ 
+        p2.val m (lt.trans p2_deg ineq),
   }
 end
 
-theorem identify_nzero_to_nzero (n : nat) (p : poly_n n.succ) (hp : p ≠ zero_poly_n) : (identify n.succ p) ≠ zero_int_n :=
-begin
-  have g := inj_identify_n n.succ (nat.succ_ne_zero n),
+theorem identify_nzero_to_nzero (n : nat) (p : poly_n n.succ) (hp : p ≠ zero_poly_n) : 
+  (identify n.succ p) ≠ zero_int_n :=                                             -- non-zero polynomial is sent to non-zero tuple
+begin                                                                             -- so the identification process descends to identify
+  have g := inj_identify_n n.succ (nat.succ_ne_zero n),                           -- non-zero polynomial with non-zero tuple
   have g' := @g p zero_poly_n, simp at g',
   intro absurd, exact hp (g' absurd),
 end
 
 theorem sur_identify_n : ∀ n : nat, (n ≠ 0) -> function.surjective (identify n) :=
-begin
+begin                                                                                                                             -- identifunction is also surjective
     intros n hn,
     unfold function.surjective,
-    intro q,
+    intro q,                                                                                                                      -- given an element q in ℤⁿ
     let support : finset ℕ := finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n),
-    have hsupport : support = finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n) := rfl,
+    have hsupport : support = finset.filter (λ m : nat, (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) ≠ 0) (finset.range n) := rfl,  -- we can define a polynomial whose non-zero coefficients are exact at non-zero elements of q;
+                                                                                                                                
 
-    let to_fun : nat -> ℤ := (λ m : nat, ite (m ∈ support) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0),
+    let to_fun : nat -> ℤ := (λ m : nat, ite (m ∈ support) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0),                         -- whose coefficient equals the correpsonding elements of q
     have hto_fun : to_fun = (λ m : nat, ite (m ∈ support) (q (⟨m % n, m_mod_n_lt_n n hn m⟩ : fin n)) 0) := rfl,
     
-    let mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0,
-    {
-      intro m,
+    let mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0,                                                                      -- checking the polynomial is well-defined
+    {                                                                                                                             -- i.e. everything in support has non-zero coefficient and
+      intro m,                                                                                                                    -- every index with a non-zero coefficient is in support
       split,
       intro hm,
       have hm'' := hm,
@@ -346,7 +352,7 @@ begin
     },
     let p : polynomial ℤ := ⟨support, to_fun, mem_support_to_fun⟩,
     have hp_support : p.support =  finset.filter (λ (m : ℕ), q ⟨m % n, m_mod_n_lt_n n hn m⟩ ≠ 0) (finset.range n) := rfl,
-    have hp_support2 : ∀ m ∈ p.support, m < n,
+    have hp_support2 : ∀ m ∈ p.support, m < n,                                                         
     {
       rw hp_support,
       intro m,
@@ -371,7 +377,7 @@ begin
       exact hmn,
     },
 
-    have hp_nat_deg : p.nat_degree < n,
+    have hp_nat_deg : p.nat_degree < n,                                           -- So the polynomial has degree < n
     {
       by_cases (p = 0),
       rename h hp_eq_0,
@@ -395,7 +401,7 @@ begin
       exact hp_deg',
     },
 
-    use ⟨p, hp_nat_deg⟩,
+    use ⟨p, hp_nat_deg⟩,                                                          -- We claim that this polynomial is identified with q
     {
       ext,
       rename x m,
@@ -403,14 +409,14 @@ begin
       simp,
       rw hto_fun,
       have g : (λ (m : ℕ), ite (m ∈ support) (q ⟨m % n, m_mod_n_lt_n n hn m⟩) 0) (m.val) = ite (m.val ∈ support) (q ⟨m.val % n, m_mod_n_lt_n n hn m.val⟩) 0 := rfl,
-      rw g,
-      split_ifs,
+      rw g,                                                                       -- So we need to prove that forall m, coefficient at m equals the corresponding elements of q
+      split_ifs,                                                                  -- So we separate this into two cases: m ∈ support and m ∉ support
       
-      -- m.val ∈ support
+      -- m.val ∈ support                                                                             
       {
         simp at h,
         cases h,
-        have important : m = ⟨m.1 % n, _⟩,
+        have important : m = ⟨m.1 % n, _⟩,                                        -- If m ∈ support, true by our choice of polynomial
         {
           rw fin.ext_iff,
           simp,
@@ -421,7 +427,7 @@ begin
       },
       -- m.val ∉ support
       {
-        simp at h,
+        simp at h,                                                                -- If m ∉ support, then lhs = rhs = 0
         have h' := h m.2,
         have important : m = ⟨m.1 % n, _⟩,
         {
@@ -437,8 +443,8 @@ begin
 end
 
 
-theorem poly_n'_equiv_int_n' (n : nat) : poly_n' n.succ ≃ int_n' n.succ :=
-begin
+theorem poly_n'_equiv_int_n' (n : nat) : poly_n' n.succ ≃ int_n' n.succ :=        -- We use the fact that identification is bijection to prove
+begin                                                                             -- that non-zero polynomial of degree < n is equipotent to ℤⁿ for n ≥ 1
   let f : (poly_n' n.succ) -> (int_n' n.succ),
   {
     intro p,
@@ -487,7 +493,7 @@ begin
   done
 end
 
-  def f : int_n 1 -> int_n' 1 :=
+  def f : int_n 1 -> int_n' 1 :=                                                  -- This is an injective function from ℤ to ℤ - {0}
   begin
     intro r, split, swap, exact (fun m, ite ((r m) < 0) (r m) ((r m)+1)),
     intro rid,
@@ -497,13 +503,13 @@ end
   end
 
 
-  def g : int_n' 1 -> int_n 1 :=
+  def g : int_n' 1 -> int_n 1 :=                                                  -- This is an injective function from ℤ - {0} to ℤ
   begin
     intros g n, exact g.1 n,
   end
 
-theorem int_1_equiv_int_1' : int_n 1 ≃ int_n' 1 :=
-begin
+theorem int_1_equiv_int_1' : int_n 1 ≃ int_n' 1 :=                                -- We use the two injective functions and Schröder-Berstein theorem
+begin                                                                             -- to prove ℤ ≃ ℤ - {0}
   suffices H1 : ∃ f : int_n 1 -> int_n' 1, function.bijective f,
     choose h hh using H1,
     exact equiv.of_bijective hh,
@@ -530,13 +536,13 @@ begin
 end
 
 
-def fn {n : nat} : int_n (nat.succ (nat.succ n)) -> int_n (nat.succ n) × ℤ :=
+def fn {n : nat} : int_n (nat.succ (nat.succ n)) -> int_n (nat.succ n) × ℤ :=     -- This is an injection from ℤ^{n+1} to ℤⁿ × ℤ for n ≥ 1
 begin
   intro r, split, intro m, exact r (⟨m.1, nat.lt_trans m.2 (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ),
   exact r (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ),
 end
 
-def gn {n : nat} : int_n (nat.succ n) × ℤ -> int_n (nat.succ (nat.succ n)) :=
+def gn {n : nat} : int_n (nat.succ n) × ℤ -> int_n (nat.succ (nat.succ n)) :=     -- This is an injection from ℤⁿ × ℤ to ℤ^{n+1} for n ≥ 1
 begin
   intros r m, cases r with p r,
   by_cases (m.1 = n.succ), exact r,
@@ -546,7 +552,8 @@ begin
     exact p (⟨m.1, hm⟩ : fin n.succ),
 end
 
-theorem aux_int_n (n : nat) : int_n (nat.succ (nat.succ n)) ≃ int_n (nat.succ n) × ℤ :=
+theorem aux_int_n (n : nat) :                                                     -- So again using the two injections and Schröder-Berstein
+  int_n (nat.succ (nat.succ n)) ≃ int_n (nat.succ n) × ℤ :=                       -- We know ℤⁿ × ℤ ≃ ℤ^{n+1} for n ≥ 1
 begin
   suffices H1 : ∃ f : int_n n.succ.succ -> int_n n.succ × ℤ, function.bijective f,
     choose h hh using H1,
@@ -580,14 +587,14 @@ begin
   },
 end
 
-def fn' {n : nat} : int_n' (nat.succ (nat.succ n)) -> int_n (nat.succ n) × ℤ := 
+def fn' {n : nat} : int_n' (nat.succ (nat.succ n)) -> int_n (nat.succ n) × ℤ :=   -- We modify the above injection slightly to be from (ℤ^{n+1} - {0}) to ℤⁿ × ℤ for n ≥ 1.
 begin
   intro p, split, intro m,
   exact p.1 (⟨m.1, nat.lt_trans m.2 (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ),
   exact p.1 (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ),
 end
 
-def gn' {n : nat} : int_n (nat.succ n) × ℤ -> int_n' (nat.succ (nat.succ n)) :=
+def gn' {n : nat} : int_n (nat.succ n) × ℤ -> int_n' (nat.succ (nat.succ n)) :=   -- We modify the above injection slightly to be from  ℤⁿ × ℤ to (ℤ^{n+1}  - {0})for n ≥ 1.
 begin
   intro x,
   split, swap 2, intro m,
@@ -631,8 +638,9 @@ begin
 end
 
 
-theorem aux_int_n' (n : nat) : int_n' (nat.succ (nat.succ n)) ≃ int_n (nat.succ n) × ℤ :=
-begin
+theorem aux_int_n' (n : nat) : 
+  int_n' (nat.succ (nat.succ n)) ≃ int_n (nat.succ n) × ℤ :=                      -- Again by the above injections and Schröder-Berstein
+begin                                                                             -- we have (ℤ^{n+1} - {0}) ≃ ℤⁿ × ℤ for n ≥ 1
   suffices H1 : ∃ f : int_n' n.succ.succ -> int_n n.succ × ℤ, function.bijective f,
     choose h hh using H1,
     exact equiv.of_bijective hh,
@@ -657,8 +665,8 @@ begin
   }
 end
 
-theorem int_n_equiv_int_n' (n : nat) : int_n n.succ ≃ int_n' n.succ :=
-begin
+theorem int_n_equiv_int_n' (n : nat) : int_n n.succ ≃ int_n' n.succ :=            -- Use above and induction we are ready to prove
+begin                                                                             -- ∀ n ∈ ℕ, n ≥ 1 → ℤⁿ ≃ (ℤⁿ - {0})
   induction n with n hn,
   exact int_1_equiv_int_1',
 
@@ -671,6 +679,14 @@ begin
     have e2 := aux_int_n' n, suffices H3 : int_n (nat.succ n) × int ≃ int_n' (nat.succ n) × int', exact equiv.trans e2 H3,
     apply equiv.prod_congr, exact hn, exact int_eqiv_int',
 end
+
+/--
+- For any n ∈ ℕ_{≥1}, `algebraic_set'_n` is the set of all the roots of non-zero polynomials of degree less than n.
+- `algebraic_set'` is the set of all the roots of all the non-zero polynomials with integer coefficient.
+- Both of the definition is of the flavour of the second evaluation methods.
+- The `algebraic_set'_eq_algebraic_set` asserts `algebraic_set' = algebraic_set`. LHS is using the second evaluation method; RHS is using
+  the first method.
+-/
 
 def algebraic_set'_n (n : nat) : set real := ⋃ p : (poly_n' n.succ), roots_real p.1
 def algebraic_set' : set real := ⋃ n : nat, algebraic_set'_n n.succ
@@ -707,7 +723,7 @@ begin
   done
 end
 
-theorem poly_n'_1_coeff_ne_0 (q : poly_n' 1) : q.1.coeff 0 ≠ 0 :=
+theorem poly_n'_1_coeff_ne_0 (q : poly_n' 1) : q.1.coeff 0 ≠ 0 :=                 -- A non-zero polynomial of degree < 1 has a non-zero constant term
 begin
   have h := q.2,
   cases h with h1 h2,
@@ -719,12 +735,12 @@ begin
   ext, simp,
 end
 
-def identify'_1 : (poly_n' 1) -> int' :=
-begin
+def identify'_1 : (poly_n' 1) -> int' :=                                          -- So we can identify the set of non-zero polynomial of degree < 1 with
+begin                                                                             -- ℤ - {0}
   intro q, split, swap, exact q.1.coeff 0, exact poly_n'_1_coeff_ne_0 q,
 end
 
-theorem int_1_equiv_int : int_n 1 ≃ ℤ :=
+theorem int_1_equiv_int : int_n 1 ≃ ℤ :=                                          -- ℤ¹ ≃ ℤ
 begin
   constructor, swap 3, {
     intro f, exact f ⟨0, by linarith⟩,
@@ -739,20 +755,25 @@ begin
   }
 end
 
-theorem int_n_denumerable {n : nat} : denumerable (int_n n.succ) :=
+/--
+- denumerable means countably infinite
+- countable means coutably infinite or countable
+-/
+
+theorem int_n_denumerable {n : nat} : denumerable (int_n n.succ) :=               -- for all n ∈ ℕ, n ≥ 1 → ℤⁿ is denumerable
 begin
-  induction n with n hn,
+  induction n with n hn,                                                          -- To prove this, we use induction: ℤ¹ ≃ ℤ is denumerable
   apply denumerable.mk', suffices H : int_n 1 ≃ ℤ, apply equiv.trans H, exact denumerable.eqv ℤ,
   exact int_1_equiv_int,
 
-  apply denumerable.mk',
-  have Hn := @denumerable.eqv (int_n (nat.succ n)) hn,
+  apply denumerable.mk',                                                          -- Suppose ℤⁿ is denumerable, then ℤ^{n+1} ≃ ℤⁿ × ℤ ≃ ℕ × ℤ is denumerable
+  have Hn := @denumerable.eqv (int_n (nat.succ n)) hn,                            
   have e1 := aux_int_n n, suffices H : int_n (nat.succ n) × ℤ ≃ nat, exact equiv.trans e1 H,
   have e2 : int_n (nat.succ n) × ℤ ≃ nat × ℤ, apply equiv.prod_congr, exact Hn, refl,
   suffices H : ℕ × ℤ ≃ nat, exact equiv.trans e2 H, exact denumerable.eqv (ℕ × ℤ),
 end
 
-theorem poly_n'_denumerable (n : nat) : denumerable (poly_n' n.succ) :=
+theorem poly_n'_denumerable (n : nat) : denumerable (poly_n' n.succ) :=           -- So the set of non-zero polynomials of degree < n ≃ ℤⁿ - {0} ≃ ℤⁿ is denumerable
 begin
   apply denumerable.mk',
   suffices e1 : int_n' n.succ ≃ nat, exact equiv.trans (poly_n'_equiv_int_n' n) e1,
@@ -760,7 +781,8 @@ begin
   exact @denumerable.eqv (int_n n.succ) int_n_denumerable,
 end
 
-theorem algebraic_set'_n_countable (n : nat) : set.countable $ algebraic_set'_n n :=
+theorem algebraic_set'_n_countable (n : nat) :                                    -- The set of roots of non-zero polynomial of degree < n is countable
+  set.countable $ algebraic_set'_n n :=                                           -- being countable union of finite set.
 begin
   rw algebraic_set'_n,
   have h := @set.countable_Union (poly_n' n.succ) real (fun p, roots_real p.1) (poly_n'_denumerable n).1,
@@ -769,23 +791,23 @@ begin
   done
 end
 
-theorem algebraic_set'_countable : set.countable algebraic_set' :=
-begin
+theorem algebraic_set'_countable : set.countable algebraic_set' :=                -- So the set of roots of non-zero polynomial is countable
+begin                                                                             -- being countable union of countable set
   apply set.countable_Union,
   intro n, exact algebraic_set'_n_countable n.succ,
 end
 
-theorem countable_algebraic_set : set.countable algebraic_set :=
-begin
-  rw <-algebraic_set'_eq_algebraic_set, exact algebraic_set'_countable, done
+theorem countable_algebraic_set : set.countable algebraic_set :=                  -- So the set of algebraic number (no matter which evaluation method we are using)
+begin                                                                             -- is countable
+  rw <-algebraic_set'_eq_algebraic_set, exact algebraic_set'_countable
 end
 
-def real_set : set real := @set.univ real
+def real_set : set ℝ := @set.univ ℝ                                               -- the set ℝ
 
-theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℤ x) :=
-begin
-  have H : algebraic_set ≠ real_set,
-  {
+theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℤ x) :=        -- Since ℝ is uncouble, algebraic numbers are countable
+begin                                                                             
+  have H : algebraic_set ≠ real_set,                                              -- ℝ ≠ algebraic_set
+  {                                                                               -- otherwise ℝ must be countable which is not true
     intro h1,
     have h2 : set.countable real_set,
     {
@@ -795,13 +817,12 @@ begin
     exact h3 h2,
   },
   
-  rw [ne.def, set.ext_iff, not_forall] at H,
+  rw [ne.def, set.ext_iff, not_forall] at H,                                    -- Since algebraic_set ⊊ ℝ, there is some x ∈ ℝ but not algebraic
   choose x Hx using H,
   rw not_iff at Hx,
   replace Hx := Hx.mpr,
   use x,
   exact Hx trivial,
-  done
 end
 
 end project
