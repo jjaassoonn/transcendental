@@ -28,10 +28,7 @@ begin
     intros a b h, simp at h, assumption,
 end
 
-theorem ℤembℝ_zero : ℤembℝ 0 = 0 := 
-begin 
-    norm_num,
-end
+theorem ℤembℝ_zero : ℤembℝ 0 = 0 := by norm_num
 
 
 -- compute list of coeff of a polynomial
@@ -57,7 +54,7 @@ begin
     constructor, swap 2,
     exact (n+1)⁻¹ + a,
     split, 
-    {   --type_check @le_add_right _ _ (a:ℝ),
+    {
         exact calc a - 1 ≤ a : by linarith
                   ...    ≤ a + (n+1)⁻¹ : begin norm_num, norm_cast, norm_num, end
                   ...    ≤ (n+1)⁻¹ + a : by linarith,
@@ -75,13 +72,10 @@ begin
     rw [function_ℕ_Icc] at hmn, simp at hmn, exact hmn,
 end
 
--- instance asd {a: Type} (S : set a) (hs :infinite S)
-
 theorem inf_set_cannot_be_subset_of_fin_set {a : Type} {inst : infinite a} (S : set a) (T : set a) (hS : infinite S) (hT : set.finite T) : ¬ (S.subset T) :=
 begin
     by_contra absurd,
     generalize hf : set.inclusion absurd = f,
-    -- type_check set.finite.fintype hT,
     have absurd2 := @not_injective_infinite_fintype ↥S _ _ (set.finite.fintype hT) f,
     rw <-hf at absurd2,
     have contra := set.inclusion_injective absurd, simpa,
@@ -125,8 +119,6 @@ begin
         have ineq2 := lt_of_lt_of_le absurd ineq, exact with_bot.coe_lt_coe.mp ineq2,
     },
     
-    -- type_check f.coeff f.nat_degree
-
     rw polynomial.ext_iff at h,
     rename_var n m at h, simp at h,
     replace h := h m,
@@ -167,49 +159,6 @@ begin
     have zero3 : (polynomial.C (f.coeff 0)).coeff n.succ = 0 := polynomial.coeff_eq_zero_of_nat_degree_lt _,
     rw zero3, rw zero2, exact nat.succ_pos n,
 end
-
-
--- -- prove using induction on polynomial
--- theorem induction_on_degree {a : Type} {inst : comm_semiring a} (M : polynomial a -> Prop)
---     (deg_0 : ∀ p : polynomial a, (p.degree = 0) -> M p)
---     (inductive_hyp : ∀ n : ℕ, (∀ p : polynomial a, (p.degree ≤ n) -> M p) -> (∀ q : polynomial a, (q.degree = n.succ) -> M q)) :
---     ∀ f : polynomial a, M f :=
-
--- begin
---     classical,
---     -- let S be all polynomials not satisfying M,
---     generalize hS : {f : polynomial a | ¬ M f} = S,
---     suffices : S = ∅,
---     {
---         intro f, by_contra absurd, have rid : f ∈ S,
---         rw <-hS, simp, exact absurd, rw this at rid, simpa,
---     },
---     by_contra rid,
---     generalize hS_deg : S.image (λ f : polynomial a, f.degree) = S_deg,
---     -- then S_deg is non_empty
---     have S_deg_nonempty : S_deg ≠ ∅, rw [<-hS_deg],
---     {   
---         by_contra rid', simp at rid', exact rid rid',
---     },
---     replace S_deg_nonempty : S_deg.nonempty, exact set.nmem_singleton_empty.mp S_deg_nonempty,
---     -- then S_deg has min element
---     -- have H := @with_bot.well_founded_lt (with_bot ℕ) _ (<),
---     choose m hm using (@well_founded.has_min (with_bot ℕ) (<) (with_bot.well_founded_lt nat.lt_wf) S_deg S_deg_nonempty),
---     have hm1 := hm.1, have hm2 := hm.2,
---     rw [<-hS_deg, set.mem_image] at hm1,
---     choose f hf using hm1,
---     have M_g : ∀ g : polynomial a, (g.degree) < m -> M g, {
---         by_contra rid, simp at rid,
---         choose g hg using rid,
---         have rid' : g.degree ∈ S_deg, rw [<-hS_deg, set.mem_image],
---         use g, simp, rw [<-hS], simp, exact hg.2,
---         replace rid' := hm2 g.degree rid',
---         exact rid' hg.1,
---     },
-
-
--- end
-
 
 -- power manipulation
 theorem pow_sub_ℝ (r : ℝ) (hr : r ≠ 0) (m n : ℤ) : r^(m-n) = r^m / r^n :=
@@ -370,12 +319,5 @@ begin
     choose n hn using H,
     use n, exact le_of_lt hn, exact lt_add_one 1,
 end
-
-
--- theorem eval_sum_eq_sum_eval (S : finset (polynomial ℝ)) (x : ℝ) : polynomial.eval x (S.sum id) = S.sum (λ f, polynomial.eval x f) := 
--- begin
---     apply finset.induction_on S, simp,
---     intros a T ha ih, rw finset.sum_insert, rw polynomial.eval_add, simp, rw finset.sum_insert, simp, exact ih, assumption, assumption,
--- end
 
 end small_things

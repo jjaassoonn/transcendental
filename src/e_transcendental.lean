@@ -6,8 +6,7 @@ import data.int.basic
 import data.polynomial
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
-
+open_locale classical
 open small_things
 
 open_locale big_operators
@@ -1691,7 +1690,7 @@ begin
     replace triv : ∑ (i : ℕ) in f.support, f.coeff i * (polynomial.X ^ i).coeff n =
         ∑ (i : ℕ) in f.support, (ite (n = i) (f.coeff i) 0),
     {
-        apply congr_arg, simp, ext, split_ifs, refl, refl,
+        apply congr_arg, simp,
     },
     rw triv, rw finset.sum_ite, simp, rw finset.filter_eq,
     split_ifs, simp, simp, have f3 := (f.3 n).2, rw <-not_imp_not at f3, rw not_not at f3, replace h := f3 h, exact h,

@@ -10,8 +10,7 @@ import analysis.calculus.fderiv
 import analysis.special_functions.exp_log
 
 noncomputable theory
-local attribute [instance] classical.prop_decidable
-
+open_locale classical
 open small_things
 open_locale big_operators
 
