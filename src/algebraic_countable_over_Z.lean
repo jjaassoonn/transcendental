@@ -674,17 +674,12 @@ def identify'_1 : (poly_n' 1) -> int' := λ q, ⟨q.1.coeff 0, poly_n'_1_coeff_n
 
 
 theorem int_1_equiv_int : (int_n 1) ≃ ℤ :=                                        -- ℤ¹ ≃ ℤ
-begin
-  split, swap 3, {
-    intro f, exact f ⟨0, by linarith⟩,
-  }, swap 3, {
-    intros r m, exact r,
-  }, {
-    intros x, dsimp, ext m,  fin_cases m,
-  }, {
-    intros x, simp only [id.def],
-  }
-end
+{ to_fun := (λ f, f ⟨0, by linarith⟩),
+  inv_fun := (λ r m, r),
+  left_inv := begin
+    intro x, dsimp, ext m, fin_cases m,
+  end,
+  right_inv := λ x, rfl,}
 
 /--
 - denumerable means countably infinite
