@@ -600,7 +600,7 @@ begin
     rw [polynomial.coeff_eq_zero_of_nat_degree_lt, polynomial.coeff_eq_zero_of_nat_degree_lt],
     exact lt_of_lt_of_le h2 h, exact lt_of_lt_of_le h1 h,
 
-    simp at h, rw hx ⟨m, h⟩,
+    simp at h, rw hx ⟨m, _⟩, exact nat.lt_succ_iff.mpr h,
   },
 
   {

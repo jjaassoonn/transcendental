@@ -351,7 +351,6 @@ begin                                                                           
       simp only [identify, polynomial.coeff_mk],
       split_ifs,                                                                  -- So we need to prove that forall m, coefficient at m equals the corresponding elements of q
                                                                                   -- So we separate this into two cases: m ∈ support and m ∉ support
-      
       -- m.val ∈ support                                                                             
       {
         simp only [ne.def, finset.mem_filter, finset.mem_range] at h,

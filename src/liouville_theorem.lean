@@ -7,34 +7,30 @@ noncomputable theory
 open_locale classical
 open small_things
 
+/--
+- a number is transcendental ↔ a number is algebraic
+- a Liouville's number $x$ is a number such that
+  for every natural number, there is a rational number a/b such that 0 < |x - a/b| < 1/bⁿ 
+-/
+
 def transcendental (x : ℝ) := ¬(is_algebraic ℤ x)
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
--- This is should be the hardest part
-/-
-Lemma 1. Let α be an irrational number which is a root of f(x) = Σ aⱼ Xᶨ ∈ Z[x] with
-f(x) ≢  0.
-
-Then there is a constant A = A(α) > 0 such that 
-  if a and b are integers with b > 0,
-  then |α - a / b| > A / b^n
--/
-
+-- Evaluating an integer polynomial in ℝ using the trival embeding
 def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := (f.map ℤembℝ).eval α
-
+-- x ↦ |f(x)| is continuous
 theorem abs_f_eval_around_α_continuous (f : polynomial ℝ) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
 begin
-  have H : (λ x : ℝ, (abs (f.eval x))) = abs ∘ (λ x, f.eval x),
-  {
-    exact rfl,
-  },
+  have H : (λ x : ℝ, (abs (f.eval x))) = abs ∘ (λ x, f.eval x) := rfl,
   rw H,
   have H2 := polynomial.continuous_eval f,
   have H3 := continuous.comp real.continuous_abs H2,
   exact continuous.continuous_on H3
 end
-
+/--
+The next two lemmas state coefficient (support resp.) of $f ∈ ℤ[T]$ is the same as $f ∈ ℝ[T]$.
+-/
 private lemma same_coeff (f : polynomial ℤ) (n : ℕ): ℤembℝ (f.coeff n) = ((f.map ℤembℝ).coeff n) :=
 begin
   simp only [ring_hom.eq_int_cast, polynomial.coeff_map],
@@ -83,10 +79,7 @@ begin
     rw [sub_sub, add_comm, <-sub_sub], simp only [zero_sub, sub_self],
   }, 
   rw eq2 at eq1, rw [fpow_neg, inv_eq_one_div] at eq1,
-  have eqb1 : (b:ℝ) ^ (i:ℤ) = (b:ℝ) ^ i, 
-  {
-    norm_num,
-  },
+  have eqb1 : (b:ℝ) ^ (i:ℤ) = (b:ℝ) ^ i := by norm_num,
   rw eqb1 at eq1,
   have eq3 : (f.nat_degree : ℤ) - (i:ℤ) = int.of_nat (f.nat_degree - i),
   {
@@ -142,96 +135,118 @@ begin
   rw abs_of_pos, norm_num, norm_cast, refine pow_pos _ f.nat_degree, exact b_non_zero,
 end
 
-private lemma abs_ℤembℝ (x : ℤ) : ℤembℝ (abs x) = abs (ℤembℝ x) := by simp
+private lemma abs_ℤembℝ (x : ℤ) : ℤembℝ (abs x) = abs (ℤembℝ x) := by simp only [ring_hom.eq_int_cast, int.cast_abs]
 
 private lemma ineq3 (x : ℤ) (hx : x ≥ 1) : ℤembℝ x ≥ 1 :=
 begin
   simp only [ring_hom.eq_int_cast, ge_iff_le], norm_cast, exact hx,
 end
 
+/--
+For an integer polynomial f of degree n > 1, if a/b is not a root of f then |f(a/b)| ≥ 1/bⁿ. (wlog b > 0).
+If we write `f(T) = ∑ λᵢ Tⁱ` 
+This is because `|f(a/b)|=|∑ λᵢ aⁱ/bⁱ| = (1/bⁿ) |∑ λᵢ aⁱ b^(n-i)|`, but a/b is not a root, so `|∑ λᵢ aⁱ b^(n-i)| ≥ 1`.
+- `ineq1` proves that if a/b is not a root of f then `∑ λᵢ aⁱ b^(n-i) ≠ 0`
+-/
+
 theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   @abs ℝ _ ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) ≥ 1/(b:ℝ)^f.nat_degree :=
 begin
-  have eval1 := eval_f_a_div_b f f_deg a b b_non_zero a_div_b_not_root,
-  have cast1 := cast1 f f_deg a b b_non_zero a_div_b_not_root,
-  have ineq1 := ineq1 f f_deg a b b_non_zero a_div_b_not_root,
-  have ineq2 := ineq2 f f_deg a b b_non_zero a_div_b_not_root,
+  have eval1 := eval_f_a_div_b f f_deg a b b_non_zero a_div_b_not_root,               -- This is `f(a/b)=∑ λᵢ aⁱ/bⁱ`
+  have cast1 := cast1 f f_deg a b b_non_zero a_div_b_not_root,                        -- This is not maths, but casting types
+  have ineq1 := ineq1 f f_deg a b b_non_zero a_div_b_not_root,                        -- This is `∑ λᵢ aⁱ b^(n-i) ≠ 0`
+  have ineq2 := ineq2 f f_deg a b b_non_zero a_div_b_not_root,                        -- This is the same but casting types
   rw [eval1, abs_mul, ineqb f f_deg a b b_non_zero a_div_b_not_root, cast1],
+  /-
+  To prove |f(a/b)| ≥ 1/bⁿ we just need to prove |∑ λᵢ aⁱ b^(n-i)| ≥ 1
+  -/
   suffices ineq3 : abs (ℤembℝ (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i))) ≥ 1,
   {
     rw ge_iff_le,
+    -- We are manipulating inequalities involving multiplication so we use mul_le_mul
+    -- mul_le_mul (hac : a ≤ c) (hbd : b ≤ d) (nn_b : 0 ≤ b) (nn_c : 0 ≤ c) : a * b ≤ c * d
+    -- Here mul_le_mul needs two things to be positive and the positivity is proved after the main point is proved.
     have H := @mul_le_mul ℝ _ 1 (1/(b:ℝ)^f.nat_degree) (abs (ℤembℝ (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)))) (1/(b:ℝ)^f.nat_degree) ineq3 _ _ _,
     rw one_mul at H, rw mul_comm at H, exact H,
     exact le_refl (1 / ↑b ^ polynomial.nat_degree f),
-    norm_num, replace H := @pow_nonneg ℝ _ b _ f.nat_degree, exact H, norm_cast, exact ge_trans b_non_zero trivial,
 
-    exact abs_nonneg _,
+    -- here is the proof that the things should be positive are positive. All are more or less trival
+    norm_num, replace H := @pow_nonneg ℝ _ b _ f.nat_degree, exact H,
+    norm_cast, exact ge_trans b_non_zero trivial, exact abs_nonneg _,
   },
   rw <-abs_ℤembℝ, apply ineq3,
   have ineq4 : abs (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)) > 0 := abs_pos_iff.2 ineq1,
   exact ineq4,
 end
 
+/--
+This is the main lemma :
+Let α be an irrational number which is a root of f(x) = Σ aⱼ Xᶨ ∈ Z[T] with f(x) ≢  0.
+
+Then there is a constant A = A(α) > 0 such that:
+  if a and b are integers with b > 0, then |α - a / b| > A / b^n
+
+N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't hurt if we assume
+     f to be an integer polynomial of degree > 1.
+-/
+
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, A > 0 ∧ ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
-  have f_nonzero : f ≠ 0,
+  have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
     by_contra rid,
     simp only [classical.not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0, exact (congr_arg polynomial.nat_degree rid).trans rfl,
     rw f_nat_deg_zero at f_deg, linarith,
   },
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
-  have hfℝ_nonzero : f_ℝ ≠ 0,
+  have hfℝ_nonzero : f_ℝ ≠ 0,                                                     -- f ∈ ℝ[T] is not zero
   {
     by_contra absurd, simp only [classical.not_not] at absurd, rw [polynomial.ext_iff] at absurd,
-    have absurd2 : f = 0,
-    {
+    suffices : f = 0, exact f_nonzero this,
       ext, replace absurd := absurd n, simp only [polynomial.coeff_zero] at absurd ⊢,
       rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
       simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at absurd, exact absurd,
-    },
-    exact f_nonzero absurd2,
   },
-  generalize hDf: f_ℝ.derivative = Df_ℝ,
-  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1)) 
-              begin rw set.nonempty, use α, rw set.mem_Icc, split, linarith, linarith end
+  generalize hDf: f_ℝ.derivative = Df_ℝ,                                         -- We use Df_ℝ to denote the (formal) derivative of f ∈ ℝ[T]
+  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1))                  -- x ↦ abs |Df_ℝ| has a maximum on interval (α - 1, α + 1)
+              begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
               (abs_f_eval_around_α_continuous Df_ℝ α),
 
-  choose x_max hx_max using H,
+  choose x_max hx_max using H,                                                   -- Say the maximum is attained at x_max with M = Df_ℝ(x_max) 
   generalize M_def: abs (Df_ℝ.eval x_max) = M,
   have hM := hx_max.2, rw M_def at hM,
-  have M_non_zero : M ≠ 0,
+  have M_non_zero : M ≠ 0,                                                       -- Then M is not zero :
   {
-    by_contra absurd,
+    by_contra absurd,                                                            -- Otherwise Df_ℝ(x) = 0 ∀ x ∈ (α-1, α+1)
     simp only [classical.not_not] at absurd, rw absurd at hM,
     replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
     {
       intros y hy,
       have H := hM y hy, simp at H, rw H,
     },
-    replace hM : Df_ℝ = 0,
+    replace hM : Df_ℝ = 0,                                                        -- Then Df_ℝ is the zero polyomial.
     {
       exact f_zero_on_interval_f_zero Df_ℝ hM,
     },
     rename hM Df_ℝ_zero,
-    have f_ℝ_0 : f_ℝ.nat_degree = 0,
+    have f_ℝ_0 : f_ℝ.nat_degree = 0,                                              -- Then f ∈ ℝ[x] has degree zero
     {
       have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
       rw [<-hDf] at Df_ℝ_zero, assumption,
     },
-    replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,
+    replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
     choose c hc using f_ℝ_0,
     -- f = c constant
     -- c must be 0 because f(α) = 0
-    have absurd2 : c = 0,
+    have absurd2 : c = 0,                                                         -- But since f(α) = 0, f ∈ ℝ[x] is the zero polynomial
     {
       rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp only [polynomial.eval_C] at α_root, assumption,
     },
     -- if c is zero contradiction to f_nonzero
     rw absurd2 at hc,
-    have f_zero : f = 0,
+    have f_zero : f = 0,                                                          -- Then f ∈ ℤ[x] is the zero polynomial
     {
       ext,
       have f_ℝ_n : f_ℝ.coeff n = 0, 
@@ -240,38 +255,38 @@ begin
       rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at H ⊢, norm_cast at H, exact eq.symm H,
       simp only [polynomial.coeff_zero], rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n] at f_ℝ_n, simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at f_ℝ_n, assumption,
     },
-    exact f_nonzero f_zero,  
+    exact f_nonzero f_zero,                                                       -- But f ∈ ℤ[x] is not a zero polynomial.
   },
-  have M_pos : M > 0,
+  have M_pos : M > 0,                                                             -- Since M is not zero, M > 0 being abs (sth.) 
   {
     rw <-M_def at M_non_zero ⊢,
     have H := abs_pos_iff.2 M_non_zero, simp only [abs_abs] at H, exact H,
   },
   generalize roots_def :  f_ℝ.roots = f_roots,
-  generalize roots'_def : f_roots.erase α = f_roots', 
+  generalize roots'_def : f_roots.erase α = f_roots',                             -- f_roots' is the root of f that is not α
   generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
-  generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
-  have hnon_empty: distances'.nonempty,
+  generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',    -- distances' is the (finite) set {1, 1/M} ⋃ { |β - α| | β ∈ f_roots' }
+  have hnon_empty: distances'.nonempty,                                           -- which is not empty, say 1/M ∈ distances'
   {
     rw <-hdistances',
     rw [finset.nonempty], use (1/M), simp only [true_or, eq_self_iff_true, finset.mem_insert],
   },
-  generalize hB : finset.min' distances' hnon_empty = B,
-  have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,
+  generalize hB : finset.min' distances' hnon_empty = B,                          -- Let B be the smallest of distances'.
+  have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,                                 -- Every number in distances' is postive,
   {
     intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
     cases hx,
-    {
+    {                                                                             -- because it is either 1 / M which is positive
       -- 1 / M
       rw hx, simp only [one_div_eq_inv, gt_iff_lt, inv_pos], exact M_pos,
     },
     cases hx,
     {
-      -- 1
+      -- 1                                                                        -- or 1
       rw hx, exact zero_lt_one,
     },
     {
-      -- x is abs (root - α) with root not α
+      -- x is abs (root - α) with root not α                                      -- or |β - α| for some β which is a root of f but is not α.
       rw [<-roots_distance_to_α] at hx, simp only [exists_prop, finset.mem_image] at hx,
       choose α0 hα0 using hx,
       rw [<-roots'_def, finset.mem_erase] at hα0,
@@ -280,47 +295,42 @@ begin
       have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
     },
   },
-  have B_pos : B > 0,
+  have B_pos : B > 0,                                                             -- Then B is positive.
   {
     have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
     rw <-hB, assumption,
   },
-  generalize hA : B / 2 = A,
+  generalize hA : B / 2 = A,                                                      -- Let A = B/2.
   use A, split,
   -- A > 0
-  rw [<-hA], apply half_pos, assumption,
-
+  rw [<-hA], apply half_pos, assumption,                                          -- Then A is postive as B is postive
+  -- goal : ∀ (a b : ℤ), b > 0 → |α - a/b| > A / bⁿ where n is the degree of f.      We use proof by contradiction
   by_contra absurd, simp only [gt_iff_lt, classical.not_forall, not_lt, classical.not_imp] at absurd,
-  choose a ha using absurd,
-  choose b hb using ha,
+  choose a ha using absurd,                                                       -- So assume a and b are integers such that |α - a/b| ≤ A / b^n
+  choose b hb using ha,                               
 
 
-  have hb2 : b ^ f.nat_degree ≥ 1,
-  {
+  have hb2 : b ^ f.nat_degree ≥ 1,                                                -- Since b > 0 and n > 1, bⁿ ≥ 1
+  {                                                                               -- So A/bⁿ ≤ A
     rw <-(pow_zero b),
     have hbge1 : b ≥ 1 := hb.1,
     have htrivial : 0 ≤ f.nat_degree := by exact bot_le,
     exact pow_le_pow hbge1 htrivial,
   },
-  have hb21 : abs (α - a / b) ≤ A,
+  have hb21 : abs (α - a / b) ≤ A,                                                -- Then we also have |α - a/b| ≤ A
   {
     suffices H : (A / b ^ f.nat_degree) ≤ A,
     have H2 := hb.2, exact le_trans H2 H,
     apply (@div_le_iff ℝ _ A (b ^ f.nat_degree) A _).2,
     apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at hb2 ⊢, exact hb2,
-    norm_cast, linarith, norm_cast, linarith,
+    rw [<-hA], apply half_pos, assumption, norm_cast, linarith,
   },
-  have hb21' : abs (α - a / b) ≤ A / (b^f.nat_degree),
-  {
-    exact hb.2,
-  },
-
-  have hb22 : abs (α - a/b) < B,
+  have hb22 : abs (α - a/b) < B,                                                  -- Since A > 0, |α - a/b| ≤ A < 2A = B ≤ 1
   {
     have H := half_lt_self B_pos, rw hA at H, exact gt_of_gt_of_ge H hb21,
   },
   -- then a / b is in [α-1, α+1]
-  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),
+  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),                                      -- So a/b ∈ (α-1, α+1)
   {
     suffices H : abs (α - a/b) ≤ 1, 
     have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
@@ -330,46 +340,46 @@ begin
     rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
   },
   -- a/b is not a root
-  have hab1 : (↑a/↑b:ℝ) ≠ α,
+  have hab1 : (↑a/↑b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
   {
     have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
   },
-  have hab2 : (↑a/↑b:ℝ) ∉ f_roots,
+  have hab2 : (↑a/↑b:ℝ) ∉ f_roots,                                                -- a/b is not any root because
   {
-    by_contra absurd,
+    by_contra absurd,                                                             -- otherwise a/b ∈ f_roots' (roots of f other than α)
     have H : ↑a/↑b ∈ f_roots',
     {
       rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
     },
-    have H2 : abs (α - ↑a/↑b) ∈ distances',
+    have H2 : abs (α - ↑a/↑b) ∈ distances',                                       -- Then |α - a/b| is in {1, 1/M} ∪ {|β - α| | β ∈ f_roots' }
     {
       rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
       rw [<-roots_distance_to_α, finset.mem_image], use ↑a/↑b, split, exact H, refl,
     },
-    have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,
+    have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
     rw hB at H3, linarith,
   },
-  -- either α > a/b or α < a/b, two cases essentially have the same proof
+  -- Since α ≠ a/b, either α > a/b or α < a/b, two cases essentially have the same proof.
   have hab3 := ne_iff_lt_or_gt.1 hab1,
   cases hab3,
   {
     -- α > a/b subcase
-    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
-    choose x0 hx0 using H,
-    have hx0l := hx0.1,
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                   -- We mean value theorem in this case to find 
+    choose x0 hx0 using H,                                                        -- an x₀ ∈ (a/b, α) such that Df_ℝ(x₀) = (f(α) - f(a/b))/(α - a/b),
+    have hx0l := hx0.1,                                                           -- since f(α) = 0, Df_ℝ(x₀) = - f(a/b) / (α - a/b)
     have hx0r := hx0.2,
     -- clean hx0 a bit to be more usable,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [zero_sub] at hx0r,
     -- we have Df(x0) ≠ 0
-    have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
+    have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,                                        -- So Df_ℝ(x₀) is not zero. (a/b is not a root)
     {
       rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
       rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
       exact hfℝ_nonzero, linarith,
     },
 
-    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
+    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),          -- So |α - a/b| = |f(a/b)/Df_ℝ(x₀)|
     {
       norm_num [hx0r], 
       rw [neg_div, div_neg, abs_neg, div_div_cancel'],
@@ -385,10 +395,10 @@ begin
       exact hab2 rid, exact hfℝ_nonzero,
     },
 
-    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
-    {
-      rw [H2, abs_div],
-      have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
+    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition
+    {                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
+      rw [H2, abs_div],                                                           -- and x₀ ∈ (α - 1, α + 1)]
+      have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',      -- So |α - a/b| ≥ 1/(M*bⁿ) where n is degree of f
       rw [<-hfℝ],
       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
       {
@@ -402,7 +412,7 @@ begin
       },
       
       have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
-      suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      suffices : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
       rw [div_div_eq_div_mul] at ineq3,
       have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
@@ -417,7 +427,7 @@ begin
       exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
     },
 
-    have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
+    have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),                   -- Also 1/(M*bⁿ) > A/bⁿ since A < B ≤ 1/M
     {
       have ineq : A < B, rw [<-hA], exact @half_lt_self ℝ _ B B_pos,
       have ineq2 : B ≤ 1/M, rw [<-hB], have H := finset.min'_le distances' hnon_empty (1/M) _, exact H,
@@ -426,21 +436,20 @@ begin
       rw [<-div_div_eq_div_mul], have ineq' := (@div_lt_div_right ℝ _ A (1/M) (↑b ^ f.nat_degree) _).2 ineq3,
       rw <-gt_iff_lt at ineq', exact ineq', norm_cast, exact pow_pos hb.1 f.nat_degree,
     },
-    -- hb21 : abs (α - ↑a / ↑b) ≤ A,
-    have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,
-    have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,
+    have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,           -- So |α - a/b| > A/bⁿ
+    have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,      -- But we assumed |α - a/b| ≤ A/bⁿ. This is the desired contradiction
 
     -- continuity
-    exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,
-    -- differentiable
-    exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,
+    exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,                -- Since we used mean value theorem, we need to show
+    -- differentiable                                                             -- continuity and differentiablity of x ↦ f(x),
+    exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,            -- these are built in.
   },
 
   {
-    -- α < a/b subcase
-    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,
-    choose x0 hx0 using H,
-    have hx0l := hx0.1,
+    -- α < a/b subcase                                                               The other case is similar
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                   -- In fact I copied and pasted the above proof and exchanged
+    choose x0 hx0 using H,                                                        -- positions of α and a/b. Then it worked.
+    have hx0l := hx0.1,                                                           
     have hx0r := hx0.2,
     -- clean hx0 a bit to be more usable,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
@@ -522,40 +531,43 @@ begin
   },
 end
 
+/--
+We then prove that all liouville numbers cannot be rational. Hence we can apply the above lemma to any liouville number and show its
+transcendence.
+-/
+
 lemma liouville_numbers_irrational: ∀ (x : real), (liouville_number x) -> irrational x :=
 begin
-  intros x li_x a b hb rid, replace rid : x = ↑a / ↑b, linarith,
+  intros x li_x a b hb rid, replace rid : x = ↑a / ↑b, linarith,                  -- Suppose x is a rational Liouville number: say x = a/b.
   rw liouville_number at li_x,
-  generalize hn : b.nat_abs + 1 = n,
+  generalize hn : b.nat_abs + 1 = n,                                              -- Let n = |b| + 1. Then 2^(n-1) > b
   have b_ineq : 2 ^ (n-1) > b,
   {
     rw <-hn, simp only [nat.add_succ_sub_one, add_zero, gt_iff_lt],
     have triv : b = b.nat_abs, rw <-int.abs_eq_nat_abs, rw abs_of_pos, assumption,rw triv, simp,
     have H := @nat.lt_pow_self 2 _ b.nat_abs,  norm_cast, exact H, exact lt_add_one 1,
   },
-  choose p hp using li_x n,
-  choose q hq using hp, rw rid at hq,
-  have q_pos : q > 0, linarith,
+  choose p hp using li_x n,                                                       -- Then there is a rational number p/q where q > 1
+  choose q hq using hp, rw rid at hq,                                             -- such that 0 < |x- p/q| < 1/qⁿ
+  have q_pos : q > 0, linarith,                                                   -- i.e 0 < |(aq - bp)/bq| < 1/qⁿ
   rw div_sub_div at hq, swap, norm_cast, linarith, swap, norm_cast, have hq1 := hq.1, linarith,
   rw abs_div at hq,
   
   by_cases (abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)) = 0),
   {
-    -- aq = bp,
+    -- aq = bp,                                                                   -- Then aq ≠ bp
     rw h at hq, simp only [one_div_eq_inv, gt_iff_lt, euclidean_domain.zero_div, inv_pos] at hq, have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2, linarith,
   },
   {
-    -- |a q - b p| ≠ 0,
-    -- then |aq-bp| ≥ 1
     have ineq : ((@abs ℤ _ (a * q - b * p)):ℝ) = abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)), norm_cast,
     have ineq2: (abs (a * q - b * p)) ≠ 0, by_contra rid, simp only [abs_eq_zero, classical.not_not] at rid, rw rid at ineq, simp only [int.cast_zero, abs_zero] at ineq, exact h (eq.symm ineq),
     have ineq2':= abs_pos_iff.2 ineq2, rw [abs_abs] at ineq2',
     replace ineq2' : 1 ≤ abs (a * q - b * p), linarith,
-    have ineq3 : 1 ≤ @abs ℝ _ (a * q - b * p), norm_cast, exact ineq2',
+    have ineq3 : 1 ≤ @abs ℝ _ (a * q - b * p), norm_cast, exact ineq2',           -- Then |aq - bp| ≠ 0, then |aq-bp| ≥ 1
 
     have eq : abs (↑b * ↑q) = (b:ℝ)*(q:ℝ), rw abs_of_pos, have eq' := mul_pos hb q_pos, norm_cast, exact eq',
     rw eq at hq,
-    have ineq4 : 1 / (b * q : ℝ) ≤ (@abs ℝ _ (a * q - b * p)) / (b * q), 
+    have ineq4 : 1 / (b * q : ℝ) ≤ (@abs ℝ _ (a * q - b * p)) / (b * q),          -- So |(aq - bp)/bq| = |aq - bp|/(bq) ≥ 1/(bq)
     {
       rw div_le_div_iff, simp only [one_mul], have H := (@le_mul_iff_one_le_left ℝ _ _ (b * q) _).2 ineq3, exact H,
       norm_cast, have eq' := mul_pos hb q_pos, exact eq', norm_cast, have eq' := mul_pos hb q_pos, exact eq', norm_cast, have eq' := mul_pos hb q_pos, exact eq',
