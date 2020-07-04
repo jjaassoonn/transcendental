@@ -238,8 +238,7 @@ begin
     },
     replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
     choose c hc using f_ℝ_0,
-    -- f = c constant
-    -- c must be 0 because f(α) = 0
+    -- $f = c$ constant then c must be 0 because f(α) = 0
     have absurd2 : c = 0,                                                         -- But since f(α) = 0, f ∈ ℝ[x] is the zero polynomial
     {
       rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp only [polynomial.eval_C] at α_root, assumption,
