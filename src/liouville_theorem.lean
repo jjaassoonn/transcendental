@@ -238,12 +238,10 @@ begin
     },
     replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
     choose c hc using f_ℝ_0,
-    -- $f = c$ constant then c must be 0 because f(α) = 0
     have absurd2 : c = 0,                                                         -- But since f(α) = 0, f ∈ ℝ[x] is the zero polynomial
     {
       rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp only [polynomial.eval_C] at α_root, assumption,
     },
-    -- if c is zero contradiction to f_nonzero
     rw absurd2 at hc,
     have f_zero : f = 0,                                                          -- Then f ∈ ℤ[x] is the zero polynomial
     {
@@ -274,48 +272,35 @@ begin
   have allpos : ∀ x : ℝ, x ∈ distances' -> x > 0,                                 -- Every number in distances' is postive,
   {
     intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
-    cases hx,
-    {                                                                             -- because it is either 1 / M which is positive
-      -- 1 / M
+    cases hx,                                                                     -- because it is either 1 / M which is positive
       rw hx, simp only [one_div_eq_inv, gt_iff_lt, inv_pos], exact M_pos,
-    },
-    cases hx,
-    {
-      -- 1                                                                        -- or 1
-      rw hx, exact zero_lt_one,
-    },
-    {
-      -- x is abs (root - α) with root not α                                      -- or |β - α| for some β which is a root of f but is not α.
+    cases hx,                                                                     -- or 1
+      rw hx, exact zero_lt_one,                                                   -- or |β - α| for some β which is a root of f but is not α.
       rw [<-roots_distance_to_α] at hx, simp only [exists_prop, finset.mem_image] at hx,
       choose α0 hα0 using hx,
       rw [<-roots'_def, finset.mem_erase] at hα0,
       rw <-(hα0.2), simp only [gt_iff_lt], apply (@abs_pos_iff ℝ _ (α - α0)).2,
       by_contra absurd, simp only [classical.not_not] at absurd, rw sub_eq_zero_iff_eq at absurd,
       have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
-    },
   },
   have B_pos : B > 0,                                                             -- Then B is positive.
   {
     have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
     rw <-hB, assumption,
   },
-  generalize hA : B / 2 = A,                                                      -- Let A = B/2.
+  generalize hA : B / 2 = A,                                                      -- Let A = B/2 > 0.
   use A, split,
-  -- A > 0
   rw [<-hA], apply half_pos, assumption,                                          -- Then A is postive as B is postive
-  -- goal : ∀ (a b : ℤ), b > 0 → |α - a/b| > A / bⁿ where n is the degree of f.      We use proof by contradiction
+  /- goal : ∀ (a b : ℤ), b > 0 → |α - a/b| > A / bⁿ where n is the degree of f.      
+     We use proof by contradiction -/
   by_contra absurd, simp only [gt_iff_lt, classical.not_forall, not_lt, classical.not_imp] at absurd,
   choose a ha using absurd,                                                       -- So assume a and b are integers such that |α - a/b| ≤ A / b^n
   choose b hb using ha,                               
-
-
-  have hb2 : b ^ f.nat_degree ≥ 1,                                                -- Since b > 0 and n > 1, bⁿ ≥ 1
-  {                                                                               -- So A/bⁿ ≤ A
+  have hb2 : b ^ f.nat_degree ≥ 1,                                                -- Since b > 0 and n > 1, bⁿ ≥ 1                                                                               -- So A/bⁿ ≤ A
     rw <-(pow_zero b),
     have hbge1 : b ≥ 1 := hb.1,
     have htrivial : 0 ≤ f.nat_degree := by exact bot_le,
     exact pow_le_pow hbge1 htrivial,
-  },
   have hb21 : abs (α - a / b) ≤ A,                                                -- Then we also have |α - a/b| ≤ A
   {
     suffices H : (A / b ^ f.nat_degree) ≤ A,
@@ -328,8 +313,7 @@ begin
   {
     have H := half_lt_self B_pos, rw hA at H, exact gt_of_gt_of_ge H hb21,
   },
-  -- then a / b is in [α-1, α+1]
-  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),                                      -- So a/b ∈ (α-1, α+1)
+  have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),                                      -- So a/b ∈ [α-1, α+1]
   {
     suffices H : abs (α - a/b) ≤ 1, 
     have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
@@ -338,7 +322,6 @@ begin
     rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
     rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
   },
-  -- a/b is not a root
   have hab1 : (↑a/↑b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
   {
     have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
@@ -358,19 +341,16 @@ begin
     have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
     rw hB at H3, linarith,
   },
-  -- Since α ≠ a/b, either α > a/b or α < a/b, two cases essentially have the same proof.
+  /- Since α ≠ a/b, either α > a/b or α < a/b, two cases essentially have the same proof. -/
   have hab3 := ne_iff_lt_or_gt.1 hab1,
   cases hab3,
   {
-    -- α > a/b subcase
     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                   -- We mean value theorem in this case to find 
     choose x0 hx0 using H,                                                        -- an x₀ ∈ (a/b, α) such that Df_ℝ(x₀) = (f(α) - f(a/b))/(α - a/b),
     have hx0l := hx0.1,                                                           -- since f(α) = 0, Df_ℝ(x₀) = - f(a/b) / (α - a/b)
     have hx0r := hx0.2,
-    -- clean hx0 a bit to be more usable,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [zero_sub] at hx0r,
-    -- we have Df(x0) ≠ 0
     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,                                        -- So Df_ℝ(x₀) is not zero. (a/b is not a root)
     {
       rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
@@ -394,8 +374,7 @@ begin
       exact hab2 rid, exact hfℝ_nonzero,
     },
 
-    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition
-    {                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
+    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
       rw [H2, abs_div],                                                           -- and x₀ ∈ (α - 1, α + 1)]
       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',      -- So |α - a/b| ≥ 1/(M*bⁿ) where n is degree of f
       rw [<-hfℝ],
@@ -424,7 +403,6 @@ begin
       },
       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
       exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
-    },
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),                   -- Also 1/(M*bⁿ) > A/bⁿ since A < B ≤ 1/M
     {
@@ -438,22 +416,17 @@ begin
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,           -- So |α - a/b| > A/bⁿ
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,      -- But we assumed |α - a/b| ≤ A/bⁿ. This is the desired contradiction
 
-    -- continuity
-    exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,                -- Since we used mean value theorem, we need to show
-    -- differentiable                                                             -- continuity and differentiablity of x ↦ f(x),
+    exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,                -- Since we used mean value theorem, we need to show continuity and differentiablity of x ↦ f(x),
     exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,            -- these are built in.
   },
+  /- The other case is similar, In fact I copied and pasted the above proof and exchanged positions of α and a/b. Then it worked. -/
 
-  {
-    -- α < a/b subcase                                                               The other case is similar
-    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                   -- In fact I copied and pasted the above proof and exchanged
-    choose x0 hx0 using H,                                                        -- positions of α and a/b. Then it worked.
+    have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                  
+    choose x0 hx0 using H,                                                       
     have hx0l := hx0.1,                                                           
     have hx0r := hx0.2,
-    -- clean hx0 a bit to be more usable,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [sub_zero] at hx0r,
-    -- we have Df(x0) ≠ 0
     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
     {
       rw hx0r, intro rid, rw [div_eq_zero_iff] at rid,
@@ -522,12 +495,8 @@ begin
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,
 
-    -- continuity
     exact @polynomial.continuous_on ℝ _ (set.Icc α (↑a / ↑b)) f_ℝ,
-    -- differentiable
     exact @polynomial.differentiable_on ℝ _ (set.Ioo α (↑a / ↑b)) f_ℝ,
-
-  },
 end
 
 /--
@@ -552,9 +521,8 @@ begin
   rw div_sub_div at hq, swap, norm_cast, linarith, swap, norm_cast, have hq1 := hq.1, linarith,
   rw abs_div at hq,
   
-  by_cases (abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)) = 0),
-  {
-    -- aq = bp,                                                                   -- Then aq ≠ bp
+  by_cases (abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)) = 0),                             -- Then aq ≠ bp
+  {                                                                   
     rw h at hq, simp only [one_div_eq_inv, gt_iff_lt, euclidean_domain.zero_div, inv_pos] at hq, have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2, linarith,
   },
   {
@@ -585,10 +553,11 @@ begin
     have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2,   -- This is the contradiction we are seeking for:
     linarith,                                                                     -- 1/qⁿ >  |(aq - bp)/bq| > 1/qⁿ
 
-    -- other less important steps                                                 -- We manipulated inequalities using multiplication
-    norm_cast, apply pow_pos, exact q_pos,                                        -- and division, so we need to prove various things
-    norm_cast, apply mul_pos, exact hb, exact q_pos,                              -- to be non-negative or postive. The proves are all
-    norm_cast, exact b_ineq2,                                                     -- more or less trivial.
+    /- other less important steps. We manipulated inequalities using multiplication and division, so we need to prove various things
+       to be non-negative or postive. The proves are all more or less trivial. -/
+    norm_cast, apply pow_pos, exact q_pos,                                       
+    norm_cast, apply mul_pos, exact hb, exact q_pos,                              
+    norm_cast, exact b_ineq2,                                                    
     norm_cast, exact bot_le,
     exact q_ineq1,
     exact le_refl q,
@@ -597,22 +566,19 @@ begin
   },
 end
 
-
-
 theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> ¬(is_algebraic ℤ x) := 
 begin
   intros x li_x,                                                                  -- Let $x$ be any Liouville's number,
   have irr_x : irrational x, exact liouville_numbers_irrational x li_x,           -- Then by previous theorem, it is irrational.
   intros rid, rw is_algebraic at rid,                                             -- assume x is algebraic over ℤ,
   choose f hf using rid,                                                          -- Let f be an integer polynomial who admitts x as a root.
-  have f_deg : f.nat_degree > 1,                                                  -- Then f must have degree > 1
-  {                                                                               -- Otherwise f have degree 0 or 1.
-    by_contra rid, simp only [not_lt] at rid, replace rid := lt_or_eq_of_le rid, cases rid,
-    {                                                                             -- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer.
+  have f_deg : f.nat_degree > 1, {                                                -- Then f must have degree > 1, otherwise f have degree 0 or 1.                                                                         -- 
+    by_contra rid, simp only [not_lt] at rid, replace rid := lt_or_eq_of_le rid, cases rid, 
+    {                                                                             /- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer. -/
       replace rid : f.nat_degree = 0, linarith, rw polynomial.nat_degree_eq_zero_iff_degree_le_zero at rid, rw polynomial.degree_le_zero_iff at rid,
       rw rid at hf, simp only [int.cast_eq_zero, ring_hom.eq_int_cast, ne.def, polynomial.aeval_C] at hf, have hf1 := hf.1, have hf2 := hf.2,rw hf2 at hf1, simp only [polynomial.C_0, eq_self_iff_true, not_true] at hf1, exact hf1,
     },
-    {                                                                             -- If f has degree 1, then f = aT + b
+    {                                                                             /- If f has degree 1, then f = aT + b -/
       have f_eq : f = polynomial.C (f.coeff 0) + (polynomial.C (f.coeff 1)) * polynomial.X,
       {
         ext, by_cases (n ≤ 1),
@@ -625,7 +591,7 @@ begin
             rw h, simp only [mul_one, polynomial.coeff_X_one, polynomial.coeff_add, polynomial.coeff_C_mul], rw polynomial.coeff_C, split_ifs, exfalso, linarith, simp only [zero_add],
           },
         },
-        {                                                                         -- Again f(x) = 0 implies ax+b = 0, x is rational. 
+        {                                                                         /- Again f(x) = 0 implies ax+b = 0, x is rational. -/
           simp only [polynomial.coeff_add, not_le, polynomial.coeff_C_mul] at h ⊢, have deg : f.nat_degree < n, linarith,
           have z := polynomial.coeff_eq_zero_of_nat_degree_lt deg, rw z, rw polynomial.coeff_X,
           split_ifs, exfalso, linarith, simp only [add_zero, mul_zero], rw polynomial.coeff_C,
@@ -680,9 +646,8 @@ begin
 
   have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
   have eq1 := div_mul_eq_div_mul_one_div' 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
-  -- since b > 1, 1/b^r ≤ 1/2^r
   have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),                                         -- But 1/b^r ≤ 1/2^r ≤ A. So 0 < |x - a/b| < A/bⁿ.
-  {                                                                               -- This is the contradiction we seek by the choice of A.
+  {                                                                               /- This is the contradiction we seek by the choice of A. -/
     apply (@one_div_le_one_div ℝ _ ((b:ℝ)^r) ((2:ℝ)^r) _ _).2,
     suffices suff : 2 ^ r ≤ b^r,  norm_cast, norm_num, exact suff,
     have ineq' := @pow_le_pow_of_le_left ℝ _ 2 b _ _ r, norm_cast at ineq', norm_num at ineq', exact ineq',
@@ -744,9 +709,7 @@ begin
   unfold ten_pow_n_fact_inverse,
   unfold ten_pow_n_inverse, simp only [one_div_eq_inv, inv_pow'],
   by_cases (n = 0),
-  -- if n is 0
   rw h, simp only [inv_one', pow_one, pow_zero, nat.fact_zero], norm_num,
-  -- if n > 0
   have n_pos : n > 0 := by exact bot_lt_iff_ne_bot.mpr h,
   have H := (@inv_le_inv ℝ _ (10 ^ n.fact) (10 ^ n) _ _).2 _, exact H,
   have H := @pow_pos ℝ _ 10 _ n.fact,  exact H, linarith,
@@ -792,8 +755,7 @@ def α_k (k : ℕ) := ∑ i in finset.range (k+1), ten_pow_n_fact_inverse i
 theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), α_k k = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
 begin
   induction k with k IH, rw α_k, simp only [pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero], rw ten_pow_n_fact_inverse, rw div_pow, rw one_pow, rw nat.fact_zero, rw pow_one,
-  use 1, norm_cast,                                                               -- To prove this, we use induction on k.
-                                                                                  -- The zeroth partial sum is zero. So p=1 works.
+  use 1, norm_cast,                                                               -- To prove this, we use induction on k. The zeroth partial sum is zero. So p=1 works.                                                                               
   choose pk hk using IH,                                                          -- If the kth partial sum = p / 10^{k!}
   rw α_k at hk ⊢,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
   generalize hm : 10^((k+1).fact - k.fact) = m,
@@ -952,23 +914,23 @@ begin
   },
   {
     split,                                                                        -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
-    {                                                                             -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
+    {                                                                             /- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive. -/
       rw abs_pos_iff, intro rid, simp only [int.cast_coe_nat, int.cast_pow, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact] at rid, rw [sub_eq_zero, <-hp] at rid, rw rid at lemma2,
       have eq := (@add_left_eq_self ℝ _ (α_k_rest n) (α_k n)).1 _, have α_k_rest_pos := α_k_rest_pos n, linarith,
       conv_rhs {rw lemma2, rw add_comm},
     },
-    {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
+    {                                                                             /- next we prove |α - p/10^{n!}| < 1/10^{n! * n} -/
       conv_lhs {simp only [hp, int.cast_coe_nat, int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact], rw sub_eq_add_neg, rw <-hp, rw <-sub_eq_add_neg, simp only [lemma2, add_sub_cancel'],},
       have triv : abs (α_k_rest n) = α_k_rest n,                                  -- i.e. absolute value of sum of the rest terms is a number < 1/10^{n! * n}
-      {                                                                           -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
+      {                                                                           /- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n} -/
         rw abs_of_pos, exact α_k_rest_pos n,
       }, rw triv, rw α_k_rest,
 
       have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
-      {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
+      {                                                                           /- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!} -/
         apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
         rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
-        {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
+        {                                                                         /- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$ -/
           rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
           exact ineq_i _ _,
         },
