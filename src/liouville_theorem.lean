@@ -8,7 +8,7 @@ open_locale classical
 open small_things
 
 /--
-- a number is transcendental ↔ a number is algebraic
+- a number is transcendental ↔ a number is not algebraic
 - a Liouville's number $x$ is a number such that
   for every natural number, there is a rational number a/b such that 0 < |x - a/b| < 1/bⁿ 
 -/
@@ -574,11 +574,11 @@ begin
   choose f hf using rid,                                                          -- Let f be an integer polynomial who admitts x as a root.
   have f_deg : f.nat_degree > 1, {                                                -- Then f must have degree > 1, otherwise f have degree 0 or 1.                                                                         -- 
     by_contra rid, simp only [not_lt] at rid, replace rid := lt_or_eq_of_le rid, cases rid, 
-    {                                                                             /- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer. -/
+    {                                                                             -- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer.
       replace rid : f.nat_degree = 0, linarith, rw polynomial.nat_degree_eq_zero_iff_degree_le_zero at rid, rw polynomial.degree_le_zero_iff at rid,
       rw rid at hf, simp only [int.cast_eq_zero, ring_hom.eq_int_cast, ne.def, polynomial.aeval_C] at hf, have hf1 := hf.1, have hf2 := hf.2,rw hf2 at hf1, simp only [polynomial.C_0, eq_self_iff_true, not_true] at hf1, exact hf1,
     },
-    {                                                                             /- If f has degree 1, then f = aT + b -/
+    {                                                                             -- If f has degree 1, then f = aT + b
       have f_eq : f = polynomial.C (f.coeff 0) + (polynomial.C (f.coeff 1)) * polynomial.X,
       {
         ext, by_cases (n ≤ 1),
@@ -591,7 +591,7 @@ begin
             rw h, simp only [mul_one, polynomial.coeff_X_one, polynomial.coeff_add, polynomial.coeff_C_mul], rw polynomial.coeff_C, split_ifs, exfalso, linarith, simp only [zero_add],
           },
         },
-        {                                                                         /- Again f(x) = 0 implies ax+b = 0, x is rational. -/
+        {                                                                         -- Again f(x) = 0 implies ax+b = 0, x is rational.
           simp only [polynomial.coeff_add, not_le, polynomial.coeff_C_mul] at h ⊢, have deg : f.nat_degree < n, linarith,
           have z := polynomial.coeff_eq_zero_of_nat_degree_lt deg, rw z, rw polynomial.coeff_X,
           split_ifs, exfalso, linarith, simp only [add_zero, mul_zero], rw polynomial.coeff_C,
@@ -647,7 +647,7 @@ begin
   have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
   have eq1 := div_mul_eq_div_mul_one_div' 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
   have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),                                         -- But 1/b^r ≤ 1/2^r ≤ A. So 0 < |x - a/b| < A/bⁿ.
-  {                                                                               /- This is the contradiction we seek by the choice of A. -/
+  {                                                                               -- This is the contradiction we seek by the choice of A.
     apply (@one_div_le_one_div ℝ _ ((b:ℝ)^r) ((2:ℝ)^r) _ _).2,
     suffices suff : 2 ^ r ≤ b^r,  norm_cast, norm_num, exact suff,
     have ineq' := @pow_le_pow_of_le_left ℝ _ 2 b _ _ r, norm_cast at ineq', norm_num at ineq', exact ineq',
@@ -914,23 +914,23 @@ begin
   },
   {
     split,                                                                        -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
-    {                                                                             /- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive. -/
+    {                                                                             -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
       rw abs_pos_iff, intro rid, simp only [int.cast_coe_nat, int.cast_pow, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact] at rid, rw [sub_eq_zero, <-hp] at rid, rw rid at lemma2,
       have eq := (@add_left_eq_self ℝ _ (α_k_rest n) (α_k n)).1 _, have α_k_rest_pos := α_k_rest_pos n, linarith,
       conv_rhs {rw lemma2, rw add_comm},
     },
-    {                                                                             /- next we prove |α - p/10^{n!}| < 1/10^{n! * n} -/
+    {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
       conv_lhs {simp only [hp, int.cast_coe_nat, int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact], rw sub_eq_add_neg, rw <-hp, rw <-sub_eq_add_neg, simp only [lemma2, add_sub_cancel'],},
       have triv : abs (α_k_rest n) = α_k_rest n,                                  -- i.e. absolute value of sum of the rest terms is a number < 1/10^{n! * n}
-      {                                                                           /- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n} -/
+      {                                                                           -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
         rw abs_of_pos, exact α_k_rest_pos n,
       }, rw triv, rw α_k_rest,
 
       have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
-      {                                                                           /- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!} -/
+      {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
         apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
         rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
-        {                                                                         /- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$ -/
+        {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
           rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
           exact ineq_i _ _,
         },
