@@ -941,35 +941,35 @@ end
 -- Then α is a Liouville number hence a transcendental number.
 theorem liouville_α : liouville_number α := 
 begin
-  intro n,
-  have lemma1 := α_k_rat n,
-  choose p hp using lemma1,
-  use p, use 10^(n.fact),
+  intro n,                                                                        -- We fix n ∈ ℕ.
+  have lemma1 := α_k_rat n,                                                       -- We know that the first n terms sums to p/10^{n!}
+  choose p hp using lemma1,                                                       -- for some p ∈ ℕ.
+  use p, use 10^(n.fact),                                                         -- we are going to prove 0 < |α - p/10^{n!}| < 1/10^{n! * n}
   have lemma2 := α_truncate_wd n,
   split,
   {
-    induction n with n IH, 
+    induction n with n IH,                                                        -- and that 10^{n!} > 1
     simp only [nat.fact_zero], have ineq := useless3 n.succ, norm_cast at ineq ⊢, exact ineq,
   },
   {
-    split,
-    {
+    split,                                                                        -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
+    {                                                                             -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
       rw abs_pos_iff, intro rid, simp only [int.cast_coe_nat, int.cast_pow, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact] at rid, rw [sub_eq_zero, <-hp] at rid, rw rid at lemma2,
       have eq := (@add_left_eq_self ℝ _ (α_k_rest n) (α_k n)).1 _, have α_k_rest_pos := α_k_rest_pos n, linarith,
       conv_rhs {rw lemma2, rw add_comm},
     },
-    {
+    {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
       conv_lhs {simp only [hp, int.cast_coe_nat, int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact], rw sub_eq_add_neg, rw <-hp, rw <-sub_eq_add_neg, simp only [lemma2, add_sub_cancel'],},
-      have triv : abs (α_k_rest n) = α_k_rest n,
-      {
+      have triv : abs (α_k_rest n) = α_k_rest n,                                  -- i.e. absolute value of sum of the rest terms is a number < 1/10^{n! * n}
+      {                                                                           -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
         rw abs_of_pos, exact α_k_rest_pos n,
       }, rw triv, rw α_k_rest,
 
       have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
-      {
-        apply tsum_le_tsum, intro i,
+      {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
+        apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
         rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
-        {
+        {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
           rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
           exact ineq_i _ _,
         },
@@ -983,9 +983,9 @@ begin
           },
           apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).fact > 0, apply pow_pos, linarith, linarith,
         }
-      },
+      },                                                                          -- by previous inequlity $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}} < \frac{2}{10^{(n+1)!}} \le \frac{1}{10^{n!\times n}}$
       have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) := lemma_ineq3 _,
-      rw nat.fact_succ' at ineq3,
+      rw nat.fact_succ' at ineq3,                                                 -- This what we want. So α is Liouville
       have ineq4 : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) := lemma_ineq4 _,
       have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) < (1 / ((10:ℝ) ^ n.fact) ^ n),
       {
@@ -997,5 +997,6 @@ begin
     },
   },
 end
- 
+
+-- Then our general theory about Liouville number in particular applies to α giving us α transcendental
 theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
