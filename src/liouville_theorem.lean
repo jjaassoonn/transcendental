@@ -192,7 +192,7 @@ N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't 
 
 lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
-  ∃ A : real, A > 0 ∧ ∀ a b : int, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
+  ∃ A : real, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
   have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
@@ -572,7 +572,7 @@ begin
       rw div_le_div_iff, simp only [one_mul], have H := (@le_mul_iff_one_le_left ℝ _ _ (b * q) _).2 ineq3, exact H,
       norm_cast, have eq' := mul_pos hb q_pos, exact eq', norm_cast, have eq' := mul_pos hb q_pos, exact eq', norm_cast, have eq' := mul_pos hb q_pos, exact eq',
     },
-    have b_ineq' := @mul_lt_mul ℤ _ b q (2^(n-1)) q b_ineq _ _ _,
+    have b_ineq' := @mul_lt_mul ℤ _ b q (2^(n-1)) q b_ineq _ _ _,                 -- But b < 2^(n-1) < q^(n-1)
     have b_ineq'' : (b * q : ℝ) < (2:ℝ) ^ (n-1) * (q : ℝ), norm_cast, simp only [int.coe_nat_zero, int.coe_nat_pow, int.coe_nat_succ, zero_add], exact b_ineq',
     
     have q_ineq1 : q ≥ 2, linarith,
@@ -580,21 +580,21 @@ begin
     have q_ineq3 : 2 ^ (n - 1) * q ≤ q ^ (n - 1) * q, rw (mul_le_mul_right _), assumption, linarith, 
     have triv : q ^ (n - 1) * q = q ^ n, rw <-hn, simp only [nat.add_succ_sub_one, add_zero], rw pow_add, simp only [pow_one], rw triv at q_ineq3,
 
-    have b_ineq2 : b * q < q ^ n, linarith,
+    have b_ineq2 : b * q < q ^ n, linarith,                                       -- So bq < qⁿ
     have rid' := (@one_div_lt_one_div ℝ _ (q^n) (b*q) _ _).2 _,
-    have rid'' : @abs ℝ _ (a * q - b * p) / (b * q : ℝ) > 1 / q ^ n, linarith,
-    have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2,
-    linarith,
+    have rid'' : @abs ℝ _ (a * q - b * p) / (b * q : ℝ) > 1 / q ^ n, linarith,    -- Then |(aq - bp)/bq| > 1/qⁿ
+    have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2,   -- This is the contradiction we are seeking for:
+    linarith,                                                                     -- 1/qⁿ >  |(aq - bp)/bq| > 1/qⁿ
 
-    -- other less important steps
-    norm_cast, apply pow_pos, linarith,
-    norm_cast, apply mul_pos, linarith, linarith,
-    norm_cast, assumption,
-    linarith,
-    assumption,
-    linarith,
-    linarith,
-    apply pow_nonneg, linarith,
+    -- other less important steps                                                 -- We manipulated inequalities using multiplication
+    norm_cast, apply pow_pos, exact q_pos,                                        -- and division, so we need to prove various things
+    norm_cast, apply mul_pos, exact hb, exact q_pos,                              -- to be non-negative or postive. The proves are all
+    norm_cast, exact b_ineq2,                                                     -- more or less trivial.
+    norm_cast, exact bot_le,
+    exact q_ineq1,
+    exact le_refl q,
+    exact q_pos,
+    apply pow_nonneg, norm_cast, exact bot_le,
   },
 end
 
@@ -602,18 +602,18 @@ end
 
 theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> ¬(is_algebraic ℤ x) := 
 begin
-  intros x li_x,
-  have irr_x : irrational x, exact liouville_numbers_irrational x li_x,
-  intros rid, rw is_algebraic at rid,
-  choose f hf using rid,
-  have f_deg : f.nat_degree > 1,
-  {
+  intros x li_x,                                                                  -- Let $x$ be any Liouville's number,
+  have irr_x : irrational x, exact liouville_numbers_irrational x li_x,           -- Then by previous theorem, it is irrational.
+  intros rid, rw is_algebraic at rid,                                             -- assume x is algebraic over ℤ,
+  choose f hf using rid,                                                          -- Let f be an integer polynomial who admitts x as a root.
+  have f_deg : f.nat_degree > 1,                                                  -- Then f must have degree > 1
+  {                                                                               -- Otherwise f have degree 0 or 1.
     by_contra rid, simp only [not_lt] at rid, replace rid := lt_or_eq_of_le rid, cases rid,
-    {
+    {                                                                             -- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer.
       replace rid : f.nat_degree = 0, linarith, rw polynomial.nat_degree_eq_zero_iff_degree_le_zero at rid, rw polynomial.degree_le_zero_iff at rid,
       rw rid at hf, simp only [int.cast_eq_zero, ring_hom.eq_int_cast, ne.def, polynomial.aeval_C] at hf, have hf1 := hf.1, have hf2 := hf.2,rw hf2 at hf1, simp only [polynomial.C_0, eq_self_iff_true, not_true] at hf1, exact hf1,
     },
-    {
+    {                                                                             -- If f has degree 1, then f = aT + b
       have f_eq : f = polynomial.C (f.coeff 0) + (polynomial.C (f.coeff 1)) * polynomial.X,
       {
         ext, by_cases (n ≤ 1),
@@ -626,7 +626,7 @@ begin
             rw h, simp only [mul_one, polynomial.coeff_X_one, polynomial.coeff_add, polynomial.coeff_C_mul], rw polynomial.coeff_C, split_ifs, exfalso, linarith, simp only [zero_add],
           },
         },
-        {
+        {                                                                         -- Again f(x) = 0 implies ax+b = 0, x is rational. 
           simp only [polynomial.coeff_add, not_le, polynomial.coeff_C_mul] at h ⊢, have deg : f.nat_degree < n, linarith,
           have z := polynomial.coeff_eq_zero_of_nat_degree_lt deg, rw z, rw polynomial.coeff_X,
           split_ifs, exfalso, linarith, simp only [add_zero, mul_zero], rw polynomial.coeff_C,
@@ -661,7 +661,6 @@ begin
           rw polynomial.leading_coeff_eq_zero at h, rw h at rid, simp only [polynomial.nat_degree_zero, zero_ne_one] at rid, exact rid,
       }
     },
-
   },
   have about_root : f_eval_on_ℝ f x = 0,
   {
@@ -670,21 +669,21 @@ begin
     intros m hm, simp only [ring_hom.eq_int_cast, id.def],
   },
 
-  choose A hA using about_irrational_root x irr_x f f_deg about_root,
-  have A_pos := hA.1,
-  have exists_r := small_things.pow_big_enough A A_pos,
-  choose r hr using exists_r,
+  choose A hA using about_irrational_root x irr_x f f_deg about_root,             -- So we can apply the lemma about irrational root:
+  have A_pos := hA.1,                                                             -- There is an A > 0 such that for any integers a b with b > 0
+  have exists_r := small_things.pow_big_enough A A_pos,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
+  choose r hr using exists_r,                                                     -- Let r ∈ ℕ such tht 1/A ≤ 2^r (equivalently 1/2^r ≤ A)
   have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
-  generalize hm : r + f.nat_degree = m, rw liouville_number at li_x,
+  generalize hm : r + f.nat_degree = m,                                           -- Let m := r + n
   replace li_x := li_x m,
-  choose a ha using li_x,
-  choose b hb using ha,
+  choose a ha using li_x,                                                         -- Since x is Liouville, there are integers a and b with b > 1
+  choose b hb using ha,                                                           -- such that 0 < |x - a/b| < 1/bᵐ = 1/bⁿ * 1/b^r.
 
   have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
   have eq1 := div_mul_eq_div_mul_one_div' 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
   -- since b > 1, 1/b^r ≤ 1/2^r
-  have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),
-  {
+  have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),                                         -- But 1/b^r ≤ 1/2^r ≤ A. So 0 < |x - a/b| < A/bⁿ.
+  {                                                                               -- This is the contradiction we seek by the choice of A.
     apply (@one_div_le_one_div ℝ _ ((b:ℝ)^r) ((2:ℝ)^r) _ _).2,
     suffices suff : 2 ^ r ≤ b^r,  norm_cast, norm_num, exact suff,
     have ineq' := @pow_le_pow_of_le_left ℝ _ 2 b _ _ r, norm_cast at ineq', norm_num at ineq', exact ineq',
@@ -704,13 +703,19 @@ begin
 end
 
 
--- ## define an example of Liouville number Σᵢ 1/2^(i!)
+/-- ## define an example of Liouville number Σᵢ 1/2^(i!)
+- In this section we explicitly define $\alpha := \sum_{i=0}^\infty ¼{1}{10^{i!}}$;
+- We use comparison test to prove the convergence of α;
+- Then we prove that α is indeed a Liouville number;
+- From previous theorem we easily conclude α is transcendental.
+-/
 
--- function n -> 1/10^n! 
+-- function n ↦ 1/10^n! 
 def ten_pow_n_fact_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n.fact
--- function n -> 1/2^n
+-- function n ↦ 1/10^n
 def ten_pow_n_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n
 
+-- 1/10^{n!} is nonnegative.
 lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : ten_pow_n_fact_inverse n ≥ 0 :=
 begin
     unfold ten_pow_n_fact_inverse,
@@ -718,6 +723,7 @@ begin
     norm_cast at h ⊢, exact h, norm_num,
 end
 
+-- n ≤ n!
 lemma useless_elsewhere : ∀ n : nat, n ≤ n.fact
 | 0                         := by norm_num
 | 1                         := by norm_num
@@ -734,8 +740,6 @@ lemma useless_elsewhere : ∀ n : nat, n ≤ n.fact
     exact H' n,
 end
 
-lemma useless_elsewhere2 : 10 ≠ 0 := by norm_num
-
 lemma ten_pow_n_fact_inverse_le_ten_pow_n_inverse (n : nat) : ten_pow_n_fact_inverse n ≤ ten_pow_n_inverse n :=
 begin
   unfold ten_pow_n_fact_inverse,
@@ -751,16 +755,27 @@ begin
   have H := @pow_le_pow ℝ _ 10 n n.fact _ _, exact H, norm_num, exact useless_elsewhere n,
 end
 
--- Σᵢ 1/10ⁱ exists
+-- Σᵢ 1/10ⁱ exists because it is a geometric sequence with 1/10 < 1. The sum equals 10/9
 theorem summable_ten_pow_n_inverse : summable ten_pow_n_inverse :=
 begin
-  have H := @summable_geometric_of_abs_lt_1 (1/10:ℝ) _, have triv : ten_pow_n_inverse = (λ (n : ℕ), (1 / 10) ^ n), exact rfl, rw triv, exact H,
+  have H := @summable_geometric_of_abs_lt_1 (1/10:ℝ) _, have triv : ten_pow_n_inverse = (λ (n : ℕ), (1 / 10) ^ n) := rfl, rw triv, exact H,
   rw abs_of_pos, linarith, linarith,
 end
 
 def β : ℝ := classical.some summable_ten_pow_n_inverse
 
--- Hence Σᵢ 1/10^i! exists by comparison test
+theorem β_eq :  (∑' (b : ℕ), ten_pow_n_inverse b) = (10 / 9:ℝ) :=
+begin
+  have eq0 := @tsum_geometric_of_abs_lt_1 (1/10) _,
+  have eq1 : (∑' (n : ℕ), (1 / 10:ℝ) ^ n) = (∑' (b : ℕ), ten_pow_n_inverse b),
+  {
+    apply congr_arg, ext, rw ten_pow_n_inverse,
+  }, 
+  rw eq1 at eq0, rw eq0, norm_num, rw abs_of_pos, linarith, linarith,
+end
+
+
+-- Hence Σᵢ 1/10^i! exists by comparison test, call it α
 theorem summable_ten_pow_n_fact_inverse : summable ten_pow_n_fact_inverse :=
 begin
   exact @summable_of_nonneg_of_le _ ten_pow_n_inverse ten_pow_n_fact_inverse ten_pow_n_fact_inverse_ge_0 ten_pow_n_fact_inverse_le_ten_pow_n_inverse summable_ten_pow_n_inverse,
@@ -771,17 +786,19 @@ def α := ∑' n, ten_pow_n_fact_inverse n
 
 
 -- first k term
+-- `α_k k` is the kth partial sum $\sum_{i=0}^k \frac{1}{10^{i!}}$.
 def α_k (k : ℕ) := ∑ i in finset.range (k+1), ten_pow_n_fact_inverse i
 
+-- `α_k k` is rational and can be written as $\frac{p}{10^{k!}}$ for some p ∈ ℕ.
 theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), α_k k = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
 begin
   induction k with k IH, rw α_k, simp only [pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero], rw ten_pow_n_fact_inverse, rw div_pow, rw one_pow, rw nat.fact_zero, rw pow_one,
-  use 1, norm_cast,
-  
-  choose pk hk using IH,
-  rw α_k at hk ⊢,
+  use 1, norm_cast,                                                               -- To prove this, we use induction on k.
+                                                                                  -- The zeroth partial sum is zero. So p=1 works.
+  choose pk hk using IH,                                                          -- If the kth partial sum = p / 10^{k!}
+  rw α_k at hk ⊢,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
   generalize hm : 10^((k+1).fact - k.fact) = m,
-  have eqm : 10^k.fact * m = 10^(k+1).fact,
+  have eqm : 10^k.fact * m = 10^(k+1).fact,                                       -- If we set m = 10^{(k+1)!-k!}, then pm+1 works. This is algebra.
   {
     rw <-hm, rw <-nat.pow_add, rw nat.add_sub_cancel', simp only [nat.fact_succ], rw le_mul_iff_one_le_left, exact inf_eq_left.mp rfl, exact nat.fact_pos k,
   },
@@ -798,8 +815,7 @@ begin
   intro rid, rw <-hm at rid, norm_cast at rid, have eq := @nat.pow_pos 10 _ ((k + 1).fact - k.fact), linarith, linarith,
 end
 
--- rest term
-def α_k_rest_summable (k : ℕ) := (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (k+1)).2 summable_ten_pow_n_fact_inverse
+-- rest term `α_k_rest k` is $\sum_{i=0}^\infty \frac{1}{(i+k+1)!}=\sum_{i=k+1}^\infty \frac{1}{i!}$
 def α_k_rest (k : ℕ) := ∑' n, ten_pow_n_fact_inverse (n + (k+1))
 
 private lemma sum_ge_term (f : ℕ -> ℝ) (hf : ∀ x:ℕ, f x > 0) (hf' : summable f): (∑' i, f i)  ≥ f 0 :=
@@ -813,21 +829,7 @@ begin
   have H := has_sum_ite_eq 0 (f 0), exact H,
 end
 
-private lemma sum_eq_sum (f g : ℕ -> ℝ) (h : ∀ x, f x = g x) : (∑' i, f i) = (∑' i, g i) :=
-begin
-  have h' : f = g, ext, exact h x, rw h',
-end
-
-theorem β_eq :  (∑' (b : ℕ), ten_pow_n_inverse b) = (10 / 9:ℝ) :=
-begin
-  have eq0 := @tsum_geometric_of_abs_lt_1 (1/10) _,
-  have eq1 : (∑' (n : ℕ), (1 / 10:ℝ) ^ n) = (∑' (b : ℕ), ten_pow_n_inverse b),
-  {
-    rw sum_eq_sum, intro i, rw ten_pow_n_inverse,
-  }, 
-  rw eq1 at eq0, rw eq0, norm_num, rw abs_of_pos, linarith, linarith,
-end
-
+-- Since each summand in `α_k_rest k` is positive, the sum is positive.
 theorem α_k_rest_pos (k : ℕ) : α_k_rest k > 0 :=
 begin
   rw α_k_rest,
@@ -841,9 +843,9 @@ begin
 
   intro n, rw <-hfunc, simp only [gt_iff_lt], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos, simp only [one_fpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one, apply pow_pos, linarith,
   rw <-hfunc, exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (k+1)).2 summable_ten_pow_n_fact_inverse,
-
 end
 
+-- We also have for any k ∈ ℕ, α = (α_k k) + (α_k_rest k) 
 theorem α_truncate_wd (k : ℕ) : α = α_k k + α_k_rest k :=
 begin
   rw α, rw α_k_rest, rw α_k,
@@ -851,10 +853,7 @@ begin
   rw eq1, exact summable_ten_pow_n_fact_inverse,
 end
 
-private lemma useless3' (n: ℕ) : n.fact ≥ 1 :=
-begin
-  have h : n.fact > 0, exact nat.fact_pos n, exact h
-end
+private lemma useless3' (n: ℕ) : n.fact ≥ 1 := nat.fact_pos n
 
 private lemma useless3 (n : ℕ) : 10^(n.fact) > 1 :=
 begin
@@ -862,7 +861,6 @@ begin
   simp only [gt_iff_lt, zero_le, one_le_bit1, nat.one_lt_bit0_iff, nat.fact_zero, nat.pow_one], simp only [gt_iff_lt, nat.fact_succ], rw nat.pow_mul, 
   have h' := @nat.lt_pow_self (10 ^ n.succ) _ n.fact,
   have ineq := useless3' n, have ineq2 : 1 < (10 ^ n.succ) ^ n.fact := gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 8,
-  
 end
 
 private lemma nat.fact_succ' (n : ℕ) : n.succ.fact = n.fact * n.succ :=
@@ -870,26 +868,20 @@ begin
   rw nat.fact_succ, ring,
 end
 
-
+-- Here we prove for any n ∈ ℕ, $\sum_{i} \left(\frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}\right) \le \frac{2}{10^{(n+1)!}}$
 private lemma lemma_ineq3 (n:ℕ) : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) :=
 begin
-  rw tsum_mul_right,
+  rw tsum_mul_right,                                                              -- We factor out 1/10^{(n+1)!}
   have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp, rw <-nat.fact_succ,
-  rw div_le_div_iff, norm_cast, conv_rhs {rw <-nat.mul_assoc},
+  rw div_le_div_iff, norm_cast, conv_rhs {rw <-nat.mul_assoc},                     -- and use that what left is a geometric sum = 10/9
   have triv : 2 * 9 = 18 := by norm_num, rw triv,
-  apply nat.mul_le_mul, linarith, linarith,
-  {
-    have triv : ∀ m : ℕ, 0 ≤ 10 ^ m, intro m, induction m with m hm, simp only [zero_le], simp only [zero_le], exact triv (nat.succ n).fact,
-  },
-  linarith,
-  {
-    apply mul_pos, linarith, apply pow_pos, linarith,
-  },
-  apply pow_pos, linarith,
-  have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b), ext, rw ten_pow_n_inverse,
-  rw <-triv, exact h,
+  apply nat.mul_le_mul, linarith, linarith, exact bot_le, exact bot_le,
+  apply mul_pos, linarith, apply pow_pos, linarith, apply pow_pos, linarith,
+  have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b) := rfl,
+  rwa <-triv,
 end
 
+-- We use induction to prove 2 < 10 ^ n!
 private lemma aux_ineq (n:ℕ) : 2 < 10 ^ n.fact := 
 begin
   induction n with n ih, simp only [nat.succ_pos', one_lt_bit1, bit0_lt_bit0, nat.fact_zero, nat.pow_one],
@@ -903,32 +895,22 @@ begin
   linarith [nat.fact_pos n], linarith,  
 end
 
+-- $\frac{2}{10^{(n+1)!}} < \frac{1}{(10^{n!})^n}$
 private lemma lemma_ineq4 (n:ℕ) : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) :=
 begin
-  rw div_lt_div_iff, rw one_mul,
+  rw div_lt_div_iff, rw one_mul, -- This is also algebra plus checking a lot of thing non-negative or positive.
   conv_rhs {rw nat.succ_eq_add_one, rw mul_add, rw pow_add, rw mul_one, rw pow_mul, rw mul_comm},
   apply mul_lt_mul,
-  {
     norm_cast,
     exact aux_ineq n,
-  },
-  {
     linarith,
-  },
-  {
     apply pow_pos, apply pow_pos, linarith,
-  },
-  {
     apply pow_nonneg, linarith,
-  },
-  {
     apply pow_pos, linarith,
-  },
-  {
-    apply pow_pos, apply pow_pos, linarith
-  }
+    apply pow_pos, apply pow_pos, linarith,
 end
 
+-- This is i + n! ≤ (i+n)!. Proved by induction on n.
 private lemma ineq_i (i n : ℕ) : i + n.succ.fact ≤ (i + n.succ).fact :=
 begin
   induction n with n hn, simp only [add_zero, nat.fact_succ, nat.fact_one], rw <-nat.succ_eq_add_one, have h := (@nat.mul_le_mul_right 1 i.fact i.succ) _, rw [one_mul, mul_comm] at h, exact h, 
@@ -942,33 +924,24 @@ begin
 
   have ineq1 : (m + i + 1) * (i + m.fact) ≤ (m + i + 1) * (m + i).fact,
   {
-    apply mul_le_mul, linarith, rw add_comm m, assumption, linarith, linarith,
+    apply mul_le_mul, linarith, rwa add_comm m, linarith, linarith,
   },
-  suffices ineq2 : i + m.succ.fact ≤ (m + i + 1) * (i + m.fact),
-  {
-    exact le_trans ineq2 ineq1,
-  },
+  suffices : i + m.succ.fact ≤ (m + i + 1) * (i + m.fact), exact le_trans this ineq1,
   rw mul_add,
-  have ineq2 : (m + i + 1) * m.fact ≤ (m + i + 1) * i + (m + i + 1) * m.fact,
-  {
-    apply nat.le_add_left,
-  },
-  suffices ineq3 : i + m.succ.fact ≤ (m + i + 1) * m.fact,
-  {
-    exact le_trans ineq3 ineq2,
-  },
+  have ineq2 : (m + i + 1) * m.fact ≤ (m + i + 1) * i + (m + i + 1) * m.fact := nat.le_add_left _ _,
+  suffices : i + m.succ.fact ≤ (m + i + 1) * m.fact, exact le_trans this ineq2,
   replace triv :  (m + i + 1) = (m + 1 + i), ring, rw triv, rw add_mul, rw <-nat.succ_eq_add_one, rw <-nat.fact_succ, rw add_comm,
   apply add_le_add, linarith, 
   replace triv := (@nat.mul_le_mul_right 1 m.fact i) _, simp only [one_mul] at triv, rw mul_comm at triv, exact triv,
-
   replace triv := nat.fact_pos m, exact triv,
 end
 
+
+-- With all the auxilary inequalies, we can now prove α is a Liouville number.
 -- Then α is a Liouville number hence a transcendental number.
 theorem liouville_α : liouville_number α := 
 begin
   intro n,
-
   have lemma1 := α_k_rat n,
   choose p hp using lemma1,
   use p, use 10^(n.fact),

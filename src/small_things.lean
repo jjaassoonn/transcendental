@@ -11,12 +11,7 @@ noncomputable theory
 
 namespace small_things
 
-def ℤembℝ : ℤ →+* ℝ :=
-{ to_fun :=real.of_rat ∘ rat.of_int,
-  map_one' := by norm_num,
-  map_zero' := by norm_num,
-  map_add' := λ m n, by norm_num,
-  map_mul' := λ m n, by norm_num}
+def ℤembℝ : ℤ →+* ℝ := algebra_map ℤ ℝ
 
 theorem ℤembℝ_inj : function.injective ℤembℝ := λ a b h, by {simp only [ring_hom.eq_int_cast, int.cast_inj] at h, exact h,}
 theorem ℤembℝ_zero : ℤembℝ 0 = 0 := by exact ℤembℝ.map_zero
