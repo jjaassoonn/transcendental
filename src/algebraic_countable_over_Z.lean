@@ -37,7 +37,11 @@ begin
   intros x y H, simp only [ring_hom.eq_int_cast, int.cast_inj] at H, exact H,
 end
 
-theorem poly_int_to_poly_real_C_wd' (a : int) : polynomial.C (a:ℝ) = poly_int_to_poly_real (polynomial.C a) := by simp only [poly_int_to_poly_real, polynomial.map_C, ring_hom.eq_int_cast]
+theorem poly_int_to_poly_real_C_wd' (a : int) : polynomial.C (a:ℝ) = poly_int_to_poly_real (polynomial.C a) := 
+begin
+  simp only [poly_int_to_poly_real], rw polynomial.map_C, ext, simp only [ring_hom.eq_int_cast],
+end
+
 theorem poly_int_to_poly_real_C_wd : ∀ a : ℤ, poly_int_to_poly_real_wd (polynomial.C a) := λ _ _, by simp only [poly_int_to_poly_real, polynomial.map_C, polynomial.eval_C, polynomial.aeval_C]
 theorem poly_int_to_poly_real_add (p1 p2 : polynomial ℤ) : poly_int_to_poly_real (p1 + p2) = poly_int_to_poly_real p1 + poly_int_to_poly_real p2 :=
 begin
@@ -61,16 +65,14 @@ end
 
 theorem poly_int_to_poly_real_pow2 (n : nat) (a : ℤ) : poly_int_to_poly_real ((polynomial.C a) * polynomial.X ^ n) = (polynomial.C (real.of_rat a)) * polynomial.X ^ n :=
 begin
-  ext m,
-  simp only [poly_int_to_poly_real, polynomial.map_C, ring_hom.eq_int_cast, polynomial.map_X, polynomial.map_pow, rat.cast_coe_int, polynomial.map_mul, real.of_rat_eq_cast],
+  rw [poly_int_to_poly_real, polynomial.map_mul, polynomial.map_C, polynomial.map_pow, polynomial.map_X], simp only [ring_hom.eq_int_cast, rat.cast_coe_int, real.of_rat_eq_cast],
 end
 
 theorem poly_int_to_poly_real_pow_wd (n : nat) (a : ℤ) (h : poly_int_to_poly_real_wd ((polynomial.C a) * polynomial.X ^ n)) : poly_int_to_poly_real_wd ((polynomial.C a) * polynomial.X ^ n.succ) :=
 begin
   intro x,
-  rw poly_int_to_poly_real_pow2,
-  simp only [polynomial.aeval_def, polynomial.eval_X, polynomial.eval₂_C, polynomial.eval_C, ring_hom.eq_int_cast, polynomial.eval_pow, polynomial.eval₂_mul, polynomial.eval_mul, rat.cast_coe_int, real.of_rat_eq_cast],
-  rw [polynomial.eval₂_pow, <-polynomial.aeval_def, polynomial.aeval_X],
+  rw [polynomial.aeval_def, poly_int_to_poly_real, polynomial.map_mul, polynomial.map_C, polynomial.eval_mul, polynomial.eval_C, polynomial.map_pow, polynomial.eval_pow, polynomial.eval₂_mul, polynomial.eval₂_C, polynomial.eval₂_pow], 
+  simp only [polynomial.eval_X, polynomial.map_X, polynomial.eval₂_X],
 end
 
 
@@ -176,7 +178,7 @@ end
 theorem int_eqiv_int' : ℤ ≃ int' :=                                               -- So ℤ ≃ ℤ - {0} because the strange function is a bijection
 begin
   suffices H : ∃ f : ℤ -> int', function.bijective f,
-  choose f Hf using H, exact equiv.of_bijective Hf,
+  choose f Hf using H, exact equiv.of_bijective f Hf,
   use strange_fun,
   split,
   {
@@ -224,7 +226,7 @@ begin                                                                           
   intros n hn,                                                      
   intros p1 p2 h,                                                                 -- given two polynomials p1 p2 and the assumption that 
   unfold identify at h,                                                           -- p1 and p2 are identified to the same tuple                                                                     -- we have that ∀ m < n, the mth coefficient of p1 equals to
-  rw subtype.ext,                                                                 -- the mth coefficient of p2
+  rw subtype.ext_iff_val,                                                         -- the mth coefficient of p2
   ext m,                                                                          -- we need to prove ∀ m ∈ ℕ, the mth coefficient of p1 equals to
   rw function.funext_iff at h,                                                    -- the mth coefficent of p2. So we take an arbitrary m ∈ ℕ.
   have p1_deg := p1.property,                                                     
@@ -394,7 +396,7 @@ begin                                                                           
   },
 
   suffices f_bij : function.bijective f,
-  exact equiv.of_bijective f_bij,
+  exact equiv.of_bijective f f_bij,
   split,
   {
     intros x1 x2 hx, simp only [subtype.mk_eq_mk, identify, function.funext_iff] at hx, apply subtype.eq,
@@ -425,7 +427,7 @@ begin                                                                           
       exact p_ne_0' (@subtype.eq _ _ p zero_poly_n hp),
     },
     use ⟨p.1, ⟨p_ne_0, p.2⟩⟩,
-    simp only [subtype.ext, subtype.eta], assumption,
+    simp only [subtype.ext_iff_val, subtype.eta], assumption,
   },
 end
 
@@ -446,7 +448,7 @@ theorem int_1_equiv_int_1' : (int_n 1) ≃ (int_n' 1) :=                        
 begin                                                                             -- to prove ℤ ≃ ℤ - {0}
   suffices H1 : ∃ f : (int_n 1) -> (int_n' 1), function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : (int_n 1) -> (int_n' 1), ∃ g : (int_n' 1) -> (int_n 1), function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
@@ -491,7 +493,7 @@ theorem aux_int_n (n : nat) :                                                   
 begin
   suffices H1 : ∃ f : (int_n n.succ.succ) -> (int_n n.succ) × ℤ, function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : (int_n n.succ.succ) -> (int_n n.succ) × ℤ, ∃ g : (int_n n.succ) × ℤ -> (int_n n.succ.succ), function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
@@ -558,7 +560,7 @@ begin
     have eq1 : m'.val = m.val,
     {
         rw <-hm', simp only [fin.cast_lt_val],
-    }, rw eq1 at h, have rid := m.is_lt, linarith, rw <-subtype.ext at H,
+    }, rw eq1 at h, have rid := m.is_lt, linarith, rw <-subtype.ext_iff_val at H,
     have eq1 := strange_fun_inj H, have eq2 : m'.val = m.val, rw <-hm', simp only [fin.cast_lt_val],
     have eq3 : x.1 m = x.fst ⟨m'.val, _⟩,
     {
@@ -566,8 +568,8 @@ begin
     }, rw eq3, rw eq1, apply congr_arg, rw fin.eq_iff_veq, simp only [], rw eq2,
     
     have ineq2 : n.succ < n.succ.succ, exact lt_add_one (nat.succ n),
-    replace H := H ⟨n.succ, ineq2⟩, split_ifs at H, rw <-subtype.ext at H,
-    exact strange_fun_inj H, rw <-subtype.ext at H,
+    replace H := H ⟨n.succ, ineq2⟩, split_ifs at H, rw <-subtype.ext_iff_val at H,
+    exact strange_fun_inj H, rw <-subtype.ext_iff_val at H,
     simp only [eq_self_iff_true, not_true] at h, exfalso, exact h,
 end
 
@@ -577,7 +579,7 @@ theorem aux_int_n' (n : nat) :
 begin                                                                             -- we have (ℤ^{n+1} - {0}) ≃ ℤⁿ × ℤ for n ≥ 1
   suffices H1 : ∃ f : (int_n' n.succ.succ) -> (int_n n.succ) × ℤ, function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : (int_n' n.succ.succ) -> (int_n n.succ) × ℤ, ∃ g : (int_n n.succ) × ℤ -> (int_n' n.succ.succ), function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
@@ -585,7 +587,7 @@ begin                                                                           
   use fn', use gn', split,
   {
     intros x1 x2 hx, simp only [fn', id.def, prod.mk.inj_iff] at hx, cases hx with h1 h2, rw function.funext_iff at h1,
-    apply subtype.eq', ext, rename x m,
+    apply subtype.eq, ext, rename x m,
     by_cases (m.val = n.succ),
       have H1 : m = (⟨n.succ, (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ), 
       rw fin.ext_iff, simp only [], exact h,

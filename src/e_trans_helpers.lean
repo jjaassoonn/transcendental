@@ -67,7 +67,7 @@ end
 
 private lemma deriv_too_much (a : ℤ) : (deriv_n (polynomial.C a) ((polynomial.C a).nat_degree + 1)) = 0 :=
 begin
-    simp, rw deriv_n, simp,
+    rw deriv_n, dsimp, rw polynomial.derivative_C, simp only [ring_hom.eq_int_cast, id.def, polynomial.nat_degree_int_cast, function.iterate_zero],
 end
 
 theorem deriv_too_much (f : polynomial ℤ): (deriv_n f (f.nat_degree + 1)) = 0 :=
@@ -315,9 +315,18 @@ begin
     have hn := h n, simp at hn, rw bar_coeff at hn, simp at hn ⊢, assumption,
 end
 
+private lemma coeff_sum (f : ℕ -> polynomial ℤ) (m : ℕ) (s : finset ℕ) : (∑ i in s, (f i).coeff m) = (∑ i in s, f i).coeff m :=
+begin
+    apply finset.induction_on s, simp only [finset.sum_empty, polynomial.coeff_zero],
+    intros a s ha, simp only [forall_prop_of_true, polynomial.finset_sum_coeff],
+end
+
 theorem f_bar_eq (f : polynomial ℤ) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
 begin
-    ext, rw bar_coeff, simp, split_ifs, refl, replace h : n ≥ f.nat_degree.succ, exact not_lt.mp h, replace h : n > f.nat_degree, exact h,
+    ext, rw bar_coeff, rw <-coeff_sum, 
+    have eq1 : ∑ (i : ℕ) in finset.range f.nat_degree.succ, (polynomial.C (abs (f.coeff i)) * polynomial.X ^ i).coeff n =
+               ∑ (i : ℕ) in finset.range f.nat_degree.succ, ite (n = i) (abs (f.coeff i)) 0 := finset.sum_congr rfl (λ _ _, by rw polynomial.coeff_C_mul_X),
+    rw [eq1], rw finset.sum_ite_eq, split_ifs, refl, replace h : n ≥ f.nat_degree.succ, simp only [not_lt, finset.mem_range] at h, exact h, replace h : n > f.nat_degree, exact h,
     rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
 end
 
@@ -425,9 +434,10 @@ begin
     simp [deriv_zero],
 
     {
-        rw deriv_n, rw function.iterate_succ', simp, rw <-deriv_n,
-        rw IH, simp, rw finset.sum_add_distrib,
-        conv_lhs {rw finset.sum_range_succ', rw finset.sum_range_succ, simp[deriv_zero]},
+        rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
+        rw IH, simp only [polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add], rw finset.sum_add_distrib,
+        conv_lhs {rw finset.sum_range_succ', rw finset.sum_range_succ, simp only [deriv_zero, nat.choose_self, one_mul, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, polynomial.C_1,
+ int.coe_nat_succ, nat.sub_zero, zero_add]},
         have eq1 :
         ∑ (i : ℕ) in finset.range n,
           polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1) +
@@ -496,15 +506,15 @@ end
 
 theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
 begin
-    induction n with n IH, simp,
+    induction n with n IH, simp only [polynomial.derivative_one, int.coe_nat_zero, zero_mul, polynomial.C_0, pow_zero],
     {
         cases n, simp,
         replace IH := IH _,
-        rw nat.succ_eq_add_one, rw pow_add, simp, rw IH, simp,
+        rw nat.succ_eq_add_one, rw pow_add, simp, rw IH, simp only [nat.succ_sub_succ_eq_sub, polynomial.C_add, polynomial.C_1, int.coe_nat_succ, nat.sub_zero],
         have eq1 : (polynomial.C ↑n + 1) * f ^ n * f.derivative * f = (polynomial.C ↑n + 1) * f ^ (n+1) * f.derivative,
         {
-            rw pow_add, simp, ring,
+            rw pow_add, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, pow_one], ring,
         } ,
-        rw eq1, rw nat.succ_eq_add_one, repeat {rw add_mul}, simp, exact nat.succ_pos n,
+        rw eq1, rw nat.succ_eq_add_one, repeat {rw add_mul}, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, one_mul], exact nat.succ_pos n,
     }
 end

@@ -4,7 +4,7 @@ import ring_theory.algebraic
 import data.polynomial
 import data.rat.default
 import data.real.basic data.real.cardinality
-import tactic.linarith tactic.fin_cases
+import tactic
 
 noncomputable theory
 open_locale classical
@@ -58,8 +58,8 @@ begin
   rw polynomial.coeff_C,
   split_ifs,
 
-  simp, rw h, rw <-polynomial.coeff, rw polynomial.coeff_C_zero,
-  simp, rw <-polynomial.coeff, rw polynomial.coeff_C, split_ifs, norm_cast,
+  simp only [rat.cast_inj, polynomial.coeff_mk, real.of_rat_eq_cast], rw h, rw <-polynomial.coeff, rw polynomial.coeff_C_zero,
+  simp only [polynomial.coeff_mk, real.of_rat_eq_cast], rw <-polynomial.coeff, rw polynomial.coeff_C, split_ifs, norm_cast,
 
   done
 end
@@ -68,7 +68,7 @@ theorem poly_rat_to_poly_real_C_wd : ∀ a : rat, poly_rat_to_poly_real_wd (poly
 begin
   intros r x,
   rw <-poly_rat_to_poly_real_C_wd',
-  simp,
+  simp only [polynomial.eval_C, polynomial.aeval_C, real.of_rat_eq_cast],
   exact rfl,
   done    
 end
@@ -77,7 +77,7 @@ theorem poly_rat_to_poly_real_add (p1 p2 : polynomial rat) : poly_rat_to_poly_re
 begin
   ext,
   rw [poly_rat_to_poly_real, poly_rat_to_poly_real, poly_rat_to_poly_real],
-  simp,
+  simp only [polynomial.coeff_add, polynomial.coeff_mk, real.of_rat_eq_cast],
   norm_cast,
   done
 end
@@ -87,7 +87,7 @@ theorem poly_rat_to_poly_real_add_wd (p1 p2 : polynomial rat)
     (h2 : poly_rat_to_poly_real_wd p2) : poly_rat_to_poly_real_wd (p1 + p2) :=
 begin
   intro x,
-  simp,
+  simp only [alg_hom.map_add],
   rw h1, rw h2,
   rw <-polynomial.eval_add,
   rw poly_rat_to_poly_real_add,
@@ -97,7 +97,7 @@ end
 theorem poly_rat_to_poly_real_pow1 (n : nat) : poly_rat_to_poly_real (polynomial.X ^ n) = polynomial.X ^ n :=
 begin
   ext, rename n_1 m,
-  rw poly_rat_to_poly_real, simp,
+  rw poly_rat_to_poly_real, simp only [polynomial.coeff_X_pow, polynomial.coeff_mk, real.of_rat_eq_cast],
   split_ifs;
   norm_cast; rw [<-polynomial.coeff, polynomial.coeff_X_pow]; split_ifs; refl,
   done
@@ -106,7 +106,7 @@ end
 theorem poly_rat_to_poly_real_pow2 (n : nat) (a : rat) : poly_rat_to_poly_real ((polynomial.C a) * polynomial.X ^ n) = (polynomial.C (real.of_rat a)) * polynomial.X ^ n :=
 begin
   ext, rename n_1 m,
-  rw poly_rat_to_poly_real, simp,
+  rw poly_rat_to_poly_real, simp only [mul_boole, polynomial.coeff_X_pow, polynomial.coeff_C_mul, polynomial.coeff_mk, real.of_rat_eq_cast],
   norm_cast, rw [<-polynomial.coeff, polynomial.coeff_C_mul_X],
   done
 end
@@ -115,7 +115,8 @@ theorem poly_rat_to_poly_real_pow_wd (n : nat) (a : rat) (h : poly_rat_to_poly_r
 begin
   intro x,
   rw poly_rat_to_poly_real_pow2,
-  simp [polynomial.aeval_def],
+  simp only [polynomial.aeval_def, polynomial.eval_X, polynomial.eval₂_C, polynomial.eval_C, polynomial.eval_pow,
+ polynomial.eval₂_mul, polynomial.eval_mul, real.of_rat_eq_cast],
   rw polynomial.eval₂_pow,
   rw <-polynomial.aeval_def,
   rw polynomial.aeval_X,
@@ -130,7 +131,7 @@ begin
   intros h hp,
   rw poly_rat_to_poly_real at hp,
   rw polynomial.ext_iff at hp,
-  simp at hp,
+  simp only [polynomial.coeff_zero, rat.cast_eq_zero, polynomial.coeff_mk, real.of_rat_eq_cast] at hp,
   rw <-polynomial.coeff at hp,
   have h' : p = 0,
   exact finsupp.ext hp,
@@ -139,7 +140,7 @@ begin
   intros h hp,
   have h' : poly_rat_to_poly_real p = 0,
   unfold poly_rat_to_poly_real,
-  simp, ext, simp, rw <-polynomial.coeff, rw hp, simp,
+  simp only [real.of_rat_eq_cast], ext, simp only [polynomial.coeff_zero, rat.cast_eq_zero, polynomial.coeff_mk], rw <-polynomial.coeff, rw hp, simp only [polynomial.coeff_zero],
   exact h h',
 
   done,
@@ -187,9 +188,9 @@ begin
   have g := @polynomial.mem_roots real x _ (poly_rat_to_poly_real p) ((poly_rat_to_poly_real_ne_zero p).mp hp),
   split,
   intro hx, rw roots_real' at hx, rw set.mem_set_of_eq at hx,
-  simp, apply g.mpr, exact hx,
+  simp only [finset.mem_coe], apply g.mpr, exact hx,
 
-  intro hx, simp at hx, unfold roots_real', rw set.mem_set_of_eq,
+  intro hx, simp only [finset.mem_coe] at hx, unfold roots_real', rw set.mem_set_of_eq,
   exact g.mp hx,
   done
 end
@@ -244,25 +245,25 @@ begin
     by_cases (q2.2 = 1 ∨ q2.1 = 0); rename h q2_int,
     
     {
-      simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
+      simp only [strange_fun, q1_int, q2_int, dif_pos] at hq,
       by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg,
       
-      simp [q1_neg, q2_neg] at hq, exact hq,
-      simp [q1_neg, q2_neg] at hq, linarith,
-      simp [q1_neg, q2_neg] at hq, linarith,
-      simp [q1_neg, q2_neg] at hq, exact hq,
+      simp only [q1_neg, q2_neg, dif_pos, subtype.mk_eq_mk] at hq, exact hq,
+      simp only [q1_neg, q2_neg, dif_pos, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq, linarith,
+      simp only [q1_neg, q2_neg, dif_pos, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq, linarith,
+      simp only [q1_neg, q2_neg, add_left_inj, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq, exact hq,
     },
 
     {
-      simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
+      simp only [strange_fun, strange_fun, q1_int, q2_int, dif_pos, dif_neg, not_false_iff] at hq,
       by_cases (q1 < 0);  rename h q1_neg; by_cases (q2 < 0); rename h q2_neg,
-      simp [q1_neg, q2_neg] at hq, assumption,
-      simp [q1_neg, q2_neg] at hq, assumption,
-      simp [q1_neg, q2_neg] at hq, linarith,
-      simp [q1_neg, q2_neg] at hq, cases q1_int,
+      simp only [q1_neg, dif_pos, subtype.mk_eq_mk] at hq, assumption,
+      simp only [q1_neg, dif_pos, subtype.mk_eq_mk] at hq, assumption,
+      simp only [q1_neg, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq, linarith,
+      simp only [q1_neg, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq, cases q1_int,
       {
-        simp [rat.add_num_denom, q1_int] at hq,
-        simp at q1_neg,
+        simp only [rat.add_num_denom, q1_int, mul_one, rat.num_one, int.coe_nat_zero, int.coe_nat_succ, zero_add, rat.denom_one] at hq,
+        simp only [not_lt] at q1_neg,
         have g := @rat.num_denom' (q1.num + 1) 1 (by linarith) (nat.coprime_one_right (int.nat_abs (q1.num + 1))),
         norm_cast at g,
         rw <-g at hq,
@@ -272,7 +273,7 @@ begin
       },
       {
         rw <-rat.zero_iff_num_zero at q1_int,
-        rw q1_int at hq, simp at hq,
+        rw q1_int at hq, simp only [zero_add] at hq,
         have h : q2.denom = 1,
         exact calc q2.denom = (1 : rat).denom : by rw hq
                 ...         = 1 : rfl,
@@ -281,20 +282,20 @@ begin
     },
 
     {
-      simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
-      by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg;
-      simp [q1_neg, q2_neg] at hq,
+      simp only [strange_fun, strange_fun, q1_int, q2_int, dif_pos, dif_neg, not_false_iff] at hq,
+      by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg,
+      simp only [q2_neg, dif_pos, subtype.mk_eq_mk] at hq, exact hq, simp only [q2_neg, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq,
       
-      assumption, linarith, assumption,
+      linarith, split_ifs at hq, simp only [subtype.mk_eq_mk] at hq, exact hq, split_ifs at hq, simp only [subtype.mk_eq_mk] at hq,
       cases q2_int with q22 q21,
       have h : q1.denom = (q2 + 1).denom := by rw hq,
-      simp [rat.add_num_denom, q22] at h,
+      simp only [rat.add_num_denom, q22, mul_one, rat.num_one, int.coe_nat_zero, int.coe_nat_succ, zero_add, rat.denom_one] at h,
       have g := @rat.num_denom' (q2.num + 1) 1 (by linarith) (nat.coprime_one_right (int.nat_abs (q2.num + 1))),
       norm_cast at g,
       rw <-g at h,
       have h' : ({ num := q2.num + 1, denom := 1, pos := (by linarith), cop := (nat.coprime_one_right (int.nat_abs (q2.num + 1))) } : rat).denom = 1 := rfl,
       rw h' at h, exfalso, exact (not_or_distrib.mp q1_int).1 h,
-      rw <-rat.zero_iff_num_zero at q21, simp [q21] at hq,
+      rw <-rat.zero_iff_num_zero at q21, simp only [q21, zero_add] at hq,
       have h : q1.denom = 1,
       exact calc q1.denom = (1 : rat).denom : by rw hq
                       ... = 1 : rfl,
@@ -302,7 +303,7 @@ begin
     },
 
     {
-      simp [strange_fun, strange_fun, q1_int, q2_int] at hq,
+      simp only [strange_fun, q1_int, q2_int, subtype.mk_eq_mk, dif_neg, not_false_iff] at hq,
       by_cases (q1 < 0); rename h q1_neg; by_cases (q2 < 0); rename h q2_neg; assumption,
     },
   },
@@ -316,12 +317,13 @@ begin
 
     {
       by_cases (q.1 < 0); rename h q_pos,
-      use q.1, simp [strange_fun, q_int, q_pos],
+      use q.1, simp only [strange_fun, q_int, q_pos, dif_pos, subtype.eta],
       generalize h' : q.1-1 = q',
       have q'_int : q'.2 = 1 ∨ q'.1 = 0,
       {
         cases q_int, left,
-        have h'' : q.1 + (-1 : rat) = q', linarith, rw rat.add_num_denom at h'', simp [q_int] at h'', 
+        have h'' : q.1 + (-1 : rat) = q', linarith, rw rat.add_num_denom at h'', simp only [q_int, rat.num_neg_eq_neg_num, mul_one, rat.num_one, int.coe_nat_zero, int.coe_nat_succ, zero_add,
+ rat.denom_neg_eq_denom, rat.denom_one, int.mul_neg_eq_neg_mul_symm] at h'', 
         have h''' : ({ num := -1 + q.1.1, denom := 1, pos := (by linarith), cop := (nat.coprime_one_right (int.nat_abs (-1 + q.1.1))) } : rat) = rat.mk (-1 + q.1.1) 1,
         rw rat.num_denom', norm_cast,
         -- rw <-h''' at h'', 
@@ -330,7 +332,7 @@ begin
           rw <-h'', rw add_comm, rw <-h''',
         },
         rw H,
-        left, rw <-rat.zero_iff_num_zero at q_int, simp [q_int] at h', rw <-h', exact rfl,
+        left, rw <-rat.zero_iff_num_zero at q_int, simp only [q_int, zero_sub] at h', rw <-h', exact rfl,
       },
 
       have q_ne_0 := q.2, rw [not_lt] at q_pos,
@@ -348,12 +350,12 @@ begin
         exfalso, rw <-rat.zero_iff_num_zero at q_int, exact q_ne_0 q_int,
       },
       have H2 : q' ≥ 0, linarith,
-      have H2' : ¬ q' < 0, linarith, use q', simp [strange_fun, q'_int, H2'],
-      apply subtype.eq', simp, linarith,
+      have H2' : ¬ q' < 0, linarith, use q', simp only [strange_fun, q'_int, H2', dif_pos, dif_neg, not_false_iff],
+      apply subtype.eq, simp only [], linarith,
     },
 
     {
-      use q.1, simp [strange_fun, q_int],
+      use q.1, simp only [strange_fun, q_int, subtype.eta, dif_neg, not_false_iff],
     },
   },
   done
@@ -362,7 +364,7 @@ end
 theorem rat_equiv_rat' : rat ≃ rat' :=
 begin
   suffices H : ∃ f : rat -> rat', function.bijective f,
-  choose f Hf using H, exact equiv.of_bijective Hf,
+  choose f Hf using H, exact equiv.of_bijective f Hf,
   use strange_fun,
   split,
   exact strange_fun_inj,
@@ -382,7 +384,7 @@ end
 
 @[simp] theorem identify_0_eq_0 (n : nat) : (identify n.succ zero_poly_n) = zero_rat_n :=
 begin
- rw [identify, zero_rat_n, zero_poly_n], ext, simp, done
+ rw [identify, zero_rat_n, zero_poly_n], ext, simp only [id.def, polynomial.coeff_zero], done
 end
 
 lemma m_mod_n_lt_n : ∀ n : nat, n ≠ 0 -> ∀ m : nat, m % n < n :=
@@ -398,8 +400,8 @@ begin
   unfold function.injective,
   intros p1 p2 h,
   unfold identify at h,
-  simp at h,
-  rw subtype.ext,
+  simp only [id.def] at h,
+  rw subtype.ext_iff_val,
   ext, rename n_1 m,
   rw function.funext_iff at h,
   have p1_deg := p1.property,
@@ -437,7 +439,7 @@ end
 theorem identify_nzero_to_nzero (n : nat) (p : poly_n n.succ) (hp : p ≠ zero_poly_n) : (identify n.succ p) ≠ zero_rat_n :=
 begin
   have g := inj_identify_n n.succ (nat.succ_ne_zero n),
-  have g' := @g p zero_poly_n, simp at g',
+  have g' := @g p zero_poly_n, simp only [identify_0_eq_0] at g',
   intro absurd, exact hp (g' absurd),
 end
 
@@ -540,7 +542,7 @@ begin
       ext,
       rename x m,
       unfold identify,
-      simp,
+      simp only [id.def, polynomial.coeff_mk],
       rw hto_fun,
       have g : (λ (m : ℕ), ite (m ∈ support) (q ⟨m % n, m_mod_n_lt_n n hn m⟩) 0) (m.val) = ite (m.val ∈ support) (q ⟨m.val % n, m_mod_n_lt_n n hn m.val⟩) 0 := rfl,
       rw g,
@@ -548,12 +550,12 @@ begin
       
       -- m.val ∈ support
       {
-        simp at h,
+        simp only [ne.def, finset.mem_filter, finset.mem_range] at h,
         cases h,
         have important : m = ⟨m.1 % n, _⟩,
         {
           rw fin.ext_iff,
-          simp,
+          simp only [],
           rw nat.mod_eq_of_lt,
           exact h_left,
         },
@@ -561,12 +563,12 @@ begin
       },
       -- m.val ∉ support
       {
-        simp at h,
+        simp only [not_and, finset.mem_filter, finset.mem_range, classical.not_not] at h,
         have h' := h m.2,
         have important : m = ⟨m.1 % n, _⟩,
         {
           rw fin.ext_iff,
-          simp,
+          simp only [],
           rw nat.mod_eq_of_lt,
           exact m.2,
         },
@@ -585,14 +587,14 @@ begin
     generalize hx : (identify n.succ) ⟨p.1, p.2.2⟩ = x,
     split, swap, exact x,
     have g := identify_nzero_to_nzero n ⟨p.1, p.2.2⟩ _,
-    rw hx at g, exact g, rw [zero_poly_n], simp, exact p.2.1,
+    rw hx at g, exact g, rw [zero_poly_n], simp only [subtype.mk_eq_mk, ne.def], exact p.2.1,
   },
 
   suffices f_bij : function.bijective f,
-  exact equiv.of_bijective f_bij,
+  exact equiv.of_bijective f f_bij,
   split,
   {
-    intros x1 x2 hx, simp at hx, rw [identify, function.funext_iff] at hx, simp at hx,
+    intros x1 x2 hx, simp only [subtype.mk_eq_mk] at hx, rw [identify, function.funext_iff] at hx, simp only [id.def] at hx,
     suffices h : x1.val = x2.val, exact subtype.eq h,
     ext,
     have h1 := x1.2.2, have h2 := x2.2.2, rename n_1 m,
@@ -600,7 +602,7 @@ begin
     rw [polynomial.coeff_eq_zero_of_nat_degree_lt, polynomial.coeff_eq_zero_of_nat_degree_lt],
     exact lt_of_lt_of_le h2 h, exact lt_of_lt_of_le h1 h,
 
-    simp at h, rw hx ⟨m, _⟩, exact nat.lt_succ_iff.mpr h,
+    simp only [not_lt] at h, rw hx ⟨m, _⟩, exact nat.lt_succ_iff.mpr h,
   },
 
   {
@@ -620,7 +622,7 @@ begin
       exact p_ne_0' (@subtype.eq _ _ p zero_poly_n hp),
     },
     use ⟨p.1, ⟨p_ne_0, p.2⟩⟩,
-    rw [subtype.ext], simp, assumption,
+    rw [subtype.ext_iff_val], simp only [subtype.eta], assumption,
   },
   done
 end
@@ -628,7 +630,7 @@ end
   def f : rat_n 1 -> rat_n' 1 :=
   begin
     intro r, split, swap, exact (fun m, (strange_fun (r m)).1),
-    intro a, rw function.funext_iff at a, replace a := a 0, simp at a,
+    intro a, rw function.funext_iff at a, replace a := a 0, simp only [pi.zero_apply] at a,
     generalize hx : (strange_fun (r 0)) = x, rw hx at a, exact x.2 a,
   end
 
@@ -642,18 +644,18 @@ theorem rat_1_equiv_rat_1' : rat_n 1 ≃ rat_n' 1 :=
 begin
   suffices H1 : ∃ f : rat_n 1 -> rat_n' 1, function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : rat_n 1 -> rat_n' 1, ∃ g : rat_n' 1 -> rat_n 1, function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
 
   use f, use g, split,
   {
-    intros x1 x2 hx, simp [f] at hx, rw function.funext_iff at hx, replace hx := hx 0,
+    intros x1 x2 hx, simp only [f, subtype.mk_eq_mk] at hx, rw function.funext_iff at hx, replace hx := hx 0,
     replace hx := subtype.eq hx, replace hx := strange_fun_inj hx, ext, fin_cases x, exact hx,
   },
   {
-    intros x1 x2 hx, simp [g] at hx, replace hx := subtype.eq hx, exact hx,
+    intros x1 x2 hx, simp only [g, id.def] at hx, replace hx := subtype.eq hx, exact hx,
   }
 end
 
@@ -679,35 +681,35 @@ theorem aux_rat_n (n : nat) : rat_n (nat.succ (nat.succ n)) ≃ rat_n (nat.succ 
 begin
   suffices H1 : ∃ f : rat_n n.succ.succ -> rat_n n.succ × rat, function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : rat_n n.succ.succ -> rat_n n.succ × rat, ∃ g : rat_n n.succ × rat -> rat_n n.succ.succ, function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
 
   use fn, use gn, split,
   {
-    intros x1 x2 hx, simp [fn] at hx, cases hx with h1 h2, rw function.funext_iff at h1, ext,
+    intros x1 x2 hx, simp only [fn, id.def, prod.mk.inj_iff] at hx, cases hx with h1 h2, rw function.funext_iff at h1, ext,
     by_cases (x = ⟨n.succ, nat.lt_succ_self n.succ⟩), rw <-h at h2, assumption,
-      simp [fin.eq_iff_veq] at h, have h2 := x.2, replace h2 : x.1 ≤ n.succ := fin.le_last x,
+      simp only [fin.eq_iff_veq] at h, have h2 := x.2, replace h2 : x.1 ≤ n.succ := fin.le_last x,
       have h3 : x.1 < n.succ := lt_of_le_of_ne h2 h,
-      have H := h1 ⟨x.1, h3⟩, simp at H, exact H,
+      have H := h1 ⟨x.1, h3⟩, simp only [fin.eta] at H, exact H,
   },
 
   {
     intros x1 x2 hx, cases x1 with p1 x1, cases x2 with p2 x2,
-    ext; simp; simp [gn] at hx; rw function.funext_iff at hx, swap,
+    ext, swap, simp only [], simp only [gn, id.def] at hx, rw function.funext_iff at hx, 
       generalize hm : (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ) = m,
-      have hm' : m.val = n.succ, rw <-hm, replace hx := hx m, simp [hm'] at hx, assumption,
+      have hm' : m.val = n.succ, rw <-hm, replace hx := hx m, simp only [hm', dif_pos] at hx, assumption,
       
+      simp only [], simp only [gn, id.def] at hx, rw function.funext_iff at hx,
       generalize hm : (⟨x.1, nat.lt_trans x.2 (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ) = m,
       replace hx := hx m, have hm' : m.1 ≠ n.succ,
-        intro a, rw <-hm at a, simp at a, have hx' := x.2, linarith,
-      simp [hm'] at hx, have hm2 := m.2, replace hm2 : m.1 ≤ n.succ, exact fin.le_last m,
+        intro a, rw <-hm at a, simp only [] at a, have hx' := x.2, linarith,
+      simp only [hm', dif_neg, not_false_iff] at hx, have hm2 := m.2, replace hm2 : m.1 ≤ n.succ, exact fin.le_last m,
       have hm3 : m.1 < n.succ, exact lt_of_le_of_ne hm2 hm',
-      have H : x = ⟨m.1, hm3⟩, rw fin.ext_iff at hm ⊢, simp at hm ⊢, exact hm,
+      have H : x = ⟨m.1, hm3⟩, rw fin.ext_iff at hm ⊢, simp only [] at hm ⊢, exact hm,
       rw H, exact hx,
   },
-  done
 end
 
 def fn' {n : nat} : rat_n' (nat.succ (nat.succ n)) -> rat_n (nat.succ n) × rat := 
@@ -725,9 +727,9 @@ begin
     have H2 : m.1 < n.succ,  have H2' := fin.le_last m, exact lt_of_le_of_ne H2' h,
     exact (strange_fun (x.1 ⟨m.1, H2⟩)).1,
 
-  intro a, rw function.funext_iff at a, simp at a,
+  intro a, rw function.funext_iff at a, simp only [pi.zero_apply, subtype.val_eq_coe] at a,
   generalize hm : (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ) = m,
-  have a' := a m, have h : m.1 = n.succ, rw <-hm, simp [h] at a', exact (strange_fun x.2).2 a',
+  have a' := a m, have h : m.1 = n.succ, rw <-hm, simp only [h, dif_pos] at a', exact (strange_fun x.2).2 a',
 end
 
 
@@ -735,35 +737,36 @@ theorem aux_rat_n' (n : nat) : rat_n' (nat.succ (nat.succ n)) ≃ rat_n (nat.suc
 begin
   suffices H1 : ∃ f : rat_n' n.succ.succ -> rat_n n.succ × rat, function.bijective f,
     choose h hh using H1,
-    exact equiv.of_bijective hh,
+    exact equiv.of_bijective h hh,
 
   suffices H2 : ∃ f : rat_n' n.succ.succ -> rat_n n.succ × rat, ∃ g : rat_n n.succ × rat -> rat_n' n.succ.succ, function.injective f ∧ function.injective g,
     choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
 
   use fn', use gn', split,
   {
-    intros x1 x2 hx, simp [fn'] at hx, cases hx with h1 h2, rw function.funext_iff at h1,
-    apply subtype.eq', ext, rename x m,
+    intros x1 x2 hx, simp only [fn', id.def, prod.mk.inj_iff, subtype.val_eq_coe] at hx, cases hx with h1 h2, rw function.funext_iff at h1,
+    apply subtype.eq, ext m,
     by_cases (m.val = n.succ),
       have H1 : m = (⟨n.succ, (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ), 
-      rw fin.ext_iff, simp, exact h,
+      rw fin.ext_iff, simp only [], exact h,
       rw H1, assumption,
 
       have H2 : m.1 < n.succ,  have H2' := fin.le_last m, exact lt_of_le_of_ne H2' h,
-      have h1m := h1 ⟨m.1, H2⟩, simp at h1m, exact h1m,
+      have h1m := h1 ⟨m.1, H2⟩, simp only [fin.eta] at h1m, exact h1m,
   },
   {
-    intros x1 x2 hx, simp [gn'] at hx, ext, rename x m,
+    intros x1 x2 hx, simp only [gn', subtype.mk_eq_mk, subtype.val_eq_coe] at hx, ext, rename x m,
     generalize hm' : (⟨m.1, nat.lt_trans m.2 (nat.lt_succ_self n.succ)⟩ : fin n.succ.succ) = m',
     have hm'' : m'.val = m.1, rw <-hm',
     have Hm' : m'.val ≠ n.succ, have Hm'' := ne_of_lt m.2, rw <-hm'' at Hm'', assumption,
-    rw function.funext_iff at hx, have H := hx m', simp [hm'', Hm'] at H,
-    replace H := subtype.eq' H,
-    exact strange_fun_inj H,
+    rw function.funext_iff at hx, have H := hx m', simp only [hm'', Hm', dif_neg, not_false_iff, fin.eta] at H,
+    split_ifs at H,
+    replace H := subtype.eq H,
+    exact congr_fun (false.rec (x1.fst = λ (m : fin n.succ), x2.fst m) (Hm' h)) m, replace H := subtype.eq H, exact strange_fun_inj H,
 
     generalize hm : (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ) = m,
     have Hm : m.val = n.succ, rw <-hm, rw function.funext_iff at hx,
-    have H := hx m, simp [Hm] at H, replace H := subtype.eq' H,
+    have H := hx m, simp only [Hm, dif_pos] at H, replace H := subtype.eq H,
     exact strange_fun_inj H,
   }
 end
@@ -813,7 +816,7 @@ begin
       exact lt_add_one p.nat_degree.succ.succ, exact lt_add_one (nat.succ (polynomial.nat_degree p)),
       exact lt_add_one (polynomial.nat_degree p),
     },
-    simpa,
+    simpa only [],
   },
   done
 end
@@ -823,11 +826,11 @@ begin
   have h := q.2,
   cases h with h1 h2,
   have h : q.1 = polynomial.C (q.1.coeff 0), ext,
-  by_cases (n = 0), rw h, simp,
-  rw polynomial.coeff_C, simp [h], rw polynomial.coeff_eq_zero_of_nat_degree_lt,
+  by_cases (n = 0), rw h, simp only [polynomial.coeff_C_zero],
+  rw polynomial.coeff_C, simp only [h, if_false], rw polynomial.coeff_eq_zero_of_nat_degree_lt,
   suffices H : 1 ≤ n, linarith, replace h : n ≠ 0 := h, rw <-nat.lt_one_add_iff, norm_num, exact zero_lt_iff_ne_zero.mpr h,
-  rw h, simp, intro absurd, conv_rhs at h {rw absurd}, suffices H2 : polynomial.C (0 : rat) = 0, conv_rhs at h {rw H2}, exact h1 h,
-  ext, simp,
+  rw h, simp only [polynomial.coeff_C_zero, ne.def], intro absurd, conv_rhs at h {rw absurd}, suffices H2 : polynomial.C (0 : rat) = 0, conv_rhs at h {rw H2}, exact h1 h,
+  ext, simp only [ring_hom.map_zero],
 end
 
 def identify'_1 : (poly_n' 1) -> rat' :=
@@ -842,11 +845,11 @@ begin
   }, swap 3, {
     intros r m, exact r,
   }, {
-    intros x, simp, ext, rename x_1 m, 
+    intros x, simp only [id.def], ext, rename x_1 m, 
     have hm' : m.1 = 0, have hm1 := m.2, linarith,
-    have hm : m = ⟨0, by linarith⟩, rw fin.ext_iff, simp, exact hm', rw hm,
+    have hm : m = ⟨0, by linarith⟩, rw fin.ext_iff, simp only [], exact hm', rw hm,
   }, {
-    intros x, simp,
+    intros x, simp only [id.def],
   }
 end
 
@@ -876,7 +879,7 @@ theorem algebraic_set'_n_countable (n : nat) : set.countable $ algebraic_set'_n 
 begin
   rw algebraic_set'_n,
   have h := @set.countable_Union (poly_n' n.succ) real (fun p, roots_real p.1) (poly_n'_denumerable n).1,
-  simp at h, apply h,
+  simp only [subtype.val_eq_coe] at h, apply h,
   intro q, apply set.finite.countable, exact roots_finite q.1 q.2.1,
   done
 end

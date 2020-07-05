@@ -40,14 +40,14 @@ def function_ℕ_Icc (a : ℝ) : ℕ -> set.Icc (a-1) (a+1) := λ n,
       ...    ≤ (n+1)⁻¹ + a : by linarith,
     begin
         have ineq1 : (n+1:ℝ)⁻¹ ≤ 1,
-        have ineq2 := (@inv_le _ _ (n+1:ℝ) 1 _ _).2, simp only [forall_prop_of_true, inv_one', le_add_iff_nonneg_left, nat.cast_nonneg] at ineq2, exact ineq2,
+        have ineq2 := (@inv_le _ _ (n+1:ℝ) 1 _ _).2, simp only [forall_prop_of_true, inv_one, le_add_iff_nonneg_left, nat.cast_nonneg] at ineq2, exact ineq2,
         exact nat.cast_add_one_pos n, exact zero_lt_one, linarith,
     end⟩⟩
 
 theorem function_ℕ_Icc_inj (a : ℝ) : function.injective $ function_ℕ_Icc a :=
 begin
     intros m n hmn,
-    rw [function_ℕ_Icc] at hmn, simp only [add_left_inj, inv_inj'', subtype.mk_eq_mk, nat.cast_inj] at hmn, exact hmn,
+    rw [function_ℕ_Icc] at hmn, simp only [add_left_inj, inv_inj', subtype.mk_eq_mk, nat.cast_inj] at hmn, exact hmn,
 end
 
 theorem inf_set_cannot_be_subset_of_fin_set {a : Type} {inst : infinite a} (S : set a) (T : set a) (hS : infinite S) (hT : set.finite T) : ¬ (S.subset T) :=

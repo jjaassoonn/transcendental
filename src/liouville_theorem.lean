@@ -113,7 +113,7 @@ begin
   },
   intro rid,
   have cast1 := cast1 f f_deg a b b_non_zero a_div_b_not_root, rw rid at cast1,
-  have eq2 := (@domain.mul_right_inj ℝ _ ((1:ℝ)/(b:ℝ)^f.nat_degree) _ _ _).2 cast1,
+  have eq2 := (@mul_right_inj' ℝ _ ((1:ℝ)/(b:ℝ)^f.nat_degree) _ _ _).2 cast1,
   rw <-eval_f_a_div_b at eq2, simp only [mul_zero] at eq2, exact a_div_b_not_root eq2,
   exact f_deg, exact b_non_zero, exact a_div_b_not_root,
   
@@ -353,7 +353,7 @@ begin
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [zero_sub] at hx0r,
     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,                                        -- So Df_ℝ(x₀) is not zero. (a/b is not a root)
     {
-      rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid,
+      rw hx0r, intro rid, rw [neg_div, neg_eq_zero, div_eq_zero_iff] at rid, cases rid,
       rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
       exact hfℝ_nonzero, linarith,
     },
@@ -430,8 +430,8 @@ begin
     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
     {
       rw hx0r, intro rid, rw [div_eq_zero_iff] at rid,
-      rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, exact hab2 rid,
-      exact hfℝ_nonzero, linarith,
+      rw [<-roots_def, polynomial.mem_roots, polynomial.is_root] at hab2, cases rid, exact hab2 rid, linarith,
+      exact hfℝ_nonzero,
     },
 
     have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
@@ -576,7 +576,8 @@ begin
     by_contra rid, simp only [not_lt] at rid, replace rid := lt_or_eq_of_le rid, cases rid, 
     {                                                                             -- If f has degree 0 then f ∈ ℤ[T] = c for some c ∈ ℤ. So x is an irrational integer.
       replace rid : f.nat_degree = 0, linarith, rw polynomial.nat_degree_eq_zero_iff_degree_le_zero at rid, rw polynomial.degree_le_zero_iff at rid,
-      rw rid at hf, simp only [int.cast_eq_zero, ring_hom.eq_int_cast, ne.def, polynomial.aeval_C] at hf, have hf1 := hf.1, have hf2 := hf.2,rw hf2 at hf1, simp only [polynomial.C_0, eq_self_iff_true, not_true] at hf1, exact hf1,
+      rw rid at hf, simp only [polynomial.aeval_C] at hf, have hf1 := hf.1, have hf2 := hf.2, simp only [ring_hom.eq_int_cast, ne.def] at hf1, 
+      simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at hf2, rw hf2 at hf1, norm_cast at hf1,
     },
     {                                                                             -- If f has degree 1, then f = aT + b
       have f_eq : f = polynomial.C (f.coeff 0) + (polynomial.C (f.coeff 1)) * polynomial.X,
@@ -599,13 +600,13 @@ begin
         }
       },
 
-      rw f_eq at hf, simp only [alg_hom.map_add, polynomial.aeval_X, ring_hom.eq_int_cast, ne.def, polynomial.aeval_C, alg_hom.map_mul] at hf, rw irrational at irr_x,
+      rw f_eq at hf, simp only [alg_hom.map_add, polynomial.aeval_X, ne.def, polynomial.aeval_C, alg_hom.map_mul] at hf, rw irrational at irr_x,
       by_cases ((f.coeff 1) > 0),
       {
         replace irr_x := irr_x (-(f.coeff 0)) (f.coeff 1) h, simp only [ne.def, int.cast_neg] at irr_x, rw neg_div at irr_x, rw sub_neg_eq_add at irr_x, rw add_comm at irr_x,
-        suffices suff : ↑(f.coeff 0) / ↑(f.coeff 1) + x = 0, exact irr_x suff,
+        suffices : ↑(f.coeff 0) / ↑(f.coeff 1) + x = 0, exact irr_x this,
         rw add_eq_zero_iff_eq_neg, rw div_eq_iff, have triv : -x * ↑(f.coeff 1) = - (x * (f.coeff 1)), exact norm_num.mul_neg_pos x ↑(polynomial.coeff f 1) (x * ↑(polynomial.coeff f 1)) rfl,
-        rw triv, rw <-add_eq_zero_iff_eq_neg, rw mul_comm, exact hf.2,
+        rw triv, rw <-add_eq_zero_iff_eq_neg, rw mul_comm, have hf2 := hf.2, simp [polynomial.aeval_def] at hf2, exact hf2,
         intro rid',norm_cast at rid', rw <-rid at rid', rw <-polynomial.leading_coeff at rid',
         rw polynomial.leading_coeff_eq_zero at rid', rw polynomial.ext_iff at rid', simp only [polynomial.coeff_zero] at rid', replace rid' := rid' 1, linarith,
       },
@@ -645,7 +646,7 @@ begin
   choose b hb using ha,                                                           -- such that 0 < |x - a/b| < 1/bᵐ = 1/bⁿ * 1/b^r.
 
   have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
-  have eq1 := div_mul_eq_div_mul_one_div' 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
+  have eq1 := div_mul_eq_div_mul_one_div 1 ((b:ℝ) ^ r) ((b:ℝ)^f.nat_degree), rw eq1 at ineq,
   have ineq2 : 1/((b:ℝ)^r) ≤ 1/((2:ℝ)^r),                                         -- But 1/b^r ≤ 1/2^r ≤ A. So 0 < |x - a/b| < A/bⁿ.
   {                                                                               -- This is the contradiction we seek by the choice of A.
     apply (@one_div_le_one_div ℝ _ ((b:ℝ)^r) ((2:ℝ)^r) _ _).2,
@@ -709,7 +710,7 @@ begin
   unfold ten_pow_n_fact_inverse,
   unfold ten_pow_n_inverse, simp only [one_div_eq_inv, inv_pow'],
   by_cases (n = 0),
-  rw h, simp only [inv_one', pow_one, pow_zero, nat.fact_zero], norm_num,
+  rw h, simp only [inv_one, pow_one, pow_zero, nat.fact_zero], norm_num,
   have n_pos : n > 0 := by exact bot_lt_iff_ne_bot.mpr h,
   have H := (@inv_le_inv ℝ _ (10 ^ n.fact) (10 ^ n) _ _).2 _, exact H,
   have H := @pow_pos ℝ _ 10 _ n.fact,  exact H, linarith,
