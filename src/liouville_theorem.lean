@@ -17,8 +17,6 @@ def transcendental (x : ℝ) := ¬(is_algebraic ℤ x)
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
--- Evaluating an integer polynomial in ℝ using the trival embeding
-def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := (f.map ℤembℝ).eval α
 -- x ↦ |f(x)| is continuous
 theorem abs_f_eval_around_α_continuous (f : polynomial ℝ) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
 begin

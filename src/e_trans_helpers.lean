@@ -1,13 +1,8 @@
-import data.real.basic
-import data.complex.exponential
 import ring_theory.algebraic
 import algebra.big_operators
-import small_things
 import measure_theory.set_integral
-import measure_theory.bochner_integration
-import analysis.calculus.deriv
-import analysis.calculus.fderiv
 import analysis.special_functions.exp_log
+import small_things
 
 noncomputable theory
 open_locale classical
@@ -75,8 +70,6 @@ begin
     ext, rw deriv_n_coeff, simp only [int.coe_nat_succ, polynomial.coeff_zero, mul_eq_zero], right,
     apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end
-
-def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := (f.map ℤembℝ).eval α
 
 def I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := 
     t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
