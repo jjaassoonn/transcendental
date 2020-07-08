@@ -12,6 +12,11 @@ open_locale big_operators
 
 namespace small_things
 
+theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
+begin
+exact finset.sum_congr rfl h,
+end
+
 def ℤembℝ : ℤ →+* ℝ := algebra_map ℤ ℝ
 
 theorem ℤembℝ_inj : function.injective ℤembℝ := λ a b h, by {simp only [ring_hom.eq_int_cast, int.cast_inj] at h, exact h,}
@@ -195,5 +200,7 @@ begin
     choose n hn using H,
     use n, exact le_of_lt hn, exact lt_add_one 1,
 end
+
+lemma mul_eq_mul' (a b c d : ℝ) : a = c -> b = d -> a * b = c * d := λ h1 h2, by simp only [h1, h2]
 
 end small_things

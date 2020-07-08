@@ -45,19 +45,8 @@ begin
   have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
   
   rw eq1,
-  have triv : (polynomial.X : polynomial ℤ).degree = 1 := by simp only [polynomial.degree_X],
-
-  replace triv : polynomial.X.nat_degree = 1,
-  {
-    have triv' : ↑polynomial.X.nat_degree = polynomial.X.degree,  
-    { 
-      apply eq.symm,
-      apply polynomial.degree_eq_nat_degree, intro rid, rw rid at triv, simp only [polynomial.degree_zero] at triv, exact option.not_mem_none 1 triv,
-    },
-    rw triv at triv', 
-    rw polynomial.nat_degree, rw triv, exact rfl,
-  }, simp only [polynomial.C_add, polynomial.C_1, polynomial.nat_degree_pow_eq],
-  rw triv, simp only [mul_one],
+  have triv : (polynomial.X : polynomial ℤ).nat_degree = 1 := by simp only [polynomial.nat_degree_X],
+  simp only [polynomial.C_add, polynomial.C_1, polynomial.nat_degree_pow_eq, triv, mul_one],
 
   have triv' : (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree 
               = ∑ i in finset.range n, ((polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree,
@@ -67,34 +56,27 @@ begin
     replace rid := @pow_eq_zero (polynomial ℤ) _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
     rw sub_eq_zero_iff_eq at rid,
     have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
-    rw <-rid, exact triv, have rid'' := polynomial.nat_degree_C (i+1:ℤ), rw rid' at rid'', linarith,
+    rw <-rid, exact triv, have rid'' := polynomial.nat_degree_C (i+1:ℤ), linarith,
   }, simp only [polynomial.C_add, polynomial.C_1, polynomial.nat_degree_pow_eq] at triv',
   rw triv',
   have triv'' : (∑ (x : ℕ) in finset.range n, p * (polynomial.X - (polynomial.C ↑x + 1)).nat_degree) = ∑ x in finset.range n, p,
   {
     apply congr_arg, ext, rename x i,
-    have eq1 : (polynomial.X - (polynomial.C (i:ℤ) + 1)) =  (polynomial.X - (polynomial.C (i + 1:ℤ))),
-    {
-      simp only [polynomial.C_add, polynomial.C_1],
-    },
+    have eq1 : (polynomial.X - (polynomial.C (i:ℤ) + 1)) =  (polynomial.X - (polynomial.C (i + 1:ℤ))):= by simp only [polynomial.C_add, polynomial.C_1],
     rw eq1,
-    have deg1 : (polynomial.X - polynomial.C (i + 1:ℤ)).degree = 1,
-    {
-      apply polynomial.degree_X_sub_C,
-    },
+    have deg1 : (polynomial.X - polynomial.C (i + 1:ℤ)).degree = 1 := polynomial.degree_X_sub_C _,
     have deg2 : (polynomial.X - polynomial.C (i + 1:ℤ)).nat_degree = 1,
     {
       rw polynomial.nat_degree, rw deg1, exact rfl,
     },
     rw deg2, rw mul_one,
   },
-  rw triv'', rw finset.sum_const, simp only [nat.nsmul_eq_mul, finset.card_range], ring, have eq2 := (@nat.add_sub_assoc p 1 _ (p*n)),
-  rw eq2, rw add_comm,
-  linarith [((@nat.prime_def_lt p).1 hp).1],
+  rw triv'', rw finset.sum_const, simp only [nat.nsmul_eq_mul, finset.card_range], ring, 
+  have eq2 := (@nat.add_sub_assoc p 1 _ (p*n)),
+  rw eq2, rw add_comm, exact nat.succ_le_iff.mpr (nat.prime.pos hp),
 
-  {
-    intro rid, replace rid := pow_eq_zero rid, exact polynomial.X_ne_zero rid,
-  },
+  intro rid, replace rid := pow_eq_zero rid, exact polynomial.X_ne_zero rid,
+
 
   {
     intro rid, rw finset.prod_eq_zero_iff at rid,
@@ -113,7 +95,6 @@ def J (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : ℝ :=
 
 private lemma J_eq1 (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : 
   (J g p hp) = ∑ i in finset.range g.nat_degree.succ, (g.coeff i:ℝ) * (I (f_p p hp g.nat_degree) i (nonneg_nat i)) :=
-
 begin
   rw J, apply congr_arg, ext,
   rw II_eq_I,
@@ -126,10 +107,8 @@ private lemma J_eq2 (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) :
   -(∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * (∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) (k:ℝ))))) :=
 
 begin
-  rw <-finset.sum_sub_distrib, apply congr_arg, ext, rename x i,  rw <-mul_sub, rw <-I,
+  rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw <-mul_sub, rw <-I,
 end
-
-private lemma mul_eq_mul' (a b c d : ℝ) : a = c -> b = d -> a * b = c * d := λ h1 h2, by simp only [h1, h2]
 
 private lemma J_eq3 (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p):
   (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) 0)))) = 0 :=
@@ -170,8 +149,6 @@ theorem J_eq (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0
 begin
   rw J_eq1, rw J_eq2, rw J_eq3, simp only [neg_inj, zero_sub], apply congr_arg, ext, rw finset.mul_sum, assumption,
 end
-
-
 
 theorem sum_swap_index (s1 s2 : finset ℕ) (g : ℕ -> ℕ -> ℝ) : ∑ i in s1, (∑ j in s2, g i j) = ∑ j in s2, (∑ i in s1, g i j) := finset.sum_comm
 
@@ -239,7 +216,7 @@ end
 
 theorem deriv_n_C_mul (c : ℤ) (n : ℕ) : ∀ f : polynomial ℤ, (deriv_n (polynomial.C c * f) n) = (polynomial.C c) * (deriv_n f n) :=
 begin
-  induction n with n IH, simp only [deriv_zero, forall_const, eq_self_iff_true],
+  induction n with n IH, simp only [zeroth_deriv, forall_const, eq_self_iff_true],
   intro f,
   rw deriv_n, rw function.iterate_succ, simp only [polynomial.derivative_mul, zero_mul, function.comp_app, polynomial.derivative_C, zero_add], rw <-deriv_n, rw IH, refl,
 end
@@ -265,7 +242,7 @@ end
 lemma deriv_X_pow (n : ℕ) (k : ℕ) (hk : k ≤ n) : 
   (deriv_n (polynomial.X^n) k) = ((finset.range k).prod (λ i, (n-i:ℤ))) • (polynomial.X ^ (n-k)) :=
 begin
-  induction k with k ih, simp only [deriv_zero, one_smul, finset.range_zero, finset.prod_empty, nat.sub_zero],
+  induction k with k ih, simp only [zeroth_deriv, one_smul, finset.range_zero, finset.prod_empty, nat.sub_zero],
   rw deriv_n, rw function.iterate_succ_apply', rw <-deriv_n, rw ih, 
   rw polynomial.derivative_smul (∏ (i : ℕ) in finset.range k, (n - i:ℤ)) (polynomial.X ^ (n - k)),
   ext, rename n_1 i, rw polynomial.coeff_smul, rw polynomial.coeff_smul, rw polynomial.coeff_derivative, simp only [mul_boole, polynomial.coeff_X_pow, boole_mul, mul_ite, int.nat_cast_eq_coe_nat, mul_zero],
@@ -345,7 +322,7 @@ end
 lemma deriv_X_sub_pow (n k : ℕ) (c : ℤ) (hk : k ≤ n) :
   (deriv_n ((polynomial.X-polynomial.C c)^n) k) = (polynomial.C ((finset.range k).prod (λ i, (n-i:ℤ)))) * ((polynomial.X - polynomial.C c) ^ (n-k)) :=
 begin
-  induction k with k IH, simp only [deriv_zero, one_mul, polynomial.C_1, finset.range_zero, finset.prod_empty, nat.sub_zero],
+  induction k with k IH, simp only [zeroth_deriv, one_mul, polynomial.C_1, finset.range_zero, finset.prod_empty, nat.sub_zero],
   {
     rw deriv_n, rw function.iterate_succ_apply', rw <-deriv_n, rw IH, rw polynomial.derivative_mul, simp only [zero_mul, polynomial.derivative_C, zero_add], rw finset.prod_range_succ, simp only [polynomial.C_sub, polynomial.C_mul],
     suffices : ((polynomial.X - polynomial.C c) ^ (n - k)).derivative  = (polynomial.C (n:ℤ) - polynomial.C (k:ℤ)) * (polynomial.X - polynomial.C c) ^ (n - k.succ),
@@ -511,7 +488,7 @@ begin
         polynomial.eval 0 (deriv_n (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (↑i + 1)) ^ p) i),
   {
     simp only [polynomial.eval_C, one_mul, nat.choose_zero_right, polynomial.C_add, int.coe_nat_zero, polynomial.C_1,
- polynomial.eval_mul, int.coe_nat_succ, nat.sub_zero, zero_add, finset.sum_singleton, finset.range_one, nat.fact], simp only [deriv_zero], rw eval_prod', simp only [polynomial.eval_X, polynomial.eval_C, zero_sub, polynomial.eval_one, polynomial.eval_pow, polynomial.eval_add,
+ polynomial.eval_mul, int.coe_nat_succ, nat.sub_zero, zero_add, finset.sum_singleton, finset.range_one, nat.fact], simp only [zeroth_deriv], rw eval_prod', simp only [polynomial.eval_X, polynomial.eval_C, zero_sub, polynomial.eval_one, polynomial.eval_pow, polynomial.eval_add,
  neg_add_rev, polynomial.eval_sub, nat.fact],
     have eq1 : ∏ (x : ℕ) in finset.range n, (-1 + -(x:ℤ)) ^ p = ∏ (x : ℕ) in finset.range n, (-(1+x)) ^ p,
     {

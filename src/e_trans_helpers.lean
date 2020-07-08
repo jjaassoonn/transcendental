@@ -9,36 +9,60 @@ open_locale classical
 open small_things
 open_locale big_operators
 
-theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
-begin
-exact finset.sum_congr rfl h,
-end
 
+/-- # Definition and some theorems about differentiating multiple times
+-/
 
--- derivative n times
+/-Definition
+For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
+-/
 def deriv_n (f : polynomial ℤ) (n : ℕ) : polynomial ℤ := polynomial.derivative ^[n] f
 
-lemma deriv_zero (f : polynomial ℤ) : deriv_n f 0 = f :=
+/-Lemma 
+the zeroth derivative of polynomial $f$ is $f$ itself.
+-/
+lemma zeroth_deriv (f : polynomial ℤ) : deriv_n f 0 = f :=
 begin
+    -- This is purely definition of `deriv_n f n`
+    -- We also used $f^{[n]}=\mathrm{id}$ and $\mathrm{id} x = x$.
     rw deriv_n, simp only [id.def, function.iterate_zero],
 end
 
+/-Lemma
+the derivative of $f^{(n)}$ is $f^{(n+1)}$
+-/
 lemma deriv_succ (f : polynomial ℤ) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
 begin
-    rw deriv_n, rw deriv_n, rw function.iterate_succ',
+    -- By definition and $h^{[n+1]}=h\circ h^{[n]}$
+    rw [deriv_n, deriv_n, function.iterate_succ'],
 end
 
+/-Lemma
+the $n$-th derivative of zero polynomial is $0$
+-/
 lemma deriv_zero_p (n : ℕ) : deriv_n 0 n = 0 :=
 begin
+    -- We prove by induction. Base case and inductive case can all be done with `simp`
     induction n with n hn; simp only [deriv_n, id.def, function.iterate_zero], rw <-deriv_n, assumption,
 end
 
-
+/-Lemma
+If the $n$-th coefficient of $f$ is $a_n$, then the $n$-th coefficient in $f^{(k)}$ is $\left(\prod_{i=0}^{k-1} (n+k-i)\right)a_{n+k}$
+-/
 lemma deriv_n_coeff (f : polynomial ℤ) (k : ℕ) : ∀ n : ℕ, (deriv_n f k).coeff n = (∏ i in finset.range k, (n+k-i)) * (f.coeff (n+k)) :=
 begin
-    induction k with k ih, simp only [add_zero, nat.nat_zero_eq_zero, one_mul, finset.range_zero, finset.prod_empty], rw deriv_n, simp only [forall_const, id.def, eq_self_iff_true, function.iterate_zero], intro m,
-    rw deriv_n, rw function.iterate_succ', simp only [function.comp_app, int.coe_nat_succ], rw <-deriv_n, rw polynomial.coeff_derivative, rw ih (m+1),
+    -- So we use induction on $k$
+    induction k with k ih, 
+    -- For the zeroth derivative, $f^{(0)}=f$. This case is true by `simp`.
+    simp only [add_zero, nat.nat_zero_eq_zero, one_mul, finset.range_zero, finset.prod_empty], rw deriv_n, simp only [forall_const, id.def, eq_self_iff_true, function.iterate_zero],
+    
+    -- Let us assume our claim is true for $k$ and consider the $m$-th coefficient.
+    intro m,
+    -- We know that $f^{(k+1)}=\left(f^{(k)}\right)'$ and for any polynomial $g$, the $m$-th coefficient of $g'$ is $(m+1)\times (m+1)$-th coefficient of $g$. Then we can use induction hypothesis with $m+1$.
+    rw [deriv_n, function.iterate_succ'], simp only [function.comp_app, int.coe_nat_succ], rw <-deriv_n, 
+    rw polynomial.coeff_derivative, rw ih (m+1),
     rw finset.prod_range_succ, simp only [int.coe_nat_succ, int.nat_cast_eq_coe_nat], 
+    -- The rest of the proves are trivial to a pair of human eyes. But we need to give computers some hint to solve this triviality.
     have triv : (∏ (x : ℕ) in finset.range k, ((m:ℤ) + 1 + ↑k - ↑x)) = ∏ (x : ℕ) in finset.range k, (↑m + (↑k + 1) - ↑x),
     {
         apply congr_arg, ext, simp only [sub_left_inj], ring,
@@ -54,45 +78,157 @@ begin
     rw triv, ring,
 end
 
+/-Lemma
+Like first derivative, higher derivatives still respect addition
+-/
 lemma deriv_n_add (p q :polynomial ℤ) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
 begin
-    induction n with n ih, rw[deriv_n, deriv_n, deriv_n], simp only [id.def, function.iterate_zero],
+    induction n with n ih, rw [deriv_n, deriv_n, deriv_n], simp only [id.def, function.iterate_zero],
     rw [deriv_n, deriv_n, deriv_n, function.iterate_succ'], simp only [function.comp_app], rw [<-deriv_n,<-deriv_n,<-deriv_n, ih], simp only [polynomial.derivative_add], 
 end
-
-private lemma deriv_too_much (a : ℤ) : (deriv_n (polynomial.C a) ((polynomial.C a).nat_degree + 1)) = 0 :=
-begin
-    rw deriv_n, dsimp, rw polynomial.derivative_C, simp only [ring_hom.eq_int_cast, id.def, polynomial.nat_degree_int_cast, function.iterate_zero],
-end
-
+/-Lemma
+For any polynomial $f$ with degree $d$, the $d+1$-th derivative is zero.
+-/
 theorem deriv_too_much (f : polynomial ℤ): (deriv_n f (f.nat_degree + 1)) = 0 :=
 begin
-    ext, rw deriv_n_coeff, simp only [int.coe_nat_succ, polynomial.coeff_zero, mul_eq_zero], right,
+    -- We prove that all coefficient of $f^{(d+1)}$ is zero.
+    ext,
+    -- We use lemma `deriv_n_coeff` and all coefficient of zero polynomial is $0$.
+    rw deriv_n_coeff, simp only [int.coe_nat_succ, polynomial.coeff_zero, mul_eq_zero], right,
+    -- Then the problem reduces to prove that $d+1$-th coeffcient of $f$ is zero. But $f$ has degree $d$. So we just need $d<d+1$. This is proved by `linarith`.
     apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end
 
-def I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := 
-    t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
-
-def II (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in set.Icc 0 t, real.exp(t - x) * (f_eval_on_ℝ f x)
-
-theorem II_0 (t : ℝ) (ht : t ≥ 0) : II 0 t ht = 0 :=
+/-Lemma
+if $i+1\le n$ then $n-(i+1)+1=n-i$
+-/
+private lemma nat_sub_eq (n i : ℕ) (h : i + 1 ≤ n) : (n - (i + 1) + 1) = n - i :=
 begin
-    -- have triv : 0 = (∫ x in set.Icc (0:real) t, (0:ℝ)),
-    rw II, unfold f_eval_on_ℝ, simp only [set.indicator_zero, measure_theory.integral_zero, mul_zero, polynomial.eval_zero, polynomial.map_zero],
+    have triv : n - (i+1) = n - i - 1, exact rfl,
+    rw triv, apply nat.sub_add_cancel, exact nat.le_sub_left_of_add_le h,
 end
 
---- I should assume they are "nice".
+/-Lemma
+We have the pascal triangle
+\[{n\choose k+1}+{n\choose k} = {n+1\choose k+1}\]
+-/
+private lemma pascal_triangle (n k : ℕ) : (n.choose (k+1)) + (n.choose k) = (n+1).choose (k+1) :=
+begin
+    -- This is actually how `mathlib` defined binomial coefficient.
+    exact add_comm (nat.choose n (k + 1)) (nat.choose n k),
+end
+
+/-Theorem
+We also have that for $p,q\in\mathbb Z[x]$,
+\[
+    (p\times q)^{(n)} = \sum_{i=0}^n\left({n\choose i}p^{(i)}q^{(n-i)}\right)    
+\]
+-/
+theorem deriv_n_poly_prod (p q : polynomial ℤ) (n : ℕ) : deriv_n (p * q) n = ∑ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) :=
+begin
+    -- We prove by induction on $n$.
+    induction n with n IH,
+    -- For $n=0$, we are using `zeroth_deriv`.
+    simp only [zeroth_deriv, nat.choose_self, int.cast_coe_nat, ring_hom.eq_int_cast, one_mul, nat.cast_one, finset.sum_singleton, finset.range_one],
+
+    {
+        -- For inductive case
+        -- We use $(p\times q)^{(n+1)}=(p\times q)^{(n)}'$, inductive hypothesis and that derivative is linear.
+        rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
+        rw IH, simp only [polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add, polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add], 
+        -- The rest of the proves is essentially openning and closing brackets and renaming summing indeces.
+        rw finset.sum_add_distrib,
+        conv_lhs {rw finset.sum_range_succ', rw finset.sum_range_succ, simp only [zeroth_deriv, nat.choose_self, one_mul, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, polynomial.C_1,
+ int.coe_nat_succ, nat.sub_zero, zero_add]},
+        have eq1 :
+        ∑ (i : ℕ) in finset.range n,
+          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1) +
+        (deriv_n p n).derivative * q +
+        (p * (deriv_n q n).derivative +
+         ∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) = 
+        (∑ (i : ℕ) in finset.range n,
+          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1)) +
+        (∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) +
+        ((deriv_n p n).derivative * q + (p * (deriv_n q n).derivative)) := by ring,
+        rw [eq1, <-finset.sum_add_distrib],
+        
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - (x + 1))).derivative * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative)) =
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))),
+        {
+            apply finset.sum_congr, exact rfl, intros i hi, simp only [deriv_succ, int.cast_coe_nat, ring_hom.eq_int_cast, add_left_inj], simp only [finset.mem_range] at hi,
+            replace hi : i + 1 ≤ n := hi,
+            rw nat_sub_eq _ _ hi,
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
+           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, ring,
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, simp only [int.cast_add, ring_hom.eq_int_cast],
+        }, rw eq,
+
+        replace eq :
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
+        (∑ (x : ℕ) in finset.range n,
+        ((polynomial.C ((n+1).choose (x + 1):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
+        {
+            apply congr_arg, rw function.funext_iff, intro i, rw <-pascal_triangle, simp only [int.coe_nat_add],
+        }, rw eq,
+
+        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp only [deriv_succ, zeroth_deriv, nat.succ_eq_add_one, nat.choose_self, int.cast_coe_nat, ring_hom.eq_int_cast, one_mul, nat.succ_sub_succ_eq_sub, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, int.cast_one, int.coe_nat_succ, nat.sub_zero, zero_add], ring,
+    }
+end
+
+/-Theorem
+For a polynomial $f$ then if $n>0$, we have $f^{(n)}=f^{(n-1)\times f'}$
+-/
+theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
+begin
+    induction n with n IH,
+    exfalso, linarith,
+    {
+        cases n, 
+        simp only [ring_hom.eq_int_cast, one_mul, int.coe_nat_zero, int.cast_one, int.coe_nat_succ, pow_one, zero_add, pow_zero],
+        replace IH := IH _,
+        rw nat.succ_eq_add_one, rw pow_add, simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, polynomial.derivative_mul, int.cast_one, nat.succ_add_sub_one,
+ int.coe_nat_succ, pow_one], rw IH, simp only [nat.succ_sub_succ_eq_sub, polynomial.C_add, polynomial.C_1, int.coe_nat_succ, nat.sub_zero, nat.succ_sub_succ_eq_sub,
+ int.coe_nat_succ, nat.sub_zero],
+        have eq1 : (polynomial.C ↑n + 1) * f ^ n * f.derivative * f = (polynomial.C ↑n + 1) * f ^ (n+1) * f.derivative,
+        {
+            rw pow_add, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, pow_one], ring,
+        } ,
+        rw eq1, rw nat.succ_eq_add_one, repeat {rw add_mul}, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, one_mul], exact nat.succ_pos n,
+    }
+end
+
+/-- # Assumption-/
+-- I should assume they are "nice".
 axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in set.Icc a b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in set.Icc a b, (deriv f x) * (g x))
 axiom integral_le_integral' (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x)
 
 
-theorem integral_neg' {S : set ℝ} (f : ℝ -> ℝ) : (∫ x in S, -f x) = - ∫ x in S, f x :=
-begin
-    exact integral_on_neg S (λ (a : ℝ), f a),
-end
+
+theorem integral_neg' {S : set ℝ} (f : ℝ -> ℝ) : (∫ x in S, -f x) = - ∫ x in S, f x := integral_on_neg S (λ (a : ℝ), f a)
 
 theorem integral_constant (a b : ℝ) (h : b ≥ a) (c : ℝ): (∫ x in set.Icc a b, c) = (b - a) * c :=
 begin
@@ -108,40 +244,23 @@ theorem integral_le_max_times_length (f : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) 
     (f_nonneg : ∀ x ∈ set.Icc a b, f x ≥ 0) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) : 
     (∫ x in set.Icc a b, f x) ≤ (b - a) * c :=
 begin
-    have ineq1 : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, c),
-    {
-        apply integral_le_integral', exact h, intros x hx, exact ⟨c_max x hx, f_nonneg x hx⟩,
-    },
-    rw integral_constant at ineq1, assumption, assumption,
+    have ineq1 : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, c) := integral_le_integral' _ _ a b h (λ x hx, ⟨c_max x hx, f_nonneg x hx⟩),
+    rw integral_constant at ineq1; assumption,
 end
-
--- axiom deriv_derivative
 
 theorem deriv_exp_t_x (t : ℝ) : deriv (λ x, real.exp (t-x)) = -(λ x, real.exp (t-x)) :=
 begin
-    have triv : (λ x, real.exp (t-x)) = real.exp ∘ (λ x, t - x),
-    {
-        ext, simp only [],
-    },
+    have triv : (λ x, real.exp (t-x)) = real.exp ∘ (λ x, t - x) := by simp only [],
     ext,
     rw triv,
-    have eq := @deriv.scomp ℝ _ ℝ _ _ real.exp x (λ x, t - x) _ _,
-    rw eq, rw deriv_exp, simp only [neg_mul_eq_neg_mul_symm, differentiable_at_const, mul_one, algebra.id.smul_eq_mul, one_mul, zero_sub, deriv_sub,
- differentiable_at_id', pi.neg_apply, deriv_id'', deriv_const'],
-    {
-        simp only [differentiable_at_id'],
-    },
-    {
-        simp only [differentiable_at_id', differentiable_at.exp],
-    },
+    rw deriv.scomp, simp only [neg_mul_eq_neg_mul_symm, deriv_exp, differentiable_at_const, mul_one, algebra.id.smul_eq_mul, one_mul, zero_sub, deriv_sub, differentiable_at_id', pi.neg_apply, deriv_id'', deriv_const'],
+
+    simp only [differentiable_at_id', differentiable_at.exp],
     apply differentiable_at.const_sub,
     exact differentiable_at_id,
 end
 
-theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) := 
-begin
- simp only [deriv_exp_t_x, deriv_neg', pi.neg_apply, neg_neg],
-end
+theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) := by simp only [deriv_exp_t_x, deriv_neg', pi.neg_apply, neg_neg]
 
 
 theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
@@ -150,21 +269,34 @@ begin
  simp only [], exact congr_arg measure_theory.integral (congr_arg (set.indicator S) h)
 end
 
-theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x :=
-begin
- intro h,
- exact congr_arg measure_theory.integral h
-end
+theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x := (λ h, congr_arg measure_theory.integral h)
 
-theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x :=
+theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x := λ h, congr_fun (congr_arg deriv h) x
+
+/--
+# about I
+-/
+
+/-Definition
+Suppose $f$ is an integer polynomial with degree $n$ and $t\ge0$ then define
+    \[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
+We use integration by parts to prove
+    \[I(f,t)=\exp(t)\left(\times\sum_{i=0}^n f^{(i)}(0)-\sum_{i=0}^n f^{(i)}(t)\right)\]
+-/
+def I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := 
+    t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
+
+def II (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in set.Icc 0 t, real.exp(t - x) * (f_eval_on_ℝ f x)
+
+theorem II_0 (t : ℝ) (ht : t ≥ 0) : II 0 t ht = 0 :=
 begin
-    intro h, exact congr_fun (congr_arg deriv h) x,
+    rw II, unfold f_eval_on_ℝ, simp only [set.indicator_zero, measure_theory.integral_zero, mul_zero, polynomial.eval_zero, polynomial.map_zero],
 end
 
 theorem II_integrate_by_part (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : 
     (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht) :=
 begin
-    rw II, -- have eq := (deriv_exp_t_x' t),
+    rw II,
     have eq : (∫ x in set.Icc 0 t, (t - x).exp * f_eval_on_ℝ f x) = (∫ x in set.Icc 0 t, f_eval_on_ℝ f x * (deriv (λ x, - (real.exp (t-x))) x)),
     {
         apply same_integral, ext, simp only [deriv_exp_t_x'], ring,
@@ -265,6 +397,11 @@ begin
     }, rw triv at ineq, exact ineq,
 
 end
+
+/-- # $\bar{f}$
+- Say $f(T)=a_0+a_1T+a_2T^2+\cdots+a_nT^n$. Then $\bar{f}=|a_0|+|a_1|T+|a_2|T^2+\cdots+|a_n|T^n$
+- We proved some theorems about $\bar{f}$
+-/
 
 def f_bar (f : polynomial ℤ) : polynomial ℤ :=
 begin
@@ -406,115 +543,4 @@ end
 theorem abs_II_le2 (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
     exact le_trans (abs_II_le1 f t ht) (II_le2' f t ht),
-end
-
------- about differentiation
-
-private lemma nat_sub_eq (n i : ℕ) (h : i + 1 ≤ n) : (n - (i + 1) + 1) = n - i :=
-begin
-    have triv : n - (i+1) = n - i - 1, exact rfl,
-    rw triv, apply nat.sub_add_cancel, exact nat.le_sub_left_of_add_le h,
-end
-
-private lemma nat_choose_eq (n k : ℕ) : (n.choose (k+1)) + (n.choose k) = (n+1).choose (k+1) :=
-begin
-    exact add_comm (nat.choose n (k + 1)) (nat.choose n k),
-end
-
-
-theorem deriv_n_poly_prod (p q : polynomial ℤ) (n : ℕ) : deriv_n (p * q) n = ∑ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) :=
-begin
-    induction n with n IH,
-    simp only [deriv_zero, nat.choose_self, int.cast_coe_nat, ring_hom.eq_int_cast, one_mul, nat.cast_one, finset.sum_singleton,
- finset.range_one],
-
-    {
-        rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
-        rw IH, simp only [polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add,
- polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add], rw finset.sum_add_distrib,
-        conv_lhs {rw finset.sum_range_succ', rw finset.sum_range_succ, simp only [deriv_zero, nat.choose_self, one_mul, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, polynomial.C_1,
- int.coe_nat_succ, nat.sub_zero, zero_add]},
-        have eq1 :
-        ∑ (i : ℕ) in finset.range n,
-          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1) +
-        (deriv_n p n).derivative * q +
-        (p * (deriv_n q n).derivative +
-         ∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) = 
-        (∑ (i : ℕ) in finset.range n,
-          polynomial.C (n.choose (i + 1):ℤ) * (deriv_n p (n - (i + 1))).derivative * deriv_n q (i + 1)) +
-        (∑ (x : ℕ) in finset.range n, polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative) +
-        ((deriv_n p n).derivative * q + (p * (deriv_n q n).derivative)),
-        {
-            ring,
-        },
-        rw eq1,
-        rw <-finset.sum_add_distrib,
-
-        
-        replace eq :
-        (∑ (x : ℕ) in finset.range n,
-        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - (x + 1))).derivative * deriv_n q (x + 1) +
-           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q x).derivative)) =
-        (∑ (x : ℕ) in finset.range n,
-        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
-           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))),
-        {
-            apply finset.sum_congr, exact rfl, intros i hi, simp only [deriv_succ, int.cast_coe_nat, ring_hom.eq_int_cast, add_left_inj], simp only [finset.mem_range] at hi,
-            replace hi : i + 1 ≤ n,
-            {
-                exact hi,
-            },
-            rw nat_sub_eq, exact hi,
-        }, rw eq,
-
-        replace eq :
-        (∑ (x : ℕ) in finset.range n,
-        (polynomial.C (n.choose (x + 1):ℤ) * (deriv_n p (n - x)) * deriv_n q (x + 1) +
-           polynomial.C (n.choose x:ℤ) * deriv_n p (n - x) * (deriv_n q (x+1)))) =
-        (∑ (x : ℕ) in finset.range n,
-        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
-        {
-            apply congr_arg, rw function.funext_iff, intro i, ring,
-        }, rw eq,
-
-        replace eq :
-        (∑ (x : ℕ) in finset.range n,
-        ((polynomial.C (n.choose (x + 1):ℤ) + polynomial.C (n.choose x:ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
-        (∑ (x : ℕ) in finset.range n,
-        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
-        {
-            apply congr_arg, rw function.funext_iff, intro i, simp only [int.cast_add, ring_hom.eq_int_cast],
-        }, rw eq,
-
-        replace eq :
-        (∑ (x : ℕ) in finset.range n,
-        ((polynomial.C (n.choose (x + 1) + (n.choose x):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))) =
-        (∑ (x : ℕ) in finset.range n,
-        ((polynomial.C ((n+1).choose (x + 1):ℤ)) * (deriv_n p (n - x)) * deriv_n q (x + 1))),
-        {
-            apply congr_arg, rw function.funext_iff, intro i, rw <-nat_choose_eq, simp only [int.coe_nat_add],
-        }, rw eq,
-
-        conv_rhs {rw finset.sum_range_succ', rw finset.sum_range_succ}, simp only [deriv_succ, deriv_zero, nat.succ_eq_add_one, nat.choose_self, int.cast_coe_nat, ring_hom.eq_int_cast, one_mul,
- nat.succ_sub_succ_eq_sub, nat.choose_zero_right, int.coe_nat_zero, nat.sub_self, int.cast_one, int.coe_nat_succ,
- nat.sub_zero, zero_add], ring,
-    }
-end
-
-
-theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
-begin
-    induction n with n IH, simp only [polynomial.derivative_one, int.coe_nat_zero, zero_mul, polynomial.C_0, pow_zero],
-    {
-        cases n, simp only [ring_hom.eq_int_cast, one_mul, int.coe_nat_zero, int.cast_one, int.coe_nat_succ, pow_one, zero_add, pow_zero],
-        replace IH := IH _,
-        rw nat.succ_eq_add_one, rw pow_add, simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, polynomial.derivative_mul, int.cast_one, nat.succ_add_sub_one,
- int.coe_nat_succ, pow_one], rw IH, simp only [nat.succ_sub_succ_eq_sub, polynomial.C_add, polynomial.C_1, int.coe_nat_succ, nat.sub_zero, nat.succ_sub_succ_eq_sub,
- int.coe_nat_succ, nat.sub_zero],
-        have eq1 : (polynomial.C ↑n + 1) * f ^ n * f.derivative * f = (polynomial.C ↑n + 1) * f ^ (n+1) * f.derivative,
-        {
-            rw pow_add, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, pow_one], ring,
-        } ,
-        rw eq1, rw nat.succ_eq_add_one, repeat {rw add_mul}, simp only [int.cast_coe_nat, ring_hom.eq_int_cast, one_mul], exact nat.succ_pos n,
-    }
 end
