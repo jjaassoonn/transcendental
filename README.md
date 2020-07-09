@@ -59,3 +59,5 @@ axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (d
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in set.Icc a b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in set.Icc a b, (deriv f x) * (g x))
 ```
+
+Please see [this](https://github.com/jjaassoonn/transcendental/blob/master/src/doc/e_transcendental_doc.pdf) for an explanation of the proof of transcendence of $e$.
