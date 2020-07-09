@@ -52,7 +52,7 @@ The main theorem is at [e_transcendental.lean](https://github.com/jjaassoonn/tra
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
 ```
 
-Here is the catch. I used the following theorems directly and I didn't prove the function I used are integrable. I used polynomial and exp function.
+Here is the catch. I used the following theorems directly without prove. But all the functions used were proved to be measurable and integrable on closed interval. Once ftc is in the `mathlib` I will change ftc to its correct form and prove the relevant assumption.
 
 ``` lean
 axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
