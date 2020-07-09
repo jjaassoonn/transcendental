@@ -1,0 +1,244 @@
+code {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+div#content {
+  width: 100%;
+}
+
+div#content > p {
+  width: 80%;
+}
+
+@media (max-width: 760px) {
+  div#content {
+    width: 100%;
+  }
+}
+div.definition_wrapper {
+  margin-top: 1rem;
+}
+
+span.definition_label {
+  font-weight: bold;
+}
+
+div.definition_content {
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 0.15rem solid black;
+}
+
+div.definition_text:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+div.definition_lean {
+  display: block;
+}
+
+div.example_wrapper {
+  margin-top: 1rem;
+}
+
+span.example_label {
+  font-weight: bold;
+}
+
+div.example_content {
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 0.25rem solid black;
+}
+
+div.example_text:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+div.example_lean {
+  display: block;
+}
+
+div.lemma_wrapper {
+  margin-top: 1rem;
+}
+
+span.lemma_label {
+  font-weight: bold;
+}
+
+div.lemma_content {
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 0.15rem solid black;
+}
+
+div.lemma_text:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+div.lemma_lean {
+  display: none;
+}
+
+div.theorem_wrapper {
+  margin-top: 1rem;
+}
+
+span.theorem_label {
+  font-weight: bold;
+}
+
+div.theorem_content {
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 0.25rem solid black;
+}
+
+div.theorem_text:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+div.theorem_lean {
+  display: block;
+}
+
+div.proof_wrapper {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+div.proof_wrapper::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+span.proof_label {
+  font-weight: bold;
+  display: block;
+}
+
+span.proof_qed {
+  font-weight: bold;
+  display: block;
+}
+
+div.proof_content {
+  padding-left: 0.5rem;
+}
+
+div.small_proof_content {
+  padding-left: 0.5rem;
+  width: 49%;
+  float: left;
+}
+
+div.small_tactic_state {
+  padding-left: 0.5rem;
+  width: 49%;
+  float: left;
+}
+
+span.proof_item_text:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+div.proof_item_lean {
+  display: block;
+}
+
+div.proof_line {
+  display: flex;
+}
+
+div.inline_proof_item {
+  display: inline;
+}
+
+span.tactic_left:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+span.tactic_left {
+  width: 3rem;
+  background: #ffffdf;
+}
+
+span.tactic_right {
+  margin-left: 2rem;
+  width: 3rem;
+  background: #ffffdf;
+}
+
+span.tactic_right:hover {
+  transition: all 0.2s ease;
+  background: #ffffc5;
+}
+
+span[class^=tactic_state_] {
+  display: none;
+}
+
+div.example_wrapper {
+  font-size: 1.4rem;
+}
+
+div.lemma_wrapper {
+  font-size: 1.4rem;
+}
+
+div.theorem_wrapper {
+  font-size: 1.4rem;
+}
+
+div.definition_wrapper {
+  font-size: 1.4rem;
+}
+
+pre {
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
+span.tactic_left {
+  width: 3rem;
+  background: #dddddd;
+}
+
+span.tactic_left:hover {
+  transition: all 0.2s ease;
+  background: #c4c4c4;
+}
+
+span.tactic_right {
+  margin-left: 2rem;
+  width: 3rem;
+  background: #dddddd;
+}
+
+span.tactic_right:hover {
+  transition: all 0.2s ease;
+  background: #c4c4c4;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+div.tikzcd {
+  display: block;
+  margin: 0.5rem auto;
+  overflow: auto;
+  text-align: center;
+}
+
+/*# sourceMappingURL=teach_lean.css.map */

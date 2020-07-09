@@ -1,1 +1,1 @@
-only = ['e_trans_helpers.lean']
+only = ['e_trans_helpers.lean', 'e_transcendental.lean']

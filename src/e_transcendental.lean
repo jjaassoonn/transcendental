@@ -1,7 +1,7 @@
 import data.real.basic
 import data.complex.exponential
 import ring_theory.algebraic
-import e_trans_helpers
+import e_trans_helpers2
 import data.int.basic
 import data.polynomial
 
@@ -37,14 +37,23 @@ begin
   refine hf a _ ha.2, simp only [finset.mem_range] at ha ⊢, exact nat.lt.step ha.left,
 end
 
+/-Definition
+For any prime number $p$ and natural number $n$, we can define a polynomial
+\[X^{p-1}(X-1)^p\cdots(X-n)^p\]
+-/
 def f_p (p : ℕ) (hp : nat.prime p) (n : ℕ): polynomial ℤ := polynomial.X ^ (p - 1) * (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p)
 
+/-Theorem
+The degree of `f_p n` is $(n+1)p-1$
+-/
 theorem deg_f_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p hp n).nat_degree = (n+1)*p - 1 :=
 begin
   rw f_p,
+  -- We have that the degree of a bunch of non-zero polynomials is the sum of their degree
   have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
   
   rw eq1,
+  -- and $X$ has degree one
   have triv : (polynomial.X : polynomial ℤ).nat_degree = 1 := by simp only [polynomial.nat_degree_X],
   simp only [polynomial.C_add, polynomial.C_1, polynomial.nat_degree_pow_eq, triv, mul_one],
 
@@ -86,7 +95,6 @@ begin
     have triv := @ne_bot_of_gt ℕ _ 0 1 _, exact option.not_mem_none 1 deg1, exact lt_add_one 0,
   }
 end
-
 
 
 def J (g : polynomial ℤ) (p : ℕ) (hp : nat.prime p) : ℝ := 
@@ -145,7 +153,6 @@ theorem J_eq (g : polynomial ℤ) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0
   (J g p hp) = - ∑ k in finset.range g.nat_degree.succ,
                 (∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ,
                   (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) (k:ℝ))) :=
-
 begin
   rw J_eq1, rw J_eq2, rw J_eq3, simp only [neg_inj, zero_sub], apply congr_arg, ext, rw finset.mul_sum, assumption,
 end
@@ -1788,6 +1795,5 @@ begin
     norm_num, apply pow_nonneg, apply mul_nonneg, linarith, norm_cast, exact bot_le,
   },
 end
-
 
 end e

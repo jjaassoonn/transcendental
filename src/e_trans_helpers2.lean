@@ -224,7 +224,38 @@ end
 axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in set.Icc a b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in set.Icc a b, (deriv f x) * (g x))
-axiom integral_le_integral' (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x)
+
+theorem integral_le_integral' (f g : ℝ -> ℝ) {h1 : measurable f ∧ measurable g ∧ measure_theory.integrable f ∧ measure_theory.integrable g} (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x) :=
+begin
+    -- destruct h1, 
+    apply @measure_theory.integral_le_integral ℝ _ ((set.Icc a b).indicator f) ((set.Icc a b).indicator g),
+    simp [set.indicator],
+    apply measurable.if, apply is_measurable_Icc, 
+    dsimp, exact h1.1, exact measurable_zero,
+    apply measure_theory.integrable.integrable_on, exact h1.2.2.1,
+    simp [set.indicator],
+    apply measurable.if, apply is_measurable_Icc, dsimp, exact h1.2.1, exact measurable_zero,
+    apply measure_theory.integrable.integrable_on, exact h1.2.2.2,
+    intros c, simp [set.indicator], split_ifs, exact (hf c ⟨h_1.1, h_1.2⟩).1, exact le_refl 0,
+end
+
+theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
+begin
+ intro h,
+ simp only [], exact congr_arg measure_theory.integral (congr_arg (set.indicator S) h)
+end
+
+theorem same_integral'' {S : set ℝ} (f g : ℝ -> ℝ) : (∀ x ∈ S, f x = g x) -> (∫ x in S, f x) = ∫ x in S, g x :=
+begin
+  intro h,
+ simp only [], apply congr_arg measure_theory.integral, ext, simp only [set.indicator], split_ifs, exact h x h_1, refl,
+end
+
+
+theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x := (λ h, congr_arg measure_theory.integral h)
+
+theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x := λ h, congr_fun (congr_arg deriv h) x
+
 
 theorem integral_neg' {S : set ℝ} (f : ℝ -> ℝ) : (∫ x in S, -f x) = - ∫ x in S, f x := integral_on_neg S (λ (a : ℝ), f a)
 
@@ -238,12 +269,159 @@ begin
     rw (ftc (λ (y : ℝ), c * y) a b h), simp only [], ring,
 end
 
-theorem integral_le_max_times_length (f : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) (c : ℝ) 
+theorem integrable_const_Icc (a b c : ℝ) (c_nonneg : 0 ≤ c) (hab : a ≤ b) :
+  measure_theory.integrable ((set.Icc a b).indicator (λ _, c)) :=
+begin
+  set f_simp : measure_theory.simple_func ℝ ennreal :=
+    {
+      to_fun := λ a_1, ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0),
+      measurable_sn :=
+      begin
+        intros x,
+        by_cases (c=0),
+        {
+          rw h, simp only [if_t_t, norm_zero, ennreal.of_real_zero], rw set.preimage_const,
+          split_ifs, exact is_measurable.univ, exact is_measurable.empty,
+        },
+        {
+          have c_pos : c > 0, exact lt_of_le_of_ne c_nonneg (ne.symm h),
+          by_cases H : (x=0),
+          {
+            rw H,
+            have set1 : (λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {0} = (set.Icc a b)ᶜ,
+            {
+              ext y, split, intros hy, simp only [set.mem_preimage, ennreal.of_real_eq_zero, set.mem_zero, set.singleton_zero, set.mem_Icc] at hy ⊢,
+              split_ifs at hy, linarith, simp only [not_and, not_le] at h_1,
+              suffices : y ∉ set.Icc a b, exact set.mem_compl this, simp only [not_and, not_le, set.mem_Icc], intro rid,
+              replace h_1 := h_1 rid, exact h_1,
+
+              intros hy, simp only [set.mem_preimage, not_and, ennreal.of_real_eq_zero, not_le, set.mem_zero, set.singleton_zero, set.mem_compl_eq,
+ set.mem_Icc] at hy ⊢, split_ifs, replace hy := hy h_1.1, replace h_1 := h_1.2, linarith, exact le_refl 0,
+            }, rw set1, rw is_measurable.compl_iff, exact is_measurable_Icc,
+          },
+          {
+            by_cases (x=(ennreal.of_real c)),
+            {
+              rw h,
+              have set1 : ((λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {ennreal.of_real c}) = set.Icc a b,
+              {
+                ext y, split, intros hy, simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_Icc] at hy ⊢,
+                split_ifs at hy, assumption, simp only [ennreal.of_real_zero] at hy,
+                replace hy := ennreal.of_real_eq_zero.1 (eq.symm hy), linarith,
+                intro hy, simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_Icc], split_ifs,
+                refl, refl,
+              }, rw set1, exact is_measurable_Icc,
+            },
+            {
+              have set2 : ((λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {x}) = ∅,
+              {
+                ext y, split, intros hy, simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_Icc] at hy,
+                split_ifs at hy, rw <-hy at h, simp only [eq_self_iff_true, not_true] at h,
+                exfalso, exact h,
+                simp only [ennreal.of_real_zero] at hy, exact H (eq.symm hy),
+                intros hy, exfalso, simp only [set.mem_empty_eq] at hy, exact hy,
+              }, rw set2, exact is_measurable.empty,
+            }
+          },
+        }
+      end,
+      finite :=
+      begin
+        have set1 : (set.range (λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0))) = {ennreal.of_real c, 0},
+        {
+          ext, split, intros hx, simp only [set.mem_insert_iff, set.mem_range, set.mem_zero, set.singleton_zero, set.mem_Icc] at hx ⊢,
+          choose y hy using hx, split_ifs at hy, left, exact eq.symm hy, right, simp only [ennreal.of_real_zero] at hy,
+          exact eq.symm hy,
+          intros hx, simp only [set.mem_insert_iff, set.mem_range, set.mem_zero, set.singleton_zero, set.mem_Icc] at hx ⊢,
+          cases hx,
+          use a, split_ifs, exact hx.symm,
+          simp only [forall_prop_of_true, not_and, not_le] at h, linarith,
+          use b+1, split_ifs, have rid1 := h.1, have rid2 := h.2, linarith, 
+          simp only [add_le_iff_nonpos_right, not_and, not_le] at h,
+          rw hx, simp only [ennreal.of_real_zero],
+        }, rw set1,
+        apply set.finite.insert, exact set.finite_singleton 0,
+      end
+    } with hf_simp,
+    have f_simp_to_fun : f_simp.to_fun = (λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)), dsimp [f_simp], refl,
+
+    have f_simp_range : f_simp.range = {0, ennreal.of_real c},
+    {
+      ext y, split, intros hy, simp only [measure_theory.simple_func.mem_range, finset.mem_insert, finset.mem_singleton] at hy ⊢,
+      choose x hx using hy,
+      have triv : (f_simp x) = 
+        ((λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) x),
+      rw [<-f_simp_to_fun], exact rfl,
+      rw hx at triv, simp only [] at triv, split_ifs at triv, right, exact triv, simp only [ennreal.of_real_zero] at triv, left, exact triv,
+
+      intros hy, simp only [finset.mem_insert, finset.mem_singleton] at hy, cases hy,
+      rw hy, simp only [measure_theory.simple_func.mem_range],
+      use b+1, have triv : f_simp (b + 1) = f_simp.to_fun (b+1), exact rfl, rw triv, rw f_simp_to_fun, simp only [],
+      split_ifs, exfalso, simp only [add_le_iff_nonpos_right, set.mem_Icc] at h, have rid1 := h.1, have rid2 := h.2, linarith,
+      rw ennreal.of_real_zero, 
+      rw hy, simp only [measure_theory.simple_func.mem_range],
+      use a, have triv : f_simp a = f_simp.to_fun a, exact rfl, rw triv, rw f_simp_to_fun, simp only [], split_ifs, refl,
+      simp only [set.left_mem_Icc, not_le] at h, linarith,
+    },
+
+    have eq2 : (∫⁻ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) = (∫⁻ (a_1 : ℝ), f_simp a_1),
+    {
+      apply measure_theory.lintegral_congr, intro x, simp only [f_simp, if_t_t, forall_prop_of_true, set.mem_empty_eq, set.mem_preimage, add_zero, norm_zero, set.mem_insert_iff,
+ set.mem_range, not_and, set.mem_singleton_iff, ennreal.of_real_zero, ennreal.of_real_eq_zero, not_le, eq_self_iff_true,
+ not_true, set.finite_singleton, set.finite.insert, set.mem_zero, zero_add, set.singleton_zero, set.mem_compl_eq,
+ set.mem_Icc, neg_zero], exact rfl,
+    }, 
+    by_cases c_zero : (c = 0),
+    simp [c_zero], rw measure_theory.integrable_iff_norm,
+    simp_rw norm_indicator_eq_indicator_norm,
+    simp only [set.indicator],
+    have triv : ∥c∥ = c, rw real.norm_eq_abs, rw abs_of_nonneg, exact c_nonneg,
+
+    simp_rw [triv], rw eq2, rw measure_theory.simple_func.lintegral_eq_integral, rw measure_theory.simple_func.integral,
+    apply ennreal.sum_lt_top,
+    intros z hz, rw f_simp_range at hz, simp only [finset.mem_insert, finset.mem_singleton] at hz,
+    cases hz,
+    {
+      rw hz, rw zero_mul, exact with_top.zero_lt_top,
+    },
+    {
+      rw hz,
+      have set1 : (⇑f_simp ⁻¹' {ennreal.of_real c}) = (set.Icc a b),
+      {
+        ext y, split, intro hy, simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_Icc] at hy ⊢,
+        have triv : (f_simp y)  = (f_simp.to_fun y), exact rfl, rw triv at hy, rw f_simp_to_fun at hy, simp only [] at hy,
+        split_ifs at hy, simp only [set.mem_Icc] at h, exact h, simp only [ennreal.of_real_zero] at hy, replace hy := eq.symm hy,
+        rw ennreal.of_real_eq_zero at hy, exfalso,
+        replace hy : c < 0, exact lt_of_le_of_ne hy c_zero, linarith,
+
+        intros hy, rw set.mem_preimage, simp only [set.mem_singleton_iff] at ⊢,
+        have triv : (f_simp y)  = (f_simp.to_fun y), exact rfl, rw triv, rw f_simp_to_fun, simp only [], split_ifs, refl,
+      }, rw set1, rw real.volume_Icc, apply ennreal.mul_lt_top, rw lt_top_iff_ne_top, exact ennreal.of_real_ne_top,
+      rw lt_top_iff_ne_top, exact ennreal.of_real_ne_top,
+    },
+end
+
+theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f ∧ measure_theory.integrable f} (a b : ℝ) (h : b ≥ a) (c : ℝ) 
     (f_nonneg : ∀ x ∈ set.Icc a b, f x ≥ 0) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) : 
     (∫ x in set.Icc a b, f x) ≤ (b - a) * c :=
 begin
-    have ineq1 : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, c) := integral_le_integral' _ _ a b h (λ x hx, ⟨c_max x hx, f_nonneg x hx⟩),
-    rw integral_constant at ineq1; assumption,
+
+    have ineq1 := integral_le_integral' f ((set.Icc a b).indicator (λ _, c)) a b h _,
+    have triv1 : (∫ (x : ℝ) in set.Icc a b, (set.Icc a b).indicator (λ (_x : ℝ), c) x) = (∫ (x : ℝ) in set.Icc a b, c),
+    {
+        rw same_integral'', intros, simp only [set.indicator, set.mem_Icc], split_ifs, refl, refl,
+    },
+    rw triv1 at ineq1, rw integral_constant at ineq1, exact ineq1, exact h,
+    split, exact h1.1, split, simp only [set.indicator], apply measurable.if, exact is_measurable_Icc, exact measurable_const,
+    exact measurable_zero, split, exact h1.2,
+    apply integrable_const_Icc,
+    {
+      have ineq1 := f_nonneg a _,
+      have ineq2 := c_max a _, exact le_trans ineq1 ineq2, simp only [set.left_mem_Icc], exact h,
+      simp only [set.left_mem_Icc], exact h,
+    }, exact h,
+
+    intros x hx, simp only [set.indicator], split_ifs, split, exact c_max x hx, exact f_nonneg x hx,
 end
 
 theorem deriv_exp_t_x (t : ℝ) : deriv (λ x, real.exp (t-x)) = -(λ x, real.exp (t-x)) :=
@@ -259,17 +437,6 @@ begin
 end
 
 theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) := by simp only [deriv_exp_t_x, deriv_neg', pi.neg_apply, neg_neg]
-
-
-theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
-begin
- intro h,
- simp only [], exact congr_arg measure_theory.integral (congr_arg (set.indicator S) h)
-end
-
-theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x := (λ h, congr_arg measure_theory.integral h)
-
-theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x := λ h, congr_fun (congr_arg deriv h) x
 
 /--
 # about I
@@ -377,7 +544,7 @@ begin
     rw I, assumption,
 end
 
-private lemma norm_indicator {a b : ℝ} {h : a ≤ b} (f : ℝ -> ℝ) (x : ℝ) : ∥ set.indicator (set.Icc a b) f x ∥ = (set.indicator (set.Icc a b) (λ y, ∥ f y ∥)) x :=
+lemma norm_indicator {a b : ℝ} {h : a ≤ b} (f : ℝ -> ℝ) (x : ℝ) : ∥ set.indicator (set.Icc a b) f x ∥ = (set.indicator (set.Icc a b) (λ y, ∥ f y ∥)) x :=
 begin
     conv_rhs {rw [set.indicator_apply],}, split_ifs,
     rw set.indicator_apply, simp only [h_1, if_true],
@@ -509,17 +676,84 @@ end
 
 private lemma II_le2' (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : (∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x))) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
-    have ineq1 := integral_le_max_times_length (λ x, abs ((t - x).exp * f_eval_on_ℝ f x)) 0 t ht (t.exp * f_eval_on_ℝ (f_bar f) t) _ _,
+    have ineq1 := integral_le_max_times_length ((set.Icc 0 t).indicator (λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht (t.exp * f_eval_on_ℝ (f_bar f) t) _ _,
     simp only [sub_zero] at ineq1, 
-    have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
-    rw triv at ineq1, assumption,
-
+    have triv0 : measure_theory.integral ((set.Icc 0 t).indicator ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)))) =
+      measure_theory.integral ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x))),
     {
-        intros x hx, simp only [ge_iff_le], exact abs_nonneg ((t - x).exp * f_eval_on_ℝ f x),
+      apply same_integral', ext y, split_ifs, simp [set.indicator, h],
+    }, rw <-triv0,
+    have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
+    rw triv at ineq1, exact ineq1,
+    {
+      split,
+      apply measurable.measurable_on, exact is_measurable_Icc,
+      apply continuous.measurable,
+      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)),
+      simp only [eq_self_iff_true], rw eq1,
+      have cont1 := real.continuous_abs,
+      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x), 
+      {
+        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
+        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
+        have cont20 := real.continuous_exp,
+        have cont201 : continuous (λ (x : ℝ), t - x),
+        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
+        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
+        have cont3' : continuous (@id ℝ), exact continuous_id,
+        have cont33 := continuous.sub cont3 cont3', assumption,
+        exact continuous.comp cont20 cont201,
+        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
+          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
+        exact continuous.mul cont21 cont4,
+      },
+      exact continuous.comp cont1 cont2,
+      
+      have hmax := @compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) _ (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
+      choose max hmax using hmax,
+      generalize hM :  abs (real.exp (t - max) * f_eval_on_ℝ f max) = M,
+      set bound : ℝ -> ℝ := (set.Icc 0 t).indicator (λ _, M) with hbound,
+      apply @measure_theory.integrable_of_integrable_bound _ _ _ _ ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x))) bound,
+      simp [hbound], apply integrable_const_Icc,
+      rw <-hM, exact abs_nonneg (real.exp (t - max) * f_eval_on_ℝ f max), exact ht,
+      
+      suffices :  ∀ (a : ℝ), ∥(set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) a∥ ≤ bound a,
+        exact measure_theory.ae_of_all measure_theory.measure_space.volume this,
+      intros y, simp only [hbound, set.indicator, set.mem_Icc], rw real.norm_eq_abs, split_ifs, rw abs_abs,
+      rw <-hM, exact hmax.2 y h, simp only [abs_zero],
+
+      use 0, simp only [set.left_mem_Icc], exact ht,
+
+      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)),
+      simp only [eq_self_iff_true], rw eq1,
+      have cont1 := real.continuous_abs,
+      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x), 
+      {
+        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
+        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
+        have cont20 := real.continuous_exp,
+        have cont201 : continuous (λ (x : ℝ), t - x),
+        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
+        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
+        have cont3' : continuous (@id ℝ), exact continuous_id,
+        have cont33 := continuous.sub cont3 cont3', assumption,
+        exact continuous.comp cont20 cont201,
+        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
+          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
+        exact continuous.mul cont21 cont4,
+      },
+      have cont3 := continuous.comp cont1 cont2,
+      exact continuous.continuous_on cont3,
     },
 
     {
-        intros x hx, simp only [], rw abs_mul,
+        intros x hx, simp only [ge_iff_le], simp only [set.indicator, set.mem_Icc], split_ifs, exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
+        exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
+    },
+
+    {
+        intros x hx, simp only [set.indicator, set.mem_Icc], split_ifs,
+        rw abs_mul,
         have triv : abs (t - x).exp = (t-x).exp, {
             apply abs_of_pos, exact (t - x).exp_pos,
         },
@@ -538,7 +772,8 @@ begin
         {
             apply mul_le_mul, exact le_refl (real.exp t), assumption, exact abs_nonneg (f_eval_on_ℝ f x), exact le_of_lt (real.exp_pos t),
         },
-        exact le_trans ineq3 ineq4,
+        exact le_trans ineq3 ineq4, simp only [not_and, not_le] at h,
+        have rid1 := h hx.1, have rid2 := hx.2, linarith,
     },
 end
 
