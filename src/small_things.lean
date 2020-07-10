@@ -1,16 +1,10 @@
-import data.rat.basic
 import data.real.basic
-import data.finset
-import data.int.gcd
-import algebra.gcd_domain
-import data.finsupp algebra.big_operators
+import algebra.big_operators
 import data.polynomial
 import tactic
 
 noncomputable theory
 open_locale big_operators
-
-namespace small_things
 
 theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
 begin
@@ -167,6 +161,23 @@ begin
     done
 end
 
+theorem prod_deg (s : ℕ) (f : ℕ -> polynomial ℤ) (hf : ∀ i ∈ finset.range s, f i ≠ 0) : (∏ i in finset.range s, f i).nat_degree = ∑ i in finset.range s, (f i).nat_degree :=
+begin
+  induction s with s ih,
+  simp only [polynomial.nat_degree_one, finset.sum_empty, finset.range_zero, finset.prod_empty],
+
+  rw finset.sum_range_succ, rw finset.prod_range_succ,
+  have triv : (∀ (i : ℕ), i ∈ finset.range s → f i ≠ 0),
+  {
+    intros i hi, apply hf, simp only [finset.mem_range] at hi ⊢, exact nat.lt.step hi,
+  },
+  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul_eq,
+  apply hf, simp only [finset.self_mem_range_succ],
+  intro rid, rw [finset.prod_eq_zero_iff] at rid,
+  choose a ha using rid,
+  refine hf a _ ha.2, simp only [finset.mem_range] at ha ⊢, exact nat.lt.step ha.left,
+end
+
 theorem degree_0_constant {α : Type} {inst : comm_semiring α} (f : polynomial α) (hf : f.nat_degree = 0) :
     ∃ a : α, f = (polynomial.C a) :=
 
@@ -182,6 +193,12 @@ begin
     have zero2 : (polynomial.C (f.coeff 0)).nat_degree = 0 := polynomial.nat_degree_C (f.coeff 0),
     have zero3 : (polynomial.C (f.coeff 0)).coeff n.succ = 0 := polynomial.coeff_eq_zero_of_nat_degree_lt _,
     rw zero3, rw zero2, exact nat.succ_pos n,
+end
+
+theorem derivative_emb (f : polynomial ℤ) : (polynomial.map ℤembℝ f.derivative) = (polynomial.map ℤembℝ f).derivative :=
+begin
+    ext, rw polynomial.coeff_derivative, rw polynomial.coeff_map, rw polynomial.coeff_derivative, rw polynomial.coeff_map,
+    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_mul, int.cast_one, int.nat_cast_eq_coe_nat],
 end
 
 -- power manipulation
@@ -203,4 +220,7 @@ end
 
 lemma mul_eq_mul' (a b c d : ℝ) : a = c -> b = d -> a * b = c * d := λ h1 h2, by simp only [h1, h2]
 
-end small_things
+lemma nonneg_nat (i : ℕ) : (i : ℝ) ≥ 0 :=
+begin
+  norm_cast, exact bot_le,
+end

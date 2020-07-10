@@ -5,7 +5,6 @@ import small_things
 
 noncomputable theory
 open_locale classical
-open small_things
 
 /--
 - a number is transcendental ↔ a number is not algebraic
@@ -231,10 +230,10 @@ begin
     rename hM Df_ℝ_zero,
     have f_ℝ_0 : f_ℝ.nat_degree = 0,                                              -- Then f ∈ ℝ[x] has degree zero
     {
-      have H := small_things.zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
+      have H := zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
       rw [<-hDf] at Df_ℝ_zero, assumption,
     },
-    replace f_ℝ_0 := small_things.degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
+    replace f_ℝ_0 := degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
     choose c hc using f_ℝ_0,
     have absurd2 : c = 0,                                                         -- But since f(α) = 0, f ∈ ℝ[x] is the zero polynomial
     {
@@ -320,23 +319,23 @@ begin
     rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
     rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
   },
-  have hab1 : (↑a/↑b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
+  have hab1 : (a/b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
   {
     have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
   },
-  have hab2 : (↑a/↑b:ℝ) ∉ f_roots,                                                -- a/b is not any root because
+  have hab2 : (a/b:ℝ) ∉ f_roots,                                                -- a/b is not any root because
   {
     by_contra absurd,                                                             -- otherwise a/b ∈ f_roots' (roots of f other than α)
-    have H : ↑a/↑b ∈ f_roots',
+    have H : (a/b:ℝ) ∈ f_roots',
     {
       rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
     },
-    have H2 : abs (α - ↑a/↑b) ∈ distances',                                       -- Then |α - a/b| is in {1, 1/M} ∪ {|β - α| | β ∈ f_roots' }
+    have H2 : abs (α - a/b) ∈ distances',                                       -- Then |α - a/b| is in {1, 1/M} ∪ {|β - α| | β ∈ f_roots' }
     {
       rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
-      rw [<-roots_distance_to_α, finset.mem_image], use ↑a/↑b, split, exact H, refl,
+      rw [<-roots_distance_to_α, finset.mem_image], use (a/b:ℝ), split, exact H, refl,
     },
-    have H3 := finset.min'_le distances' hnon_empty (abs (α - ↑a / ↑b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
+    have H3 := finset.min'_le distances' hnon_empty (abs (α - a/b)) H2,       -- Then B > |α - a/b| ≥ B. A contradiction
     rw hB at H3, linarith,
   },
   /- Since α ≠ a/b, either α > a/b or α < a/b, two cases essentially have the same proof. -/
@@ -356,7 +355,7 @@ begin
       exact hfℝ_nonzero, linarith,
     },
 
-    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),          -- So |α - a/b| = |f(a/b)/Df_ℝ(x₀)|
+    have H2 : abs(α - a/b) = abs((f_ℝ.eval (a/b:ℝ)) / (Df_ℝ.eval x0)),          -- So |α - a/b| = |f(a/b)/Df_ℝ(x₀)|
     {
       norm_num [hx0r], 
       rw [neg_div, div_neg, abs_neg, div_div_cancel'],
@@ -366,13 +365,13 @@ begin
       exact hfℝ_nonzero,
     },
 
-    have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
+    have ineq' : polynomial.eval (a/b:ℝ) (polynomial.map ℤembℝ f) ≠ 0,
     {
       rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
       exact hab2 rid, exact hfℝ_nonzero,
     },
 
-    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
+    have ineq : abs (α - a/b) ≥ 1/(M*b^(f.nat_degree)),                       -- By previous theorem |f(a/b)| ≥ 1/bⁿ and by definition                                                                             -- |Df_ℝ(x₀)| ≤ M. [M is maximum of x ↦ abs(Df_ℝ x) on (α-1,α+1)
       rw [H2, abs_div],                                                           -- and x₀ ∈ (α - 1, α + 1)]
       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',      -- So |α - a/b| ≥ 1/(M*bⁿ) where n is degree of f
       rw [<-hfℝ],
@@ -387,11 +386,11 @@ begin
         rw set.mem_Icc at hab0, exact hab0.1, linarith,
       },
       
-      have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
-      suffices : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      have ineq3 := a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
+      suffices : 1 / (b:ℝ) ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
       rw [div_div_eq_div_mul] at ineq3,
-      have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      have ineq4 : 1 / ((b:ℝ) ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
       {
         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
@@ -414,8 +413,8 @@ begin
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,           -- So |α - a/b| > A/bⁿ
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,      -- But we assumed |α - a/b| ≤ A/bⁿ. This is the desired contradiction
 
-    exact @polynomial.continuous_on ℝ _ (set.Icc (↑a / ↑b) α) f_ℝ,                -- Since we used mean value theorem, we need to show continuity and differentiablity of x ↦ f(x),
-    exact @polynomial.differentiable_on ℝ _ (set.Ioo (↑a / ↑b) α) f_ℝ,            -- these are built in.
+    exact @polynomial.continuous_on ℝ _ (set.Icc (a/b:ℝ) α) f_ℝ,                -- Since we used mean value theorem, we need to show continuity and differentiablity of x ↦ f(x),
+    exact @polynomial.differentiable_on ℝ _ (set.Ioo (a/b:ℝ) α) f_ℝ,            -- these are built in.
   },
   /- The other case is similar, In fact I copied and pasted the above proof and exchanged positions of α and a/b. Then it worked. -/
 
@@ -432,7 +431,7 @@ begin
       exact hfℝ_nonzero,
     },
 
-    have H2 : abs(α - ↑a/↑b) = abs((f_ℝ.eval (↑a/↑b)) / (Df_ℝ.eval x0)),
+    have H2 : abs(α - a/b) = abs((f_ℝ.eval (a/b:ℝ)) / (Df_ℝ.eval x0)),
     {
       norm_num [hx0r], 
       rw [div_div_cancel'], have : ↑a / ↑b - α = - (α - ↑a / ↑b), linarith, rw [this, abs_neg],
@@ -442,13 +441,13 @@ begin
       exact hfℝ_nonzero,
     },
 
-    have ineq' : polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) ≠ 0,
+    have ineq' : polynomial.eval (a/b:ℝ) (polynomial.map ℤembℝ f) ≠ 0,
     {
       rw <-roots_def at hab2, intro rid, rw [hfℝ, <-polynomial.is_root, <-polynomial.mem_roots] at rid,
       exact hab2 rid, exact hfℝ_nonzero,
     },
 
-    have ineq : abs (α - ↑a / ↑b) ≥ 1/(M*b^(f.nat_degree)),
+    have ineq : abs (α - a/b) ≥ 1/(M*b^(f.nat_degree)),
     {
       rw [H2, abs_div],
       have ineq := abs_f_at_p_div_q_ge_1_div_q_pow_n f f_deg a b hb.1 ineq',
@@ -465,11 +464,11 @@ begin
         exact (set.mem_Icc.1 hab0).2,
       },
       
-      have ineq3 := small_things.a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
+      have ineq3 := a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
       suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
       rw [div_div_eq_div_mul] at ineq3,
-      have ineq4 : 1 / (↑b ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      have ineq4 : 1 / ((b:ℝ) ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
       {
         rw [ge_iff_le, one_div_le_one_div], conv_rhs {rw mul_comm}, 
         have ineq := ((@mul_le_mul_left ℝ _ (abs (polynomial.eval x0 Df_ℝ)) M (↑b ^ f.nat_degree)) _).2 ineq2, exact ineq,
@@ -493,8 +492,8 @@ begin
     have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree := by linarith,
     have ineq4 : abs (α - a / b) > abs (α - a / b) := by linarith, linarith,
 
-    exact @polynomial.continuous_on ℝ _ (set.Icc α (↑a / ↑b)) f_ℝ,
-    exact @polynomial.differentiable_on ℝ _ (set.Ioo α (↑a / ↑b)) f_ℝ,
+    exact @polynomial.continuous_on ℝ _ (set.Icc α (a/b:ℝ)) f_ℝ,
+    exact @polynomial.differentiable_on ℝ _ (set.Ioo α (a/b:ℝ)) f_ℝ,
 end
 
 /--
@@ -635,7 +634,7 @@ begin
 
   choose A hA using about_irrational_root x irr_x f f_deg about_root,             -- So we can apply the lemma about irrational root:
   have A_pos := hA.1,                                                             -- There is an A > 0 such that for any integers a b with b > 0
-  have exists_r := small_things.pow_big_enough A A_pos,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
+  have exists_r := pow_big_enough A A_pos,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
   choose r hr using exists_r,                                                     -- Let r ∈ ℕ such tht 1/A ≤ 2^r (equivalently 1/2^r ≤ A)
   have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
   generalize hm : r + f.nat_degree = m,                                           -- Let m := r + n

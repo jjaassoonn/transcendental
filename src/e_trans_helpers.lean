@@ -1,12 +1,9 @@
-import ring_theory.algebraic
-import algebra.big_operators
 import measure_theory.set_integral
 import analysis.special_functions.exp_log
 import small_things
 
 noncomputable theory
 open_locale classical
-open small_things
 open_locale big_operators
 
 

@@ -1,12 +1,9 @@
-import ring_theory.algebraic
-import algebra.big_operators
 import measure_theory.set_integral
 import analysis.special_functions.exp_log
 import small_things
 
 noncomputable theory
 open_locale classical
-open small_things
 open_locale big_operators
 
 
@@ -198,7 +195,7 @@ begin
 end
 
 /-Theorem
-For a polynomial $f$ then if $n>0$, we have $f^{(n)}=f^{(n-1)\times f'}$
+For a polynomial $f$ then if $n>0$, we have $f^{(n)}=f^{(n-1)}\times f'$
 -/
 theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
 begin
@@ -220,14 +217,26 @@ begin
 end
 
 /-- # Assumption-/
--- I should assume they are "nice".
+/-Theorem
+fundamental theorem of calculus and integration by part is assumed. I am waiting for them to arrive in `mathlib` and I will update this part and prove relatvent additional assumptions.
+-/
 axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in set.Icc a b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in set.Icc a b, (deriv f x) * (g x))
 
+/-Theorem
+Let $f,g:\mathbb R\to\mathbb R$ be measurable and integral functions such that $\forall x\in(a,b),0\le f(x)\le g(x)$, then
+$$
+\int_a^b f(x)\mathrm{d}x\le\int_a^b g(x)\mathrm{d}x
+$$
+-/
 theorem integral_le_integral' (f g : ℝ -> ℝ) {h1 : measurable f ∧ measurable g ∧ measure_theory.integrable f ∧ measure_theory.integrable g} (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x) :=
 begin
-    -- destruct h1, 
+    -- `mathlib` has `measure_theory.integral_le_integral` built in, but it is not for set integral.
+    -- So we apply this theorem to `((set.Icc a b).indicator f)` and `((set.Icc a b).indicator g)`
+    -- `s.indicator f` is the function  (λ x, if x ∈ s then f x else 0)
+    -- We need to prove `((set.Icc a b).indicator f)` and `((set.Icc a b).indicator g)` are measurable and integrable.
+    -- These are pretty much built in.
     apply @measure_theory.integral_le_integral ℝ _ ((set.Icc a b).indicator f) ((set.Icc a b).indicator g),
     simp [set.indicator],
     apply measurable.if, apply is_measurable_Icc, 
@@ -239,26 +248,50 @@ begin
     intros c, simp [set.indicator], split_ifs, exact (hf c ⟨h_1.1, h_1.2⟩).1, exact le_refl 0,
 end
 
+/-Theorem
+integrations on a set $S$ of two identical functions are indentical
+-/
 theorem same_integral {S : set ℝ} (f g : ℝ -> ℝ) : f = g -> (∫ x in S, f x) = ∫ x in S, g x :=
 begin
  intro h,
  simp only [], exact congr_arg measure_theory.integral (congr_arg (set.indicator S) h)
 end
 
+/-Theorem
+If $f$ and $g$ are identical on $S$ then
+$$
+\int_S f = \int_S g
+$$
+-/
 theorem same_integral'' {S : set ℝ} (f g : ℝ -> ℝ) : (∀ x ∈ S, f x = g x) -> (∫ x in S, f x) = ∫ x in S, g x :=
 begin
   intro h,
  simp only [], apply congr_arg measure_theory.integral, ext, simp only [set.indicator], split_ifs, exact h x h_1, refl,
 end
 
-
+/-Theorem
+integrations of two identical functions are indentical
+-/
 theorem same_integral' (f g : ℝ -> ℝ) : f = g -> (∫ x, f x) = ∫ x, g x := (λ h, congr_arg measure_theory.integral h)
 
+/-Theorem
+identical function have identical derivatives
+-/
 theorem same_deriv (f g : ℝ -> ℝ) (x : ℝ) : f = g -> deriv f x = deriv g x := λ h, congr_fun (congr_arg deriv h) x
 
-
+/-Theorem
+$$
+\int_S (-f)=-\int_S f
+$$
+-/
 theorem integral_neg' {S : set ℝ} (f : ℝ -> ℝ) : (∫ x in S, -f x) = - ∫ x in S, f x := integral_on_neg S (λ (a : ℝ), f a)
 
+/-Theorem
+integration of a constant function:
+$$
+\int_a^b c=(b-a)c
+$$
+-/
 theorem integral_constant (a b : ℝ) (h : b ≥ a) (c : ℝ): (∫ x in set.Icc a b, c) = (b - a) * c :=
 begin
     have eq1 : (∫ x in set.Icc a b, c) = (∫ x in set.Icc a b, (deriv (λ y, c * y)) x),
@@ -269,24 +302,34 @@ begin
     rw (ftc (λ (y : ℝ), c * y) a b h), simp only [], ring,
 end
 
+/-Theorem
+Constant function $c$ on closed interval $(a,b)$ is integrable.
+-/
 theorem integrable_const_Icc (a b c : ℝ) (c_nonneg : 0 ≤ c) (hab : a ≤ b) :
   measure_theory.integrable ((set.Icc a b).indicator (λ _, c)) :=
 begin
+
+  -- We build a simple function $f$ to be $c\times 1_{(a,b)}$
   set f_simp : measure_theory.simple_func ℝ ennreal :=
     {
       to_fun := λ a_1, ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0),
+      -- This function is measurable
       measurable_sn :=
       begin
+      -- So we need to prove $f^{-1}(x)$ is a measurable set for all $x$
         intros x,
         by_cases (c=0),
         {
+        -- if $c=0$, then the preimage is either the whole set or $\emptyset$. Both are measurable.
           rw h, simp only [if_t_t, norm_zero, ennreal.of_real_zero], rw set.preimage_const,
           split_ifs, exact is_measurable.univ, exact is_measurable.empty,
         },
         {
+        -- if $c\ne 0$ then $c>0$
           have c_pos : c > 0, exact lt_of_le_of_ne c_nonneg (ne.symm h),
           by_cases H : (x=0),
           {
+        -- if $x$ is zero, then the preimage is $\mathbb R-(a,b)$.
             rw H,
             have set1 : (λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {0} = (set.Icc a b)ᶜ,
             {
@@ -297,11 +340,16 @@ begin
 
               intros hy, simp only [set.mem_preimage, not_and, ennreal.of_real_eq_zero, not_le, set.mem_zero, set.singleton_zero, set.mem_compl_eq,
  set.mem_Icc] at hy ⊢, split_ifs, replace hy := hy h_1.1, replace h_1 := h_1.2, linarith, exact le_refl 0,
-            }, rw set1, rw is_measurable.compl_iff, exact is_measurable_Icc,
+            }, rw set1, 
+        -- But complement of a set is measurable if and only if that set is measurable.
+        -- any closed interval is measurable.    
+            rw is_measurable.compl_iff, exact is_measurable_Icc,
           },
           {
+            -- if $x\ne 0$. We analysis by whether $x=c$.
             by_cases (x=(ennreal.of_real c)),
             {
+            -- if $x=c$, then preimage is $(a,b)$ and closed intervals are measurable.
               rw h,
               have set1 : ((λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {ennreal.of_real c}) = set.Icc a b,
               {
@@ -313,6 +361,7 @@ begin
               }, rw set1, exact is_measurable_Icc,
             },
             {
+            -- if $x\ne c$, then the preimage is $\emptyset$ which is measurable.
               have set2 : ((λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) ⁻¹' {x}) = ∅,
               {
                 ext y, split, intros hy, simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_Icc] at hy,
@@ -325,8 +374,10 @@ begin
           },
         }
       end,
+      -- The range of this function is finite.
       finite :=
       begin
+      -- in fact range is {c,0}.
         have set1 : (set.range (λ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0))) = {ennreal.of_real c, 0},
         {
           ext, split, intros hx, simp only [set.mem_insert_iff, set.mem_range, set.mem_zero, set.singleton_zero, set.mem_Icc] at hx ⊢,
@@ -364,27 +415,33 @@ begin
       simp only [set.left_mem_Icc, not_le] at h, linarith,
     },
 
+    -- So we replace our function with the simple function. Because we can actually compute integral of simple functions.
     have eq2 : (∫⁻ (a_1 : ℝ), ennreal.of_real (ite (a_1 ∈ set.Icc a b) c 0)) = (∫⁻ (a_1 : ℝ), f_simp a_1),
     {
-      apply measure_theory.lintegral_congr, intro x, simp only [f_simp, if_t_t, forall_prop_of_true, set.mem_empty_eq, set.mem_preimage, add_zero, norm_zero, set.mem_insert_iff,
- set.mem_range, not_and, set.mem_singleton_iff, ennreal.of_real_zero, ennreal.of_real_eq_zero, not_le, eq_self_iff_true,
- not_true, set.finite_singleton, set.finite.insert, set.mem_zero, zero_add, set.singleton_zero, set.mem_compl_eq,
- set.mem_Icc, neg_zero], exact rfl,
+      apply measure_theory.lintegral_congr, intro x, simp only [f_simp, if_t_t, forall_prop_of_true, set.mem_empty_eq, set.mem_preimage, add_zero, norm_zero, set.mem_insert_iff, set.mem_range, not_and, set.mem_singleton_iff, ennreal.of_real_zero, ennreal.of_real_eq_zero, not_le, eq_self_iff_true, not_true, set.finite_singleton, set.finite.insert, set.mem_zero, zero_add, set.singleton_zero, set.mem_compl_eq, set.mem_Icc, neg_zero], exact rfl,
     }, 
     by_cases c_zero : (c = 0),
-    simp [c_zero], rw measure_theory.integrable_iff_norm,
+    -- If $c=0$, this is trival, as 0 function is integrable
+    simp only [c_zero, set.indicator_zero, measure_theory.integrable_zero],
+    rw measure_theory.integrable_iff_norm,
     simp_rw norm_indicator_eq_indicator_norm,
     simp only [set.indicator],
     have triv : ∥c∥ = c, rw real.norm_eq_abs, rw abs_of_nonneg, exact c_nonneg,
-
+    -- If $c\ne 0$, then we need to prove
+    -- $$\sum_{x\in \mathrm{im}f} x\times \mathrm{vol}(f^{-1}(\{x\}))<\infty$$
     simp_rw [triv], rw eq2, rw measure_theory.simple_func.lintegral_eq_integral, rw measure_theory.simple_func.integral,
+    -- So it is sufficient to show $$\forall x\in\mathrm{im}f,x\times \mathrm{vol}(f^{-1}(\{x\}))<\infty$$.
     apply ennreal.sum_lt_top,
-    intros z hz, rw f_simp_range at hz, simp only [finset.mem_insert, finset.mem_singleton] at hz,
+    intros z hz,
+    -- But $\mathrm{im} f=\{0,c\}$
+    rw f_simp_range at hz, simp only [finset.mem_insert, finset.mem_singleton] at hz,
     cases hz,
     {
+    -- For $x=0$, $x\times \mathrm{vol}(f^{-1}(\{x\}))=0<\infty$
       rw hz, rw zero_mul, exact with_top.zero_lt_top,
     },
     {
+    -- For $x=c$, $f^{-1}(\{x\})=(a,b)$
       rw hz,
       have set1 : (⇑f_simp ⁻¹' {ennreal.of_real c}) = (set.Icc a b),
       {
@@ -396,22 +453,31 @@ begin
 
         intros hy, rw set.mem_preimage, simp only [set.mem_singleton_iff] at ⊢,
         have triv : (f_simp y)  = (f_simp.to_fun y), exact rfl, rw triv, rw f_simp_to_fun, simp only [], split_ifs, refl,
-      }, rw set1, rw real.volume_Icc, apply ennreal.mul_lt_top, rw lt_top_iff_ne_top, exact ennreal.of_real_ne_top,
+      }, rw set1,
+      -- then $x\times\mathrm{vol}(f^{-1}(\{x\}))=c\times(b-a)$.
+      rw real.volume_Icc, apply ennreal.mul_lt_top, rw lt_top_iff_ne_top, exact ennreal.of_real_ne_top,
       rw lt_top_iff_ne_top, exact ennreal.of_real_ne_top,
     },
 end
 
+/-Theorem
+If forall $x\in(a,b), 0 \le f(x)\le c$ then
+$$
+\int_a^b f\le (b-a)c
+$$
+-/
 theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f ∧ measure_theory.integrable f} (a b : ℝ) (h : b ≥ a) (c : ℝ) 
     (f_nonneg : ∀ x ∈ set.Icc a b, f x ≥ 0) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) : 
     (∫ x in set.Icc a b, f x) ≤ (b - a) * c :=
 begin
-
+    -- This is a simple application of previous lemma
     have ineq1 := integral_le_integral' f ((set.Icc a b).indicator (λ _, c)) a b h _,
     have triv1 : (∫ (x : ℝ) in set.Icc a b, (set.Icc a b).indicator (λ (_x : ℝ), c) x) = (∫ (x : ℝ) in set.Icc a b, c),
     {
         rw same_integral'', intros, simp only [set.indicator, set.mem_Icc], split_ifs, refl, refl,
     },
     rw triv1 at ineq1, rw integral_constant at ineq1, exact ineq1, exact h,
+    -- Then we prove that $f$ and $c 1_{(a,b)}$ is measurable and integrable.
     split, exact h1.1, split, simp only [set.indicator], apply measurable.if, exact is_measurable_Icc, exact measurable_const,
     exact measurable_zero, split, exact h1.2,
     apply integrable_const_Icc,
@@ -420,10 +486,15 @@ begin
       have ineq2 := c_max a _, exact le_trans ineq1 ineq2, simp only [set.left_mem_Icc], exact h,
       simp only [set.left_mem_Icc], exact h,
     }, exact h,
-
+    -- and that for any $x\in(a,b)$, $f x \le c 1_{(a,b)}(x)=c$
     intros x hx, simp only [set.indicator], split_ifs, split, exact c_max x hx, exact f_nonneg x hx,
 end
 
+/-Theorem
+$$
+\frac{\mathrm{d}\exp(t-x)}{\mathrm{d}x}=-\exp(t-x)
+$$
+-/
 theorem deriv_exp_t_x (t : ℝ) : deriv (λ x, real.exp (t-x)) = -(λ x, real.exp (t-x)) :=
 begin
     have triv : (λ x, real.exp (t-x)) = real.exp ∘ (λ x, t - x) := by simp only [],
@@ -436,6 +507,11 @@ begin
     exact differentiable_at_id,
 end
 
+/-Theorem
+$$
+\frac{\mathrm{d}-\exp(t-x)}{\mathrm{d}x}=\exp(t-x)
+$$
+-/
 theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, real.exp (t-x)) := by simp only [deriv_exp_t_x, deriv_neg', pi.neg_apply, neg_neg]
 
 /--
@@ -446,7 +522,7 @@ theorem deriv_exp_t_x' (t : ℝ) : (deriv (λ x, - (real.exp (t-x)))) = (λ x, r
 Suppose $f$ is an integer polynomial with degree $n$ and $t\ge0$ then define
     \[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
 We use integration by parts to prove
-    \[I(f,t)=\exp(t)\left(\times\sum_{i=0}^n f^{(i)}(0)-\sum_{i=0}^n f^{(i)}(t)\right)\]
+    \[I(f,t)=\exp(t)\left(\sum_{i=0}^n f^{(i)}(0)\right)-\sum_{i=0}^n f^{(i)}(t)\]
 
 The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
 -/
@@ -456,10 +532,11 @@ def I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ :=
 def II (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in set.Icc 0 t, real.exp(t - x) * (f_eval_on_ℝ f x)
 
 /-Theorem
-$\int_0^0$ is 0.
+$I(0,t)$ is 0.
 -/
 theorem II_0 (t : ℝ) (ht : t ≥ 0) : II 0 t ht = 0 :=
 begin
+    -- We are integrating $\exp(t-x)\times 0$
     rw II, unfold f_eval_on_ℝ, simp only [set.indicator_zero, measure_theory.integral_zero, mul_zero, polynomial.eval_zero, polynomial.map_zero],
 end
 
@@ -471,11 +548,13 @@ theorem II_integrate_by_part (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) :
     (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht) :=
 begin
     rw II,
+    -- We have $$\int_0^t \exp(t-x)f(x)\mathrm{d}x=\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$
     have eq : (∫ x in set.Icc 0 t, (t - x).exp * f_eval_on_ℝ f x) = (∫ x in set.Icc 0 t, f_eval_on_ℝ f x * (deriv (λ x, - (real.exp (t-x))) x)),
     {
         apply same_integral, ext, simp only [deriv_exp_t_x'], ring,
     },
     rw eq,
+    -- Apply integration by part to $$\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$.
     replace eq := integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht,
     rw eq, simp only [mul_one, neg_sub_neg, real.exp_zero, sub_zero, mul_neg_eq_neg_mul_symm, sub_self],
     replace eq : (∫ x in set.Icc 0 t, -(deriv (f_eval_on_ℝ f) x * (t - x).exp)) = ∫ x in set.Icc 0 t, -((λ x, (deriv (f_eval_on_ℝ f) x * (t - x).exp)) x),
@@ -486,12 +565,8 @@ begin
     replace eq : (∫ (x : ℝ) in set.Icc 0 t, (t - x).exp * f_eval_on_ℝ f.derivative x) = ∫ (x : ℝ) in set.Icc 0 t, deriv (f_eval_on_ℝ f) x * (t - x).exp,
     {
         apply same_integral, ext, ring, rw f_eval_on_ℝ,
-        have triv : (polynomial.map ℤembℝ f.derivative) = (polynomial.map ℤembℝ f).derivative,
-        {
-            ext, rw polynomial.coeff_derivative, rw polynomial.coeff_map, rw polynomial.coeff_derivative, rw polynomial.coeff_map,
-            simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_mul, int.cast_one, int.nat_cast_eq_coe_nat],
-        },
-        rw triv, rw <-polynomial.deriv,replace triv : deriv (λ (x : ℝ), polynomial.eval x (polynomial.map ℤembℝ f)) x = deriv (f_eval_on_ℝ f) x,
+        rw derivative_emb, rw <-polynomial.deriv,
+        have triv : deriv (λ (x : ℝ), polynomial.eval x (polynomial.map ℤembℝ f)) x = deriv (f_eval_on_ℝ f) x,
         {
             apply same_deriv, ext, rw f_eval_on_ℝ,
         },
@@ -590,28 +665,45 @@ def f_bar (f : polynomial ℤ) : polynomial ℤ :=
     intro hn, simp only [abs_eq_zero, ne.def] at hn, apply (f.3 n).2, simpa only [],
   end⟩}
 
+/-Theorem
+By our construction the $n$-th coefficient of $\bar{f}$ is the absolute value of $n$-th coefficient of $f$
+-/
 theorem bar_coeff (f : polynomial ℤ) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) :=
 begin
+    -- true by definition
     dsimp [f_bar], refl,
 end
 
+/-Theorem
+By our construction, $\bar{f}$ and $f$ has the same support
+-/
 theorem bar_supp (f : polynomial ℤ) : (f_bar f).1 = f.1 :=
 begin
+    -- true by definition
     dsimp [f_bar], refl,
 end
 
+/-Theorem
+Since $\bar{f}$ and $f$ has the same support, they have the same degree.
+-/
 theorem bar_same_deg (f : polynomial ℤ) : (f_bar f).nat_degree = f.nat_degree :=
 begin
     apply polynomial.nat_degree_eq_of_degree_eq,
+    -- degree is defined to be $\sup$ of support. Since support of $\bar{f}$ and $f$ are the same, their degree is the same.
     rw polynomial.degree, rw polynomial.degree, rw bar_supp,
 end
 
-
+/-Theorem
+$\bar{0}=0$
+-/
 theorem f_bar_0 : f_bar 0 = 0 :=
 begin
     ext, rw bar_coeff, simp only [abs_zero, polynomial.coeff_zero],
 end
 
+/-Theorem
+for any $f\in\mathbb Z$, if $\bar{f}=0$ then $f=0$
+-/
 theorem f_bar_eq_0 (f : polynomial ℤ) : f_bar f = 0 -> f = 0 :=
 begin
     intro h, rw polynomial.ext_iff at h, ext,
@@ -624,29 +716,37 @@ begin
     intros a s ha, simp only [forall_prop_of_true, polynomial.finset_sum_coeff],
 end
 
+theorem coeff_f_bar_mul (f g : polynomial ℤ) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
+begin
+    rw bar_coeff (f*g) n, rw polynomial.coeff_mul,
+end
+
 theorem f_bar_eq (f : polynomial ℤ) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
 begin
     ext, rw bar_coeff, rw <-coeff_sum, simp_rw [polynomial.coeff_C_mul_X], simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h, 
     rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
 end
 
-theorem coeff_f_bar_mul (f g : polynomial ℤ) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
-begin
-    rw bar_coeff (f*g) n, rw polynomial.coeff_mul,
-end
-
+/-Theorem
+For any $x\in(0,t)$
+$|f(x)|\le \bar{f}(t)$
+-/
 theorem f_bar_ineq (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
 begin
     intros x hx,
+    -- If we write $f(X)=a_0+a_1X+\cdots+a_nX^n$. Then $f(x)=a_0+a_1x+\cdots+a_nx^n$
     have lhs : f_eval_on_ℝ f x = ∑ i in f.support, (f.coeff i : ℝ) * x ^ i,
     {
         rw [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval₂, finsupp.sum],
         apply congr_arg, ext, norm_cast,
     },
     rw lhs,
+    -- So $|f(x)|=|a_0+a_1x+\cdots+a_nx^n|\le |a_0|+|a_1|x+\cdots+|a_n|x^n$. (We assumed $x\ge0$).
     have ineq1 : abs (∑ (i : ℕ) in f.support, (f.coeff i:ℝ) * x ^ i) ≤ ∑ i in f.support, (abs (f.coeff i:ℝ) * (x ^ i)),
     {
+        -- we have $|a_0+a_1x+\cdots+a_nx^n|\le|a_0|+|a_1x|+\cdots+|a_nx^n|$
         have ineq1' := @finset.abs_sum_le_sum_abs ℝ ℕ _ (λ i, (f.coeff i:ℝ) * (x ^ i)) f.support, simp only [] at ineq1',
+        -- and $|a_0|+|a_1x|+\cdots+|a_nx^n|=|a_0|+|a_1|x+\cdots+|a_n|x^n$
         have eq1 : ∑ (x_1 : ℕ) in f.support, abs (↑(f.coeff x_1) * x ^ x_1) = ∑ (x_1 : ℕ) in f.support, abs (↑(f.coeff x_1)) * x ^ x_1,
         {
             apply congr_arg, ext, rw abs_mul,
@@ -655,6 +755,7 @@ begin
         rw eq1 at ineq1', exact ineq1',
     },
 
+    -- $\bar{f}(t)=|a_0|+|a_1|t+\cdots+|a_n|t^n$
     have rhs : f_eval_on_ℝ (f_bar f) t = ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
     {
         rw [f_eval_on_ℝ, polynomial.eval_map, polynomial.eval₂, finsupp.sum],
@@ -662,6 +763,7 @@ begin
     },
     rw rhs,
 
+    -- Since $x^i\le t^i$, we have $|a_0|+|a_1|x+\cdots+|a_n|x^n\le|a_0|+|a_1|t+\cdots+|a_n|t^n$
     have ineq2 : ∑ (i : ℕ) in f.support, abs ↑(f.coeff i) * x ^ i ≤  ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
     {
         rw bar_supp, apply finset.sum_le_sum, intros n hn,
@@ -671,11 +773,53 @@ begin
         },
         apply pow_le_pow_of_le_left, exact (set.mem_Icc.1 hx).1, exact (set.mem_Icc.1 hx).2,
     },
+    -- combine `ineq1` and `ineq2` we are done.
     exact le_trans ineq1 ineq2,
 end
 
+private lemma continuous_exp_f (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : continuous (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) :=
+begin
+    -- $|e^{t-x}f(x)|$ is composition of absolute value function and $e^{t-x}f(x)$
+      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)) := by simp only [eq_self_iff_true], rw eq1,
+      -- We know that absolute value function is continuous.
+      have cont1 := real.continuous_abs,
+      -- We now prove that $e^{t-x}f(x)$ is continuous by proving $e^{t-x}$ and $f(x)$ are continuous.
+      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x), 
+      {
+        -- $e^{t-x}$ is composition of $\exp$ and $t-x$.
+        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
+        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
+        -- $\exp$ is continuous
+        have cont20 := real.continuous_exp,
+        -- $t-x$ is the constant function $t$ minus the identity function
+        have cont201 : continuous (λ (x : ℝ), t - x),
+        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
+        -- constant function is continuous
+        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
+        -- identity function is continuous
+        have cont3' : continuous (@id ℝ), exact continuous_id,
+        -- hence $t-x$ is continuous
+        have cont33 := continuous.sub cont3 cont3', assumption,
+        -- hence $e^{t-x}$ is continuous
+        exact continuous.comp cont20 cont201,
+        -- evaluating a polynomial is continuous
+        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
+          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
+        -- hence the product is continuous
+        exact continuous.mul cont21 cont4,
+      },
+      exact continuous.comp cont1 cont2,
+end
+
+/-Theorem
+$$
+\int_0^t |e^{t-x}f(d)|\mathrm{d}x\le te^t\bar{f}(t)
+$$
+-/
 private lemma II_le2' (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : (∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x))) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
+    -- we are using `integral_le_max_times_length`
+    -- so we need to prove $|e^{t-x}f(x)|\le e^t\bar{f}(t)$
     have ineq1 := integral_le_max_times_length ((set.Icc 0 t).indicator (λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht (t.exp * f_eval_on_ℝ (f_bar f) t) _ _,
     simp only [sub_zero] at ineq1, 
     have triv0 : measure_theory.integral ((set.Icc 0 t).indicator ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)))) =
@@ -685,72 +829,43 @@ begin
     }, rw <-triv0,
     have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
     rw triv at ineq1, exact ineq1,
+
+    -- This to provve the functions we used are measurable and integrable.
     {
       split,
       apply measurable.measurable_on, exact is_measurable_Icc,
+      -- We prove $|e^{t-x}f(x)|$ is continuous and thus measurable.
       apply continuous.measurable,
-      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)),
-      simp only [eq_self_iff_true], rw eq1,
-      have cont1 := real.continuous_abs,
-      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x), 
-      {
-        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
-        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
-        have cont20 := real.continuous_exp,
-        have cont201 : continuous (λ (x : ℝ), t - x),
-        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
-        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
-        have cont3' : continuous (@id ℝ), exact continuous_id,
-        have cont33 := continuous.sub cont3 cont3', assumption,
-        exact continuous.comp cont20 cont201,
-        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
-          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
-        exact continuous.mul cont21 cont4,
-      },
-      exact continuous.comp cont1 cont2,
+      exact continuous_exp_f f t ht,
       
-      have hmax := @compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) _ (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
+      -- To prove $e^{t-x}f(x)$ is integrable on $[0,t]$ we use that $[0,t]$ is compact so a maximum of $e^{t-x}f(x)$ exists.
+      have hmax := @compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) (⟨0, begin simp only [set.left_mem_Icc], exact ht end⟩) (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
       choose max hmax using hmax,
+      -- Let $M$ be $e^{t-max}f(max)$
       generalize hM :  abs (real.exp (t - max) * f_eval_on_ℝ f max) = M,
+      -- We compare the function with the constant function $M$.
       set bound : ℝ -> ℝ := (set.Icc 0 t).indicator (λ _, M) with hbound,
       apply @measure_theory.integrable_of_integrable_bound _ _ _ _ ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x))) bound,
+      -- as proved before, constant functions are integrable on closed interval.
       simp [hbound], apply integrable_const_Icc,
       rw <-hM, exact abs_nonneg (real.exp (t - max) * f_eval_on_ℝ f max), exact ht,
       
+      -- Now we prove that $M$ is indeed a bound.
       suffices :  ∀ (a : ℝ), ∥(set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) a∥ ≤ bound a,
         exact measure_theory.ae_of_all measure_theory.measure_space.volume this,
       intros y, simp only [hbound, set.indicator, set.mem_Icc], rw real.norm_eq_abs, split_ifs, rw abs_abs,
       rw <-hM, exact hmax.2 y h, simp only [abs_zero],
 
-      use 0, simp only [set.left_mem_Icc], exact ht,
-
-      have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)),
-      simp only [eq_self_iff_true], rw eq1,
-      have cont1 := real.continuous_abs,
-      have cont2 : continuous (λ (x : ℝ), real.exp (t - x) * f_eval_on_ℝ f x), 
-      {
-        have eq2 : (λ x : ℝ, real.exp (t-x)) = real.exp ∘ (λ x : ℝ, t - x), simp only [],
-        have cont21 : continuous (λ x : ℝ, real.exp (t-x)), rw eq2,
-        have cont20 := real.continuous_exp,
-        have cont201 : continuous (λ (x : ℝ), t - x),
-        have eq3 : (λ (x : ℝ), t - x) = (λ (x : ℝ), (λ _, t) x - id x), ext, simp only [id], rw eq3,
-        have cont3 : continuous (λ _ :ℝ, t), exact continuous_const,
-        have cont3' : continuous (@id ℝ), exact continuous_id,
-        have cont33 := continuous.sub cont3 cont3', assumption,
-        exact continuous.comp cont20 cont201,
-        have cont4 : continuous (λ x , f_eval_on_ℝ f x),
-          unfold f_eval_on_ℝ, exact polynomial.continuous (polynomial.map ℤembℝ f),
-        exact continuous.mul cont21 cont4,
-      },
-      have cont3 := continuous.comp cont1 cont2,
-      exact continuous.continuous_on cont3,
+      exact continuous.continuous_on (continuous_exp_f f t ht),
     },
 
+    -- This is to prove $0\le|e^{t-x}f(x)|$
     {
         intros x hx, simp only [ge_iff_le], simp only [set.indicator, set.mem_Icc], split_ifs, exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
         exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
     },
 
+    -- This is to prove $|e^{t-x}f(x)|\le e^t \bar{f}(t)$
     {
         intros x hx, simp only [set.indicator, set.mem_Icc], split_ifs,
         rw abs_mul,
@@ -758,26 +873,24 @@ begin
             apply abs_of_pos, exact (t - x).exp_pos,
         },
         rw triv,
+        -- We have $|f(x)|\le\bar{f}(t)$
         have ineq1 := f_bar_ineq f t ht x hx,
+        -- We have $e^{t-x}\le e^{t}$
         have ineq2 : (t - x).exp ≤ t.exp,
         {
             rw real.exp_le_exp, rw sub_le, simp only [sub_self], exact hx.1,
         },
-        have ineq3 : (t - x).exp * abs (f_eval_on_ℝ f x) ≤ t.exp * abs (f_eval_on_ℝ f x),
-        {
-            apply mul_le_mul, assumption, exact le_refl (abs (f_eval_on_ℝ f x)), exact abs_nonneg (f_eval_on_ℝ f x),
-            exact le_of_lt (real.exp_pos t),
-        },
-        have ineq4 : t.exp * abs (f_eval_on_ℝ f x) ≤ t.exp * f_eval_on_ℝ (f_bar f) t,
-        {
-            apply mul_le_mul, exact le_refl (real.exp t), assumption, exact abs_nonneg (f_eval_on_ℝ f x), exact le_of_lt (real.exp_pos t),
-        },
-        exact le_trans ineq3 ineq4, simp only [not_and, not_le] at h,
+        exact mul_le_mul ineq2 ineq1 (abs_nonneg _) (le_of_lt (real.exp_pos t)),
+        simp only [not_and, not_le] at h,
         have rid1 := h hx.1, have rid2 := hx.2, linarith,
     },
 end
 
+/-Theorem
+$$|I(f,t)|\le te^t\bar{f}(t)$$
+-/
 theorem abs_II_le2 (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
+    -- combine `abs_II_le1` and previous lemma.
     exact le_trans (abs_II_le1 f t ht) (II_le2' f t ht),
 end

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>e_transcendental_doc</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="e-is-a-transcendental-number"><span class="math inline">\(e\)</span> is a transcendental number</h1>
+<h2 id="basic-definitions">Basic definitions</h2>
+<ul class="incremental">
+<li><p>For any polynomial <span class="math inline">\(f\in\mathbb Z[X]=a_0+a_1X+\cdots+a_nX^n\)</span>, <span class="math inline">\(\bar f:=|a_0|+|a_1|X+\cdots+|a_n|X^n\)</span>. This is <span class="math inline">\({\tt f\_bar}\)</span> in <span class="math inline">\({\tt e\_trans\_helpers2.lean}\)</span></p></li>
+<li><p>For any prime number <span class="math inline">\(p\)</span> and natural number <span class="math inline">\(n\)</span> we can define a polynomial <span class="math inline">\(f_{p,n}\in\mathbb{Z}[X]\)</span> as <span class="math inline">\(X^{p-1}(X-1)^p\cdots(X-n)^p\)</span>. This is <span class="math inline">\({\tt f\_p}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p></li>
+<li><p><span class="math inline">\(f_{p,n}\)</span> has degree <span class="math inline">\((n+1)p-1\)</span>. This is <span class="math inline">\({\tt deg\_f\_p}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p></li>
+<li><p>With <span class="math inline">\(f\)</span> an integer polynomial and any nonnegative real number <span class="math inline">\(t\)</span>, we associate <span class="math inline">\(f\)</span> with an integral <span class="math inline">\(I(f, t)\)</span> to be <span class="math display">\[
+\int_0^t  e^{t-x} f(x)\mathrm{d} x
+\]</span> This is <span class="math inline">\({\tt II}\)</span> in <span class="math inline">\({\tt e\_trans\_helpers2.lean}\)</span></p></li>
+<li><p>If <span class="math inline">\(f\)</span> has degree <span class="math inline">\(n\)</span>, then using integrating by part <span class="math inline">\(n\)</span> times we have <span class="math display">\[
+\begin{aligned}
+I(f,t)&amp;=e^t\sum_{i=0}^n f^{(i)}(0)-\sum_{i=0}^nf^{(i)}(t)\\
+\end{aligned}
+\]</span> This is <span class="math inline">\({\tt II\_eq\_I}\)</span> in <span class="math inline">\({\tt e\_trans\_helpers2.lean}\)</span>.</p></li>
+<li><p>For any polynomial <span class="math inline">\(g\in\mathbb Z\)</span> with degree <span class="math inline">\(n\)</span> and coefficient <span class="math inline">\(g_i\)</span>, <span class="math inline">\(J_p(g)\)</span> is defined to be <span class="math display">\[
+J_{p}(g) = \sum_{i=0}^n g_i I(f_{p,n},i)
+\]</span> This is <span class="math inline">\({\tt J}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p></li>
+</ul>
+<p>So if <span class="math inline">\(g(e)=0\)</span>, we will have <span class="math display">\[
+\begin{aligned}
+  J_{p}(g) &amp;= \sum_{i=0}^n g_i I(f_{p,d},i) &amp;[{\tt J\_eq1} \textrm{ in } {\tt e\_transcendental.lean}]\\
+           &amp;= \sum_{i=0}^n g_ie^i\sum_{j=0}^{(n+1)p-1} f_{p,n}^{(j)}(0)-\sum_{i=0}^ng_i\sum_{j=0}^{(n+1)p-1}f_{p,n}^{(j)}(i) &amp;[{\tt J\_eq2}\textrm { in } {\tt e\_transcendental.lean}]\\
+           &amp;=0-\sum_{i=0}^n\sum_{j=0}^{(n+1)p-1}g_i f_{p,n}^{(j)}(i) &amp;[{\tt J\_eq3}\textrm{ in }{\tt e\_transcendental.lean}]\\
+           &amp;=-\sum_{i=0}^n\sum_{j=0}^{(n+1)p-1}g_i f_{p,n}^{(j)}(i) &amp;[{\tt J\_eq}\textrm{ in }{\tt e\_transcendental.lean}]\\
+           &amp;=-\sum_{j=0}^{(n+1)p-1}\sum_{i=0}^ng_i f_{p,n}^{(j)}(i) &amp;[{\tt J\_eq&#39;&#39;}\textrm{ in }{\tt e\_transcendental.lean}]\\
+\end{aligned}
+\]</span></p>
+<p>We are going to deduce two contradictory bounds for <span class="math inline">\(J_p(g)\)</span> with a large prime <span class="math inline">\(p\)</span>.</p>
+<h2 id="lower-bound">Lower bound</h2>
+<p>We want to prove that for some <span class="math inline">\(M\in\mathbb R\)</span>, <span class="math inline">\(J_{p}(g)=-g_0(p-1)!(-1)^{np}n^p+p!M\)</span> where <span class="math inline">\(n\)</span> is the degree of <span class="math inline">\(g\)</span>. This is <span class="math inline">\({\tt J\_eq\_final}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p>
+<p>To evaluate the <span class="math inline">\(J_p{g}\)</span>, we will split the big sum <span class="math inline">\(\sum_{j=0}^{(n+1)p-1}\)</span> to three sums: <span class="math inline">\(j &lt; p-1\)</span>, <span class="math inline">\(j = p-1\)</span> and <span class="math inline">\(j &gt; p-1\)</span>.</p>
+<p>Using the notation as above, for any prime <span class="math inline">\(p\)</span> and natural number <span class="math inline">\(n\)</span>, we have the followings :</p>
+<ul class="incremental">
+<li><p>If <span class="math inline">\(j &lt; p-1\)</span> then in this case, in fact all the summand is zero. This is because</p>
+<ul class="incremental">
+<li><span class="math inline">\(f^{(j)}_{p,n}(0)=0\)</span>. This is <span class="math inline">\({\tt deriv\_f\_p\_k\_eq\_zero\_k\_eq\_0\_when\_j\_lt\_p\_sub\_one}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></li>
+<li><span class="math inline">\(f^{(j)}_{p,n}(i)=0\)</span> for all <span class="math inline">\(0&lt;i\le d\)</span>. This is <span class="math inline">\({\tt deriv\_f\_p\_k\_eq\_zero\_k\_ge\_1\_when\_j\_lt\_p\_sub\_one}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></li>
+</ul>
+<p>Thus <span class="math display">\[ 
+\sum_{j=0}^{p-2}\sum_{i=0}^ng_i f_{p,n}^{(j)}(i)=0
+\]</span> This is <span class="math inline">\({\tt J\_partial\_sum\_from\_one\_to\_p\_sub\_one}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p></li>
+<li><p>If <span class="math inline">\(j = p-1\)</span> then</p>
+<ul class="incremental">
+<li><span class="math inline">\(f_{p,n}^{(j)}(0)=(p-1)! (-1)^{np}n!^p\)</span>. This is <span class="math inline">\({\tt deriv\_f\_p\_zero\_when\_j\_eq\_p\_sub\_one}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></li>
+<li><span class="math inline">\(f_{p,n}^{(j)}(i)=0\)</span> for all <span class="math inline">\(i&gt;0\)</span>. This is <span class="math inline">\({\tt deriv\_f\_p\_when\_j\_eq\_p\_sub\_one}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></li>
+</ul>
+<p>Thus <span class="math display">\[
+\sum_{i=0}^n g_if_{p,n}^{(p-1)}(i)=(p-1)!g_0(-1)^{np}n!^{p}
+\]</span> This is <span class="math inline">\({\tt J\_partial\_sum\_from\_p\_sub\_one\_to\_p}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p></li>
+<li><p>If <span class="math inline">\(j &gt; p-1\)</span> then <span class="math inline">\(p!|f_{p, n}^{(j)} (k)\)</span> for all <span class="math inline">\(k=0,\cdots,n\)</span>. This is <span class="math inline">\({\tt when\_j\_ge\_p\_k}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p>
+<p>Then <span class="math display">\[
+\left.p!\right|\sum_{j=p}^{(n+1)p-1}\sum_{i=0}^ng_i f_{p,n}^{(j)}(i)
+\]</span> This is <span class="math inline">\({\tt J\_partial\_sum\_rest}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></p></li>
+</ul>
+<p>Then if <span class="math inline">\(g\in\mathbb Z\)</span> is any polynomial with degree <span class="math inline">\(n\)</span> and coefficient <span class="math inline">\(g_i\)</span> with <span class="math inline">\(g_0\ne 0\)</span> and <span class="math inline">\(e\)</span> as a root then, from above we can show that there is some <span class="math inline">\(M\in\mathbb Z\)</span> such that <span class="math display">\[
+  J_p(g)=-g_0(p-1)!(-1)^{np}n!^p+M\times p!
+\]</span> This is <span class="math inline">\({\tt J\_eq\_final}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></p>
+<p>So if we choose <span class="math inline">\(p\)</span> to be a prime number such that <span class="math inline">\(p &gt; n\)</span> and <span class="math inline">\(p &gt; |g_0|\)</span>, then <span class="math inline">\(|J_p(g)|=(p-1)!\left|-g_0(-1)^{np}n!^p+Mp\right|\)</span>. So <span class="math inline">\((p-1)!\le J_p(g)\)</span>. Because otherwise <span class="math inline">\(\left|-g_0(-1)^{np}n!^p+Mp\right|=0\)</span>. So <span class="math inline">\(p|g_0n!^p\)</span>, then either <span class="math inline">\(p|g_0\)</span> or <span class="math inline">\(p|n!^p\)</span>. The first case cannot happen as we chose <span class="math inline">\(p&gt;|g_0|\)</span>. The second happens if and only if <span class="math inline">\(p|n!\)</span> but we chose <span class="math inline">\(p&gt;n\)</span>. This is basically what happened in <span class="math inline">\({\tt abs\_J\_lower\_bound}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span></p>
+<h2 id="upper-bound">Upper bound</h2>
+<p>This time we utilize the integral definition of <span class="math inline">\(I\)</span>. For a prime <span class="math inline">\(p\)</span> and <span class="math inline">\(g\in\mathbb Z\)</span> is any polynomial with degree <span class="math inline">\(n\)</span> and coefficient <span class="math inline">\(g_i\)</span> and <span class="math inline">\(e\)</span> as a root then. Let us define <span class="math inline">\(M\in\mathbb R\)</span> to be <span class="math display">\[(n+1)\left(\max_{0\le i\le n}\{|g_i|\}(n+1)e^{n+1}\right)(2(n+1))^{n+1}\]</span> Then</p>
+<p><span class="math display">\[
+\begin{aligned}
+|J_p(g)|&amp;\le\sum_{i=0}^n \left|g_i ie^i \overline{f_{p,n}}(i)\right| &amp;[{\tt abs\_J\_ineq1&#39;&#39;} \textrm{ in } {\tt e\_transcendental.lean}]\\
+&amp;\le(n+1)\max_{0\le i\le n}\{|g_i|\}(n+1)e^{n+1}(2(n+1))^{p+pn} &amp;[{\tt sum\_ineq\_1}\textrm{ in }{\tt e\_transcendental.lean}]\\
+&amp;\le(n+1)^p\left(\max_{0\le i\le n}\{|g_i|\}\right)^p(n+1)^p(2(n+1))^{p+pn}&amp;[{\tt sum\_ineq\_2}\textrm{ in }{\tt e\_transcendental.lean}]\\
+&amp;= M^p &amp;[{\tt abs\_J\_upper\_bound}\textrm{ in }{\tt e\_transcendental.lean}]
+\end{aligned}
+\]</span></p>
+<p>The point is for some real number <span class="math inline">\(c\)</span> (independent of <span class="math inline">\(p\)</span>, depending on <span class="math inline">\(g\)</span>), <span class="math inline">\(|J_p(g)|\le c^p\)</span>.</p>
+<h2 id="the-desired-contradiction">The desired contradiction</h2>
+<p>We use that for any real number <span class="math inline">\(M\ge0\)</span> and an integer <span class="math inline">\(z\)</span> then there is a prime number <span class="math inline">\(p &gt; z\)</span> such that <span class="math inline">\((p-1)!&gt;M^p\)</span> to get a contradiction. This fact is <span class="math inline">\({\tt contradiction}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>.</p>
+<p>Assume <span class="math inline">\(e\)</span> is algebraic and <span class="math inline">\(g\in\mathbb Z[X]\)</span> admits <span class="math inline">\(e\)</span> as a root with degree <span class="math inline">\(n\)</span> and coefficient <span class="math inline">\(g_i\)</span>. We can assume <span class="math inline">\(g_0\ne 0\)</span> by dividing a suitable power of <span class="math inline">\(X\)</span> if necessary. This process is <span class="math inline">\({\tt make\_const\_term\_nonzero}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>. The fact that after this possible change <span class="math inline">\(e\)</span> is still a root of <span class="math inline">\(g\)</span> is <span class="math inline">\({\tt non\_zero\_root\_same}\)</span> in <span class="math inline">\({\tt e\_transcendental.lean}\)</span>. Then we know that for some real number <span class="math inline">\(c\)</span> independent of <span class="math inline">\(g\)</span>, we have <span class="math inline">\((p-1)!\le J_p(g) \le c^p\)</span> for all <span class="math inline">\(p&gt;|g_0|\)</span> and <span class="math inline">\(p&gt;d\)</span>. But this is not possible by the previous paragraph.</p>
+</body>
+</html>
