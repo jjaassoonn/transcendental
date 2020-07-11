@@ -207,7 +207,7 @@ begin
       simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at absurd, exact absurd,
   },
   generalize hDf: f_ℝ.derivative = Df_ℝ,                                         -- We use Df_ℝ to denote the (formal) derivative of f ∈ ℝ[T]
-  have H := compact.exists_forall_ge (@compact_Icc (α-1) (α+1))                  -- x ↦ abs |Df_ℝ| has a maximum on interval (α - 1, α + 1)
+  have H := is_compact.exists_forall_ge (@compact_Icc (α-1) (α+1))                  -- x ↦ abs |Df_ℝ| has a maximum on interval (α - 1, α + 1)
               begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
               (abs_f_eval_around_α_continuous Df_ℝ α),
 
@@ -223,33 +223,23 @@ begin
       intros y hy,
       have H := hM y hy, simp at H, rw H,
     },
-    replace hM : Df_ℝ = 0,                                                        -- Then Df_ℝ is the zero polyomial.
-    {
-      exact f_zero_on_interval_f_zero Df_ℝ hM,
-    },
+    replace hM : Df_ℝ = 0 := f_zero_on_interval_f_zero Df_ℝ hM,                                                        -- Then Df_ℝ is the zero polyomial.
     rename hM Df_ℝ_zero,
     have f_ℝ_0 : f_ℝ.nat_degree = 0,                                              -- Then f ∈ ℝ[x] has degree zero
     {
       have H := zero_deriv_imp_const_poly_ℝ f_ℝ _, exact H,
       rw [<-hDf] at Df_ℝ_zero, assumption,
     },
-    replace f_ℝ_0 := degree_0_constant f_ℝ f_ℝ_0,                    -- Then f ∈ ℝ[x] is constant polynomial
+    replace f_ℝ_0 := degree_0_constant f_ℝ f_ℝ_0,                                 -- Then f ∈ ℝ[x] is constant polynomial
     choose c hc using f_ℝ_0,
     have absurd2 : c = 0,                                                         -- But since f(α) = 0, f ∈ ℝ[x] is the zero polynomial
     {
       rw [f_eval_on_ℝ, hfℝ, hc] at α_root, simp only [polynomial.eval_C] at α_root, assumption,
     },
     rw absurd2 at hc,
-    have f_zero : f = 0,                                                          -- Then f ∈ ℤ[x] is the zero polynomial
-    {
-      ext,
-      have f_ℝ_n : f_ℝ.coeff n = 0, 
-      have H := @polynomial.coeff_map _ _ _ f _ ℤembℝ n,
-      rw [hfℝ, hc] at H, simp only [ring_hom.eq_int_cast, polynomial.C_0, polynomial.coeff_zero] at H, 
-      rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n], simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at H ⊢, norm_cast at H, exact eq.symm H,
-      simp only [polynomial.coeff_zero], rw [<-hfℝ, @polynomial.coeff_map _ _ _ f _ ℤembℝ n] at f_ℝ_n, simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at f_ℝ_n, assumption,
-    },
-    exact f_nonzero f_zero,                                                       -- But f ∈ ℤ[x] is not a zero polynomial.
+    simp only [ring_hom.map_zero] at hc, rw <-hfℝ at hc, 
+    replace hc : polynomial.map ℤembℝ f = polynomial.map ℤembℝ 0, simp only [polynomial.map_zero], exact hc,
+    exact f_nonzero (polynomial.map_injective ℤembℝ_inj hc),                      -- But f ∈ ℤ[x] is not a zero polynomial.
   },
   have M_pos : M > 0,                                                             -- Since M is not zero, M > 0 being abs (sth.) 
   {
@@ -277,33 +267,29 @@ begin
       choose α0 hα0 using hx,
       rw [<-roots'_def, finset.mem_erase] at hα0,
       rw <-(hα0.2), simp only [gt_iff_lt], apply (@abs_pos_iff ℝ _ (α - α0)).2,
-      by_contra absurd, simp only [classical.not_not] at absurd, rw sub_eq_zero_iff_eq at absurd,
-      have absurd2 := hα0.1.1, exact f_nonzero (false.rec (f = 0) (absurd2 (eq.symm absurd))),
+      rw sub_ne_zero, exact ne.symm hα0.1.1,
   },
   have B_pos : B > 0,                                                             -- Then B is positive.
   {
     have h := allpos (finset.min' distances' hnon_empty) (finset.min'_mem distances' hnon_empty),
-    rw <-hB, assumption,
+    rw <-hB, exact h,
   },
   generalize hA : B / 2 = A,                                                      -- Let A = B/2 > 0.
   use A, split,
-  rw [<-hA], apply half_pos, assumption,                                          -- Then A is postive as B is postive
+  rw [<-hA], apply half_pos, exact B_pos,                                          -- Then A is postive as B is postive
   /- goal : ∀ (a b : ℤ), b > 0 → |α - a/b| > A / bⁿ where n is the degree of f.      
      We use proof by contradiction -/
   by_contra absurd, simp only [gt_iff_lt, classical.not_forall, not_lt, classical.not_imp] at absurd,
   choose a ha using absurd,                                                       -- So assume a and b are integers such that |α - a/b| ≤ A / b^n
   choose b hb using ha,                               
   have hb2 : b ^ f.nat_degree ≥ 1,                                                -- Since b > 0 and n > 1, bⁿ ≥ 1                                                                               -- So A/bⁿ ≤ A
-    rw <-(pow_zero b),
-    have hbge1 : b ≥ 1 := hb.1,
-    have htrivial : 0 ≤ f.nat_degree := by exact bot_le,
-    exact pow_le_pow hbge1 htrivial,
+    change b^ f.nat_degree > 0, apply pow_pos, exact hb.1,
   have hb21 : abs (α - a / b) ≤ A,                                                -- Then we also have |α - a/b| ≤ A
   {
     suffices H : (A / b ^ f.nat_degree) ≤ A,
-    have H2 := hb.2, exact le_trans H2 H,
+    exact le_trans hb.2 H,
     apply (@div_le_iff ℝ _ A (b ^ f.nat_degree) A _).2,
-    apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at hb2 ⊢, exact hb2,
+    apply (@le_mul_iff_one_le_right ℝ _ (b ^ f.nat_degree) A _).2, norm_cast at ⊢, exact hb2,
     rw [<-hA], apply half_pos, assumption, norm_cast, linarith,
   },
   have hb22 : abs (α - a/b) < B,                                                  -- Since A > 0, |α - a/b| ≤ A < 2A = B ≤ 1
@@ -312,24 +298,19 @@ begin
   },
   have hab0 : (a/b:ℝ) ∈ set.Icc (α-1) (α+1),                                      -- So a/b ∈ [α-1, α+1]
   {
-    suffices H : abs (α - a/b) ≤ 1, 
-    have eq1 : ↑a / ↑b - α = - (α - ↑a / ↑b) := by norm_num,
-    rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, eq1, abs_neg], exact H,
+    suffices : abs (α - a/b) ≤ 1,
+    rw [<-closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, abs_sub], exact this,
     suffices : B ≤ 1, linarith,
-    rw <-hB, have ineq1 := finset.min'_le distances' hnon_empty 1 _, exact ineq1,
-    rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, left, refl,
+    rw <-hB, refine finset.min'_le distances' hnon_empty 1 _,
+    rw [<-hdistances', finset.mem_insert, finset.mem_insert], tauto,
   },
   have hab1 : (a/b:ℝ) ≠ α,                                                      -- a/b is not α because α is irrational
-  {
     have H := hα a b hb.1, rw sub_ne_zero at H, exact ne.symm H,
-  },
   have hab2 : (a/b:ℝ) ∉ f_roots,                                                -- a/b is not any root because
   {
     by_contra absurd,                                                             -- otherwise a/b ∈ f_roots' (roots of f other than α)
     have H : (a/b:ℝ) ∈ f_roots',
-    {
       rw [<-roots'_def, finset.mem_erase], exact ⟨hab1, absurd⟩,
-    },
     have H2 : abs (α - a/b) ∈ distances',                                       -- Then |α - a/b| is in {1, 1/M} ∪ {|β - α| | β ∈ f_roots' }
     {
       rw [<-hdistances', finset.mem_insert, finset.mem_insert], right, right,
@@ -344,8 +325,7 @@ begin
   {
     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                   -- We mean value theorem in this case to find 
     choose x0 hx0 using H,                                                        -- an x₀ ∈ (a/b, α) such that Df_ℝ(x₀) = (f(α) - f(a/b))/(α - a/b),
-    have hx0l := hx0.1,                                                           -- since f(α) = 0, Df_ℝ(x₀) = - f(a/b) / (α - a/b)
-    have hx0r := hx0.2,
+    have hx0r := hx0.2,                                                           -- since f(α) = 0, Df_ℝ(x₀) = - f(a/b) / (α - a/b).
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [zero_sub] at hx0r,
     have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,                                        -- So Df_ℝ(x₀) is not zero. (a/b is not a root)
@@ -378,11 +358,10 @@ begin
       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
       {
         have H := hM x0 _, exact H,
-        have h1 := hx0.1,
         have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
         have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
         have h4 : set.Ioo (↑a / ↑b) α ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
-        exact set.mem_of_subset_of_mem h4 h1, split,
+        exact set.mem_of_subset_of_mem h4 hx0.1, split,
         rw set.mem_Icc at hab0, exact hab0.1, linarith,
       },
       
@@ -419,8 +398,7 @@ begin
   /- The other case is similar, In fact I copied and pasted the above proof and exchanged positions of α and a/b. Then it worked. -/
 
     have H := exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _,                  
-    choose x0 hx0 using H,                                                       
-    have hx0l := hx0.1,                                                           
+    choose x0 hx0 using H,                                                          
     have hx0r := hx0.2,
     rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
     rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [sub_zero] at hx0r,
@@ -455,17 +433,16 @@ begin
       have ineq2 : abs (polynomial.eval x0 Df_ℝ) ≤ M,
       {
         have H := hM x0 _, exact H,
-        have h1 := hx0.1,
         have h2 := @set.Ioo_subset_Icc_self ℝ _ (α-1) (α+1),
         have h3 := (@set.Ioo_subset_Ioo_iff ℝ _ _ (α-1) _ (α+1) _ hab3).2 _,
         have h4 : set.Ioo α (↑a / ↑b) ⊆ set.Icc (α-1) (α+1), exact set.subset.trans h3 h2,
-        exact set.mem_of_subset_of_mem h4 h1, split,
+        exact set.mem_of_subset_of_mem h4 hx0.1, split,
         rw set.mem_Icc at hab0, linarith,
         exact (set.mem_Icc.1 hab0).2,
       },
       
       have ineq3 := a_ge_b_a_div_c_ge_b_div_c _ _ (abs (polynomial.eval x0 Df_ℝ)) ineq _ _,
-      suffices ineq4 : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
+      suffices : 1 / ↑b ^ f.nat_degree / abs (polynomial.eval x0 Df_ℝ) ≥ 1 / (M * ↑b ^ f.nat_degree),
         linarith,
       rw [div_div_eq_div_mul] at ineq3,
       have ineq4 : 1 / ((b:ℝ) ^ f.nat_degree * abs (polynomial.eval x0 Df_ℝ)) ≥ 1 / (M * ↑b ^ f.nat_degree),
@@ -579,22 +556,12 @@ begin
     {                                                                             -- If f has degree 1, then f = aT + b
       have f_eq : f = polynomial.C (f.coeff 0) + (polynomial.C (f.coeff 1)) * polynomial.X,
       {
-        ext, by_cases (n ≤ 1),
-        {
-          replace h := lt_or_eq_of_le h, cases h,
-          {
-            replace h : n = 0, linarith, rw h, simp only [add_zero, polynomial.coeff_C_zero, polynomial.coeff_mul_X_zero, polynomial.coeff_add],
-          },
-          {
-            rw h, simp only [mul_one, polynomial.coeff_X_one, polynomial.coeff_add, polynomial.coeff_C_mul], rw polynomial.coeff_C, split_ifs, exfalso, linarith, simp only [zero_add],
-          },
-        },
-        {                                                                         -- Again f(x) = 0 implies ax+b = 0, x is rational.
-          simp only [polynomial.coeff_add, not_le, polynomial.coeff_C_mul] at h ⊢, have deg : f.nat_degree < n, linarith,
-          have z := polynomial.coeff_eq_zero_of_nat_degree_lt deg, rw z, rw polynomial.coeff_X,
-          split_ifs, exfalso, linarith, simp only [add_zero, mul_zero], rw polynomial.coeff_C,
-          split_ifs, exfalso, linarith, refl,
-        }
+        ext, 
+        rw [polynomial.coeff_add, polynomial.coeff_C, polynomial.coeff_C_mul, polynomial.coeff_X], split_ifs, linarith,
+        simp only [h, add_zero, mul_zero], simp only [h_1, mul_one, zero_add],
+        replace h : n > 0, exact nat.pos_of_ne_zero h, replace h : n ≥ 1, exact nat.succ_le_iff.mpr h,
+        replace h : 1 < n ∨ 1 = n, exact lt_or_eq_of_le h, cases h, rw polynomial.coeff_eq_zero_of_nat_degree_lt, simp only [add_zero, mul_zero],
+        rwa rid, exfalso, exact h_1 h,
       },
 
       rw f_eq at hf, simp only [alg_hom.map_add, polynomial.aeval_X, ne.def, polynomial.aeval_C, alg_hom.map_mul] at hf, rw irrational at irr_x,
@@ -604,8 +571,7 @@ begin
         suffices : ↑(f.coeff 0) / ↑(f.coeff 1) + x = 0, exact irr_x this,
         rw add_eq_zero_iff_eq_neg, rw div_eq_iff, have triv : -x * ↑(f.coeff 1) = - (x * (f.coeff 1)), exact norm_num.mul_neg_pos x ↑(polynomial.coeff f 1) (x * ↑(polynomial.coeff f 1)) rfl,
         rw triv, rw <-add_eq_zero_iff_eq_neg, rw mul_comm, have hf2 := hf.2, simp [polynomial.aeval_def] at hf2, exact hf2,
-        intro rid',norm_cast at rid', rw <-rid at rid', rw <-polynomial.leading_coeff at rid',
-        rw polynomial.leading_coeff_eq_zero at rid', rw polynomial.ext_iff at rid', simp only [polynomial.coeff_zero] at rid', replace rid' := rid' 1, linarith,
+        norm_cast, linarith,
       },
       {
         simp only [not_lt] at h, replace h := lt_or_eq_of_le h, cases h,
@@ -614,14 +580,11 @@ begin
          replace irr_x := irr_x (f.coeff 0) (-(f.coeff 1)) _, simp only [ne.def, int.cast_neg] at irr_x, rw div_neg at irr_x, rw sub_neg_eq_add at irr_x, rw add_comm at irr_x,
           suffices suff : ↑(f.coeff 0) / ↑(f.coeff 1) + x = 0, exact irr_x suff,
           rw add_eq_zero_iff_eq_neg, rw div_eq_iff, have triv : -x * ↑(f.coeff 1) = - (x * (f.coeff 1)), exact norm_num.mul_neg_pos x ↑(polynomial.coeff f 1) (x * ↑(polynomial.coeff f 1)) rfl,
-          rw triv, rw <-add_eq_zero_iff_eq_neg, rw mul_comm, exact hf.2,
-          intro rid',norm_cast at rid', rw <-rid at rid', rw <-polynomial.leading_coeff at rid',
-          rw polynomial.leading_coeff_eq_zero at rid', rw polynomial.ext_iff at rid', simp only [polynomial.coeff_zero] at rid', replace rid' := rid' 1, linarith, 
-          linarith,
+          rw triv, rw <-add_eq_zero_iff_eq_neg, rw mul_comm, exact hf.2, norm_cast, linarith, exact neg_pos.mpr h,
         },
         rw <-rid at h,
         rw <-polynomial.leading_coeff at h,
-          rw polynomial.leading_coeff_eq_zero at h, rw h at rid, simp only [polynomial.nat_degree_zero, zero_ne_one] at rid, exact rid,
+        rw polynomial.leading_coeff_eq_zero at h, rw h at rid, simp only [polynomial.nat_degree_zero, zero_ne_one] at rid, exact rid,
       }
     },
   },
@@ -657,9 +620,7 @@ begin
     have H := (@mul_le_mul_right ℝ _ (1 / ↑b ^ r) A (1 / ↑b ^ f.nat_degree) _).2 ineq3, exact H,
     apply div_pos, linarith, norm_cast, apply pow_pos, linarith,
   },
-  conv_rhs at ineq4 {
-    rw <-mul_div_assoc, rw mul_one
-  },
+  conv_rhs at ineq4 {rw <-mul_div_assoc, rw mul_one},
   have ineq5 :  abs (x - ↑a / ↑b) < A / ↑b ^ f.nat_degree, linarith,
   have rid := hA.2 a b _, linarith, linarith,
 end
@@ -686,13 +647,13 @@ begin
 end
 
 -- n ≤ n!
-lemma useless_elsewhere : ∀ n : nat, n ≤ n.fact
+lemma n_le_n_fact : ∀ n : nat, n ≤ n.fact
 | 0                         := by norm_num
 | 1                         := by norm_num
 | (nat.succ (nat.succ n))   := begin 
-    have H := useless_elsewhere n.succ,
+    have H := n_le_n_fact n.succ,
     conv_rhs {rw (nat.fact_succ n.succ)},
-    have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.fact, {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (useless_elsewhere (nat.succ n))},
+    have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.fact, {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (n_le_n_fact (nat.succ n))},
     suffices ineq2 : n.succ.succ ≤ n.succ.succ * n.succ, {exact nat.le_trans ineq2 ineq1},
     have H' : ∀ m : nat, m.succ.succ ≤ m.succ.succ * m.succ,
     {
@@ -704,15 +665,9 @@ end
 
 lemma ten_pow_n_fact_inverse_le_ten_pow_n_inverse (n : nat) : ten_pow_n_fact_inverse n ≤ ten_pow_n_inverse n :=
 begin
-  unfold ten_pow_n_fact_inverse,
-  unfold ten_pow_n_inverse, simp only [one_div_eq_inv, inv_pow'],
-  by_cases (n = 0),
-  rw h, simp only [inv_one, pow_one, pow_zero, nat.fact_zero], norm_num,
-  have n_pos : n > 0 := by exact bot_lt_iff_ne_bot.mpr h,
-  have H := (@inv_le_inv ℝ _ (10 ^ n.fact) (10 ^ n) _ _).2 _, exact H,
-  have H := @pow_pos ℝ _ 10 _ n.fact,  exact H, linarith,
-  have H := @pow_pos ℝ _ 10 _ n, exact H, linarith,
-  have H := @pow_le_pow ℝ _ 10 n n.fact _ _, exact H, norm_num, exact useless_elsewhere n,
+  simp only [ten_pow_n_fact_inverse, ten_pow_n_inverse, one_div_eq_inv, inv_pow'],
+  rw [inv_le], simp only [inv_inv'], apply pow_le_pow, linarith, apply n_le_n_fact, apply pow_pos,
+  linarith, rw inv_pos, apply pow_pos, linarith,
 end
 
 -- Σᵢ 1/10ⁱ exists because it is a geometric sequence with 1/10 < 1. The sum equals 10/9
@@ -728,12 +683,9 @@ theorem β_eq :  (∑' (b : ℕ), ten_pow_n_inverse b) = (10 / 9:ℝ) :=
 begin
   have eq0 := @tsum_geometric_of_abs_lt_1 (1/10) _,
   have eq1 : (∑' (n : ℕ), (1 / 10:ℝ) ^ n) = (∑' (b : ℕ), ten_pow_n_inverse b),
-  {
-    apply congr_arg, ext, rw ten_pow_n_inverse,
-  }, 
+    apply congr_arg, ext, rw ten_pow_n_inverse, 
   rw eq1 at eq0, rw eq0, norm_num, rw abs_of_pos, linarith, linarith,
 end
-
 
 -- Hence Σᵢ 1/10^i! exists by comparison test, call it α
 theorem summable_ten_pow_n_fact_inverse : summable ten_pow_n_fact_inverse :=
@@ -758,13 +710,9 @@ begin
   rw α_k at hk ⊢,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
   generalize hm : 10^((k+1).fact - k.fact) = m,
   have eqm : 10^k.fact * m = 10^(k+1).fact,                                       -- If we set m = 10^{(k+1)!-k!}, then pm+1 works. This is algebra.
-  {
     rw <-hm, rw <-nat.pow_add, rw nat.add_sub_cancel', simp only [nat.fact_succ], rw le_mul_iff_one_le_left, exact inf_eq_left.mp rfl, exact nat.fact_pos k,
-  },
   have eqm' : (10:ℝ)^k.fact * m = (10:ℝ)^(k+1).fact,
-  {
     norm_cast, exact eqm,
-  },
   generalize hp : pk * m + 1 = p,
   use p, rw finset.sum_range_succ, rw hk,
 
@@ -795,9 +743,7 @@ begin
   generalize hfunc : (λ n:ℕ, ten_pow_n_fact_inverse (n + (k + 1))) = fn,
   have ineq1 := sum_ge_term fn _ _,
   have ineq2 : fn 0 > 0,
-  {
     rw <-hfunc, simp only [gt_iff_lt, zero_add], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos, simp only [one_fpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one, apply pow_pos, linarith,
-  },
   exact gt_of_ge_of_gt ineq1 ineq2,
 
   intro n, rw <-hfunc, simp only [gt_iff_lt], rw ten_pow_n_fact_inverse, rw div_pow, apply div_pos, simp only [one_fpow, ne.def, triv, not_false_iff, one_ne_zero], exact zero_lt_one, apply pow_pos, linarith,
@@ -812,14 +758,12 @@ begin
   rw eq1, exact summable_ten_pow_n_fact_inverse,
 end
 
-private lemma useless3' (n: ℕ) : n.fact ≥ 1 := nat.fact_pos n
-
-private lemma useless3 (n : ℕ) : 10^(n.fact) > 1 :=
+private lemma ten_pow_n_fact_gt_one (n : ℕ) : 10^(n.fact) > 1 :=
 begin
   induction n with n h,
   simp only [gt_iff_lt, zero_le, one_le_bit1, nat.one_lt_bit0_iff, nat.fact_zero, nat.pow_one], simp only [gt_iff_lt, nat.fact_succ], rw nat.pow_mul, 
   have h' := @nat.lt_pow_self (10 ^ n.succ) _ n.fact,
-  have ineq := useless3' n, have ineq2 : 1 < (10 ^ n.succ) ^ n.fact := gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 8,
+  have ineq := nat.fact_pos n, have ineq2 : 1 < (10 ^ n.succ) ^ n.fact := gt_of_gt_of_ge h' ineq, exact ineq2, exact nat.one_lt_pow' n 8,
 end
 
 private lemma nat.fact_succ' (n : ℕ) : n.succ.fact = n.fact * n.succ :=
@@ -834,7 +778,7 @@ begin
   have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp, rw <-nat.fact_succ,
   rw div_le_div_iff, norm_cast, conv_rhs {rw <-nat.mul_assoc},                     -- and use that what left is a geometric sum = 10/9
   have triv : 2 * 9 = 18 := by norm_num, rw triv,
-  apply nat.mul_le_mul, linarith, linarith, exact bot_le, exact bot_le,
+  apply nat.mul_le_mul, linarith, linarith,
   apply mul_pos, linarith, apply pow_pos, linarith, apply pow_pos, linarith,
   have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b) := rfl,
   rwa <-triv,
@@ -845,12 +789,10 @@ private lemma aux_ineq (n:ℕ) : 2 < 10 ^ n.fact :=
 begin
   induction n with n ih, simp only [nat.succ_pos', one_lt_bit1, bit0_lt_bit0, nat.fact_zero, nat.pow_one],
   rw [nat.fact_succ, nat.pow_mul],
-  have ineq : 10 ^ n.fact ≤ (10 ^ n.succ) ^ n.fact, rw nat.pow_le_iff_le_left, {
-    have h : ∀ m : ℕ, 10 ≤ 10 ^ m.succ, {
+  have ineq : 10 ^ n.fact ≤ (10 ^ n.succ) ^ n.fact, rw nat.pow_le_iff_le_left,
+    have h : ∀ m : ℕ, 10 ≤ 10 ^ m.succ,
       intro m, induction m with m hm, simp only [nat.pow_one], rw nat.pow_succ, linarith,
-    },
-    exact h n
-  },
+    exact h n,
   linarith [nat.fact_pos n], linarith,  
 end
 
@@ -877,14 +819,10 @@ begin
 
   generalize hm : n.succ = m, rw hm at hn,
   have triv : i + m.succ = (m+i).succ, rw nat.add_succ, rw add_comm, rw triv, 
-  conv_rhs {
-    rw nat.fact_succ, rw nat.succ_eq_add_one,
-  },
+  conv_rhs {rw nat.fact_succ, rw nat.succ_eq_add_one,},
 
   have ineq1 : (m + i + 1) * (i + m.fact) ≤ (m + i + 1) * (m + i).fact,
-  {
     apply mul_le_mul, linarith, rwa add_comm m, linarith, linarith,
-  },
   suffices : i + m.succ.fact ≤ (m + i + 1) * (i + m.fact), exact le_trans this ineq1,
   rw mul_add,
   have ineq2 : (m + i + 1) * m.fact ≤ (m + i + 1) * i + (m + i + 1) * m.fact := nat.le_add_left _ _,
@@ -905,13 +843,8 @@ begin
   choose p hp using lemma1,                                                       -- for some p ∈ ℕ.
   use p, use 10^(n.fact),                                                         -- we are going to prove 0 < |α - p/10^{n!}| < 1/10^{n! * n}
   have lemma2 := α_truncate_wd n,
-  split,
-  {
-    induction n with n IH,                                                        -- and that 10^{n!} > 1
-    simp only [nat.fact_zero], have ineq := useless3 n.succ, norm_cast at ineq ⊢, exact ineq,
-  },
-  {
-    split,                                                                        -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
+  split, norm_cast, refine ten_pow_n_fact_gt_one n,                               -- and that 10^{n!} > 1
+  split,                                                                          -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
     {                                                                             -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
       rw abs_pos_iff, intro rid, simp only [int.cast_coe_nat, int.cast_pow, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact] at rid, rw [sub_eq_zero, <-hp] at rid, rw rid at lemma2,
       have eq := (@add_left_eq_self ℝ _ (α_k_rest n) (α_k n)).1 _, have α_k_rest_pos := α_k_rest_pos n, linarith,
@@ -920,9 +853,8 @@ begin
     {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
       conv_lhs {simp only [hp, int.cast_coe_nat, int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact], rw sub_eq_add_neg, rw <-hp, rw <-sub_eq_add_neg, simp only [lemma2, add_sub_cancel'],},
       have triv : abs (α_k_rest n) = α_k_rest n,                                  -- i.e. absolute value of sum of the rest terms is a number < 1/10^{n! * n}
-      {                                                                           -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
-        rw abs_of_pos, exact α_k_rest_pos n,
-      }, rw triv, rw α_k_rest,
+      rw abs_of_pos, exact α_k_rest_pos n,                                        -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
+      rw triv, rw α_k_rest,
 
       have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
       {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
@@ -954,7 +886,6 @@ begin
       norm_cast at ineq5, simp only [int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, nat.cast_bit0, int.cast_one, nat.cast_bit1, nat.cast_one, nat.cast_pow] at ineq5 ⊢, 
       exact ineq5,
     },
-  },
 end
 
 -- Then our general theory about Liouville number in particular applies to α giving us α transcendental

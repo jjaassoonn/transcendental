@@ -839,7 +839,7 @@ begin
       exact continuous_exp_f f t ht,
       
       -- To prove $e^{t-x}f(x)$ is integrable on $[0,t]$ we use that $[0,t]$ is compact so a maximum of $e^{t-x}f(x)$ exists.
-      have hmax := @compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) (⟨0, begin simp only [set.left_mem_Icc], exact ht end⟩) (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
+      have hmax := @is_compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) (⟨0, begin simp only [set.left_mem_Icc], exact ht end⟩) (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
       choose max hmax using hmax,
       -- Let $M$ be $e^{t-max}f(max)$
       generalize hM :  abs (real.exp (t - max) * f_eval_on_ℝ f max) = M,

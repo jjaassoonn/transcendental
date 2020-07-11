@@ -117,7 +117,7 @@ $$
 \begin{aligned}
 |J_p(g)|&\le\sum_{i=0}^n \left|g_i ie^i \overline{f_{p,n}}(i)\right| &[{\tt abs\_J\_ineq1''} \textrm{ in } {\tt e\_transcendental.lean}]\\
 &\le(n+1)\max_{0\le i\le n}\{|g_i|\}(n+1)e^{n+1}(2(n+1))^{p+pn} &[{\tt sum\_ineq\_1}\textrm{ in }{\tt e\_transcendental.lean}]\\
-&\le(n+1)^p\left(\max_{0\le i\le n}\{|g_i|\}\right)^p(n+1)^p(2(n+1))^{p+pn}&[{\tt sum\_ineq\_2}\textrm{ in }{\tt e\_transcendental.lean}]\\
+&\le(n+1)^p\left(\max_{0\le i\le n}\{|g_i|\}\right)^p(n+1)^p\left(e^{n+1}\right)^p(2(n+1))^{p+pn}&[{\tt sum\_ineq\_2}\textrm{ in }{\tt e\_transcendental.lean}]\\
 &= M^p &[{\tt abs\_J\_upper\_bound}\textrm{ in }{\tt e\_transcendental.lean}]
 \end{aligned}
 $$

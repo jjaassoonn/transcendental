@@ -1,8 +1,8 @@
 [package]
 name = "play"
 version = "0.1"
-lean_version = "leanprover-community/lean-3.16.5"
+lean_version = "leanprover-community/lean:3.17.1"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "023d4f7d3c93ca8fc5ba1c39246117b85a2da9c5"}
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "d1e63f39860f5e348c6abe256f320f7254b51f57"}
