@@ -1310,7 +1310,8 @@ begin
   intro contra, replace contra := polynomial.ext_iff.1 (pow_eq_zero contra) 1, simp only [polynomial.coeff_X_one, one_ne_zero, polynomial.coeff_zero] at contra, exact contra,
 end
 
-theorem e_transcendental : ¬ is_algebraic ℤ e :=
+notation `transcendental` x := ¬(is_algebraic ℤ x)
+theorem e_transcendental : transcendental e :=
 begin
 -- main part
   by_contra e_algebraic,

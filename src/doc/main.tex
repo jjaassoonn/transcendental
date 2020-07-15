@@ -1,0 +1,98 @@
+\documentclass{report}
+\usepackage{fontspec}
+\setmonofont{FiraCode-Regular}
+
+\usepackage{natbib}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+
+\usepackage{minted}
+
+\title{A formalisation of transcendence of $e$}
+\author{Jujian Zhang}
+
+\begin{document}
+\maketitle
+
+% Abstract
+\abstract{}
+The objective of this report is to present formalisations of some basic theorems from transcendental number theory with {\tt Lean} and {\tt mathlib} in the hope that it will serve as a motivation for mathematicians to be more curious about interactive theorem proving. The following theorems are formalised:
+\begin{enumerate}
+  \item the set of algebraic numbers is countable, hence transcendental number exists:
+  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+theorem algebraic_set_countable : set.countable algebraic_set
+theorem transcendental_number_exists : ∃ x : ℝ, transcendental x
+  \end{minted}
+  \item all Liouville's numbers are transcendental:
+  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+theorem liouville_numbers_transcendental : 
+  ∀ x : ℝ, liouville_number x -> transcendental x
+  \end{minted}
+  \item $\alpha := \sum_{i=0}^\infty\frac1{10^{i!}}$ is a Liouville's number hence $\alpha$ is transcendental.
+  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+theorem liouville_α : liouville_number α
+theorem transcendental_α : transcendental α := 
+  liouville_numbers_transcendental α liouville_α
+
+  \end{minted} 
+
+  \item $e$ is transcendental:
+  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+theorem e_transcendental : transcendental e
+  \end{minted} 
+\end{enumerate}
+
+\section*{Disclaimer}
+
+The plan is to a self-contained report so that after chapter \ref{intro:lean} any reader even without prior exposure to interactive theorem proving will be able to understand \ref{fmlsn} where the details of formalisations and proofs reside. This should be relatively straightforward since the author is a {\tt Lean}-dilettantes at best with only a partial picture of the full language. For the same reason, much of the code is perhaps not idiomatic or even plainly bad, thus it is not advisable to use this as a tutorial.
+
+\tableofcontents
+
+\chapter{Overview}
+\section{Interactive theorem proving}
+Around 1920s, the German mathematician David Hilbert put forward the Hilbert programme to seek:
+\begin{enumerate}
+  \item an axiomatic foundation of mathematics;
+  \item a proof of consistency of the said foundation;
+  \item Entscheidungsproblem: an algorithm to determine if any proposition is universally valid given a set of axioms.
+\end{enumerate}
+The first two aims were later proved to be impossible by G\"odel and the celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interviewed as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer to execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm to spit out some unfathomable proofs, assuming computers are given the ability to check correctness of proofs, human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt Lean}. 
+
+The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' will serve as an illustrative example of utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that mathematician even with great effort could not guarantee its correctness. A collaborative project using {\tt Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt HOL Light}\footnote{ibid.} verified the proof around 2014 and hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Using {\tt Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise modern notion of perfectoid spaces \cite{buzzard2020formalising}.
+
+\section{History of transcendental number theory}
+
+``Transcendence'' as a mathematical jargon first appeared in a Leibniz's 1682 paper where he proved that $\sin$ is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
+$$p_0(x)+p_1(x)\sin(x)+p_2(x)\sin(x)^2+\cdots+p_n(x)\sin(x)^n=0$$
+holds for all $x\in\mathbb R$ \cite{bourbaki1998elements}. The Swiss mathematician Johann Heinrich Lambert in his 1768 paper proved the irrationality of $e$ and $\pi$ where he also conjectured their transcendence \cite{lambert2004memoire}. It is until 1844 that Joseph Liouville proved the existence of any transcendental numbers and until 1851 an explicit example of transcendental number is actually given by its decimal expansion:\cite{10.2307/1988833}
+$$\sum_{i=1}^\infty\frac1{10^{i!}}=0.11000100000\cdots.$$
+However, this construction is still artificial in nature. The first example of a real number proven to be transcendental that is not constructed for the purpose of being transcendental was $e$. Charles Hermite proved the transcendence of $e$ in 1873 with a method applicable with help of symmetric polynomial to transcendence of $\pi$ in 1882 and later to be generalised to Lindemann-Weierstrass theorem in 1885 stating that if $\alpha_1,\cdots, \alpha_n$ are distinct algebraic numbers then $e^{\alpha_1},\cdots,e^{\alpha_n}$ are linearly independent over the algebraic numbers \cite{baker1990transcendental}. The transcendence of $\pi$ was particularly celebrated because it immediately implied the impossibility of the ancient greek question of squaring the circle, i.e. it is not possible to construct a square, using compass and ruler only, with equal area to a circle. For this question is plainly equivalent to construct $\sqrt\pi$ which is not possible for otherwise $\pi$ is algebraic. Georg Cantor in 1874 proved that algebraic numbers are countable hence not only did transcendental numbers exist, they exist in a ubiquitous manner -- there is a bijection from the set of all transcendental numbers to $\mathbb R$ \cite{cantor1932uber,cantor1878beitrag}.
+
+In 1900, Hilbert proposed twenty-three questions, the 7th of which is regarding transcendental numbers: Is $a^b$ transcendental, for any algebraic number $a$ that is not $0$ or $1$ and any irrational algebraic number $b$? The answer is yes by Gelfond-Schneider theorem in 1934 \cite{gelfond1934septieme}. This has some immediate consequences such that
+\begin{enumerate}
+  \item $2^{\sqrt2}$ and its square root ${\sqrt2}^{\sqrt2}$ are transcendental;
+  \item $e^{\pi}$ is transcendental for $e^{\pi}=\left(e^{i\pi}\right)^{-i}=\left(-1\right)^{-i}$;
+  \item $i^i=e^{-\frac\pi2}$ is transcendental etc.
+\end{enumerate}
+In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$ etc are proven to be transcendental. It is also conjectured that given any $n$ $\mathbb Q-$linearly independent $z_1,\cdots, z_n\in\mathbb C$, then $\mathrm{trdeg}\left(\mathbb Q(z_1,\cdots, zn, e^{z_1},\cdots, e^{z_n})/\mathbb Q\right)$ is at least $n$ \cite{lang1966introduction}.
+
+\chapter{Brief introduction to {\tt Lean}}\label{intro:lean}
+
+
+
+\chapter{Formalisation using {\tt Lean}}\label{fmlsn}
+\section{Countability argument}\label{fmlsn:count}
+\section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
+\section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
+
+\chapter{Further Work}
+
+%% \section{Reflection}
+
+\bibliographystyle{plainnat}
+\nocite{*}
+\bibliography{ref}
+
+\end{document}

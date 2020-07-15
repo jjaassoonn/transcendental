@@ -717,21 +717,22 @@ theorem algebraic_set'_n_countable (n : nat) :                                  
 theorem algebraic_set'_countable : set.countable algebraic_set' :=                -- So the set of roots of non-zero polynomial is countable
   set.countable_Union (λ n, algebraic_set'_n_countable n.succ)                    -- being countable union of countable set
 
-theorem countable_algebraic_set : set.countable algebraic_set :=                  -- So the set of algebraic number (no matter which evaluation method we are using)
+theorem algebraic_set_countable : set.countable algebraic_set :=                  -- So the set of algebraic number (no matter which evaluation method we are using)
 begin                                                                             -- is countable
   rw <-algebraic_set'_eq_algebraic_set, exact algebraic_set'_countable
 end
 
 def real_set : set ℝ := @set.univ ℝ                                               -- the set ℝ
+notation `transcendental` x := ¬(is_algebraic ℤ x)
 
-theorem transcendental_number_exists : ∃ x : real, ¬ (is_algebraic ℤ x) :=        -- Since ℝ is uncouble, algebraic numbers are countable
+theorem transcendental_number_exists : ∃ x : ℝ, transcendental x :=        -- Since ℝ is uncouble, algebraic numbers are countable
 begin                                                                             
   have H : algebraic_set ≠ real_set,                                              -- ℝ ≠ algebraic_set
   {                                                                               -- otherwise ℝ must be countable which is not true
     intro h1,
     have h2 : set.countable real_set,
     {
-      rw <-h1, exact countable_algebraic_set,
+      rw <-h1, exact algebraic_set_countable,
     },
     have h3 : ¬ set.countable real_set := cardinal.not_countable_real,
     exact h3 h2,

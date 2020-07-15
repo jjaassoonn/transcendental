@@ -12,7 +12,7 @@ open_locale classical
   for every natural number, there is a rational number a/b such that 0 < |x - a/b| < 1/bⁿ 
 -/
 
-def transcendental (x : ℝ) := ¬(is_algebraic ℤ x)
+notation `transcendental` x := ¬(is_algebraic ℤ x)
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
@@ -540,7 +540,7 @@ begin
   },
 end
 
-theorem liouville_numbers_transcendental : ∀ x : real, liouville_number x -> ¬(is_algebraic ℤ x) := 
+theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x := 
 begin
   intros x li_x,                                                                  -- Let $x$ be any Liouville's number,
   have irr_x : irrational x, exact liouville_numbers_irrational x li_x,           -- Then by previous theorem, it is irrational.
