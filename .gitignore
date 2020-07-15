@@ -1,3 +1,13 @@
 *.olean
+*.aux
+*.bbl
+*.blg
+*.log
+*.fdb_latexmk
+*.fls
+/src/doc/*.gz
+*.toc
+*.pygtex
+*.pygstyle
 /_target
 /leanpkg.path
