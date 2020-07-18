@@ -9,5 +9,8 @@
 *.toc
 *.pygtex
 *.pygstyle
+*.bcf
+*.run.xml
+src/doc/test.lean
 /_target
 /leanpkg.path
