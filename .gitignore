@@ -10,6 +10,9 @@
 *.pygtex
 *.pygstyle
 *.bcf
+*.pyg
+*.lol
+*.xdv
 *.run.xml
 src/doc/test.lean
 /_target

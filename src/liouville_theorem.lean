@@ -6,13 +6,14 @@ import small_things
 noncomputable theory
 open_locale classical
 
+
+notation `transcendental` x := ¬(is_algebraic ℤ x)
 /--
 - a number is transcendental ↔ a number is not algebraic
 - a Liouville's number $x$ is a number such that
   for every natural number, there is a rational number a/b such that 0 < |x - a/b| < 1/bⁿ 
 -/
 
-notation `transcendental` x := ¬(is_algebraic ℤ x)
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 

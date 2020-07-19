@@ -23,40 +23,42 @@
 
 \begin{document}
 \maketitle
+\tableofcontents
 
 % Abstract
 \abstract{}
 The objective of this report is to present formalisations of some basic theorems from transcendental number theory with {\tt Lean} and {\tt mathlib} in the hope that it will serve as a motivation for mathematicians to be more curious about interactive theorem proving. The following theorems are formalised:
 \begin{enumerate}
   \item the set of algebraic numbers is countable, hence transcendental number exists:
-  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem algebraic_set_countable : set.countable algebraic_set
 theorem transcendental_number_exists : ∃ x : ℝ, transcendental x
-  \end{minted}
+\end{minted}
+
   \item all Liouville's numbers are transcendental:
-  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_numbers_transcendental : 
   ∀ x : ℝ, liouville_number x -> transcendental x
-  \end{minted}
+\end{minted}
+
   \item $\alpha := \sum_{i=0}^\infty\frac1{10^{i!}}$ is a Liouville's number hence $\alpha$ is transcendental.
-  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_α : liouville_number α
 theorem transcendental_α : transcendental α := 
   liouville_numbers_transcendental α liouville_α
-
-  \end{minted} 
+\end{minted}
 
   \item $e$ is transcendental:
-  \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem e_transcendental : transcendental e
-  \end{minted} 
+\end{minted}
 \end{enumerate}
 
 \section*{Disclaimer}
 
 The plan is to a self-contained report so that after chapter \ref{intro:lean} any reader even without prior exposure to interactive theorem proving will be able to understand \ref{fmlsn} where the details of formalisations and proofs reside. This should be relatively straightforward since the author is a {\tt Lean}-dilettantes at best with only a partial picture of the full language. For the same reason, much of the code is perhaps not idiomatic or even plainly bad, thus it is not advisable to use this as a tutorial.
-
-\tableofcontents
 
 \chapter{Overview}
 \section{Interactive theorem proving}
@@ -70,7 +72,7 @@ The first two aims were later proved to be impossible by G\"odel and the celebra
 
 The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' will serve as an illustrative example of utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that mathematician even with great effort could not guarantee its correctness. A collaborative project using {\tt Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt HOL Light}\footnote{ibid.} verified the proof around 2014 and hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Using {\tt Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise modern notion of perfectoid spaces \cite{buzzard2020formalising}.
 
-\section{History of transcendental number theory}
+\section{History of transcendental numbers}
 
 ``Transcendence'' as a mathematical jargon first appeared in a Leibniz's 1682 paper where he proved that $\sin$ is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
 $$p_0(x)+p_1(x)\sin(x)+p_2(x)\sin(x)^2+\cdots+p_n(x)\sin(x)^n=0$$
@@ -96,15 +98,15 @@ Unlike set theory where everything from natural numbers to modular forms is esse
   \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the element of type $\alpha\to\beta$ is a function that for any element of $\alpha$ gives an element of $\beta$. For mathematician this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. This can be thought of $\mapsto$. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$.
   \item let $\alpha$ and $\beta$ be types then $\alpha\times\beta$ is the cartesian product of $\alpha$ and $\beta$: the element of type $\alpha\times\beta$ is an ordered tuple $(a,b)$ where $a:\alpha$ and $b:\beta$.
   \item Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of type that for any $a:\alpha$,$\beta(a)$ is a type in $\mathcal U$. Then we can form the $\Pi$-type $$\prod_{a:\alpha}\beta(a)$$ whose element is of the form $f:\prod_{a:\alpha}\beta(a)$ such that for any $x:\alpha$, $f(x):\beta(x)$. Note that function type is actually an example of $\Pi$-type where $\beta$ is a constant family of types. For this reason, we also call $\Pi$-types dependent functions. For example if $\mathrm{Vec}(\mathbb{R},n)$ is the type of $\mathbb R^n$, then 
-    $$n\mapsto\underbrace{(1,\cdots,1)}_{n\text{ times}}:\prod_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$.
-  % \item We also have dependent cartesian product or $\Sigma$-type: Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types in $\mathcal U$, then the $\Sigma$-type $$\sum_{a:\alpha}\beta(a)$$ whose element is of the form $(x,y):\sum_{a:\alpha}\beta(a)$ such that $x:\alpha$ and $y:\beta(x)$. Similarly $$\left(n,\underbrace{(1,\cdots,1)}_{n\text{ times}}\right):\sum_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$.
+    $$n\mapsto\underbrace{(1,\cdots,1)}_{n\text{ times}}:\prod_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
+  \item We also have dependent cartesian product or $\Sigma$-type: Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types in $\mathcal U$, then the $\Sigma$-type $$\sum_{a:\alpha}\beta(a)$$ whose element is of the form $(x,y):\sum_{a:\alpha}\beta(a)$ such that $x:\alpha$ and $y:\beta(x)$. Similarly $$\left(n,\underbrace{(1,\cdots,1)}_{n\text{ times}}\right):\sum_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
 \end{itemize}
 
 \subsection{Proposition as type}
 In type theory, a proposition $p$ can be thought as a type whose elements is a proof of $p$.
 
 \begin{example}
-$1+1=2$ is a proposition. \mintinline{Lean}{rfl} is an element of type $1+1=2$ where \mintinline{Lean}{rfl} is the assertion that every term equals to itself.
+$1+1=2$ is a proposition. {\tt rfl} is an element of type $1+1=2$ where {\tt rfl} is the assertion that every term equals to itself.
 \end{example}
 
 \begin{example}
@@ -132,6 +134,7 @@ def name' {arg|$_1$|:type|$_1$|} ... (arg|$_n$|:type|$_n$|) : return_type := con
 \end{minted}
 Sometimes {\tt return\_type} can be dropped when it can be inferred from {\tt contents}. If an argument is surrounded by curly bracket instead of round bracket, then when the definition is invoked the said argument is implicit, i.e. {\tt name' a$_2$ ... a$_n$} where {\tt a$_i$:type$_i$}. To explicitly mention the said argument, one needs to use {\tt @name' a$_1$ ... a$_n$} where {\tt a$_i$:type$_i$}
 Theorems or lemmas are introduced with the following syntax:
+
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem name (arg|$_1$|:type|$_1$|) ... (arg|$_n$|:type|$_n$|) : content :=
 begin
@@ -139,90 +142,242 @@ begin
 end
 \end{minted}
 
-To write a proof understandable to {\tt Lean}, one need to use {\it tactic mode}, i.e. a sequence of commands to convert a goal into another set of goals. 
+To write a proof understandable to {\tt Lean}, one need to use {\it tactic mode}. In {\tt Lean}, one can use
+\begin{itemize}
+  \item proof by induction: if the goal is a proposition about natural number $n$, {\tt induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first goal is to prove the proposition for $n=0$ and the second goal is to prove the proposition $n+1$ with the additional inductive hypothesis {\tt IH};
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem awesome_theorem_about_natural_number (n : ℕ) : proposition|$_\mathtt{n}$| :=
+begin
+  induction n with n IH,
+
+  a_proof_of_proposition|$_\mathtt{0}$|
+
+  -- (IH : proposition$_\mathtt{n}$) is now in context
+  a_proof_of_proposition|$_\mathtt{n+1}$|
+end
+\end{minted}
+
+  \item proof by contradiction: if the goal is to prove proposition $H$, {\tt by\_contra absurdum} will add {\tt absurdum : $\neg H$} into the current context and turn the goal into proving {\tt false};
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem awesome_theorem : awesome_proposition :=
+begin
+by_contra absurdum,
+
+-- Now (absurdum : $\neg$ awesome_proposition) is in context and the goal is to prove falsehood.
+a_proof_of_falsehood
+end
+\end{minted}
+
+  \item other tactics to finish or convert current goal into another set of goals:
+  \begin{itemize}
+    \item {\tt have H := content} will introduce a new proposition whose proof is given by {\tt content}.
+    
+    {\tt have H : some\_proposition} will add one more goal of proving the proposition then introduce the proved proposition to the current context.
+  
+    \item {\tt unfold definition} is to unfold a definition to what is explicitly defined when the definition is introduced.
+  
+    \item {\tt simp} will simplify the goal with lemmas with an {\tt @[simp]} tag. These lemmas are usually small and trivial like $\forall m\in\mathbb N, 0+m=0$\footnote{this one is called {\tt nat.zero\_add}}.
+    
+    {\tt simp only [h1, \dots hn]} is to simplify only using {\tt h1 }\dots{\tt{ hn}}.
+
+    \item {\tt rw} is for term rewriting. For example, if we have {\tt h : lhs = rhs} or {\tt lhs<->rhs}, then {\tt rw h} will replace every occurrence of {\tt lhs} with {\tt rhs} and {\tt rw <-h} will replace every occurrence of {\tt rhs} with {\tt lhs}. 
+    
+    {\tt rw [h1, h2,..., hn]} is the same as {\tt rw h1, rw h2,..., rw hn}.
+    \item Since {\tt rw} and {\tt simp} will change all occurrence, this sometimes would be inconvenient. {\tt conv\_lhs \{tactics\}} will confine the scope of {\tt tactics} only to left hand side. Similarly {\tt conv\_rhs \{tactics\}} will confine the scope to right hand side.
+    \item Given (a proof of) proposition {\tt H: h1 -> h2}, then {\tt apply H} will change the goal of proving {\tt h2} to prove {\tt h1}.
+    \item {\tt ring} will try to prove the current goal using associativity and commutativity of addition and multiplication.
+    \item {\tt linarith} is used when proving inequality from context. {\tt linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt linarith} failed, one has to either provide {\tt linarith} with more propositions or use other tactics to change goal into something more manageable for {\tt linarith}.
+    
+    {\tt linarith [h1, ..., hn]} is equivalent to use {\tt linarith} with additional (proofs of) propositions {\tt h1} \dots {\tt { hn}}.
+    \item If {\tt H} is already in context then {\tt replace H := content} will change {\tt H} to a proof of the proposition that {\tt content} is proving.
+    
+    {\tt replace H : some\_proposition} will add one more goal of proving {\tt some\_proposition} and then replace {\tt H} to the proposition proven.
+    \item {\tt generalise H : lhs = var\_name} will set {\tt var\_name} to {\tt lhs} and add (proof of) the proposition {\tt H : lhs = var\_name} to the current context.
+    \item {\tt refl} (for reflexive) is used to prove proposition of the form {\tt lhs = rhs} when {\tt lhs} is {\bf definitionally} equal to {\tt rhs}. Definitional equality is more general than two string being literally identical but is less general than being (canonical) isomorphic. For example
+    $$
+  \sum_{i=0}^\infty \frac{1}{2^i}=\sum_{j=0}^\infty \frac{1}{2^j}
+    $$
+    is a definitional equality but
+    $$
+  \mathbb R^n = \mathrm{Func}\left(\{0,\cdots, n-1\},\mathbb R\right)
+    $$ is not a definitional equality (strictly speaking perhaps not an equality at all).
+  \item {\tt exact H} will prove current goal if the goal is definitionally equal to H. 
+  \item {\tt suffices H : some\_proposition} ask a proof of the current goal with additional {\tt H}, then ask for a proof of {\tt H}.
+  \item {\tt norm\_cast} is convert the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt Lean} is equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
+  
+  {\tt norm\_num} is equivalent to {\tt norm\_cast, simp}.
+  \item {\tt ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt ext}, an arbitrary element {\tt x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt ext var\_name} will force {\tt Lean} to introduce new variable under the identifier {\tt var\_name}.
+  \item If {\tt H : ∃ x : type, property\_about\_x} is in the current context, {\tt choose x hx using H} will introduce {\tt x:type} with the assumption {\tt property\_about\_x} to the current context. 
+  \item If {\tt H : $p\land q$} is in the current context, then {\tt H.1} is a proof of $p$ and {\tt H.2} is a proof of $q$.
+  \item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
+  \end{itemize}
+\end{itemize}
 
 % In the formalisation, {\tt simp}, {\tt ring}, {\tt rw}, {\tt apply}, {\tt linarith}, {\tt replace}, {\tt generalise}, {\tt refl}, {\tt exact}, {\tt split}, {\tt suffices}, {\tt norm\_cast}, {\tt norm\_num}, {\tt ext} and {\tt choose} are used.
 
-\begin{itemize}
-  \item \mintinline{Lean}{have H := content} will introduce a new proposition whose proof is given by {\tt content}.
-  
-  \mintinline{Lean}{have H : some_proposition} will add one more goal of proving the proposition then introduce the proved proposition to the current context.
-
-  \item {\tt unfold definition} is to unfold a definition to what is explicitly defined when the definition is introduced.
-  \item If the goal is a proposition about natural number $n$, {\tt induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first goal is to prove the proposition for $n=0$ and the second goal is to prove the proposition $n+1$ with the additional inductive hypothesis {\tt IH}.
-  \item If the goal is to prove {\tt h1$\to$h2} then \mintinline{Lean}{intro h1} will add {\tt h1} to current context and convert the goal to prove {\tt h2}.
-  
-  Similarly if the goal is to prove {\tt $\forall $x:type, property\_about\_x}, then {\tt intro x} will fix an arbitrary {\tt x:type} then convert the goal to prove {\tt property\_about\_x}.
-
-  There is also {\tt intros} to prove goals like {\tt h1$\to$...$\to$hn} or {\tt $\forall$x,$\forall$y,...} instead of using {\tt intro} multiple times.
-
-  \item {\tt simp} will simplify the goal with lemmas with an \mintinline{Lean}{@[simp]} tag. These lemmas are usually small and trivial like $\forall m\in\mathbb N, 0+m=0$\footnote{this one is called {\tt nat.zero\_add}}.
-  
-  \mintinline{Lean}{simp only [h1, ..., hn]} is to simplify only using {\tt h1 }\dots{\tt{ hn}}.
-  \item {\tt ring} will try to prove the current goal using associativity and commutativity of addition and multiplication.
-  \item {\tt rw} is for term rewriting. For example, if we have \mintinline{Lean}{h : lhs = rhs} or \mintinline{Lean}{lhs<->rhs}, then \mintinline{Lean}{rw h} will replace every occurrence of {\tt lhs} with {\tt rhs} and \mintinline{Lean}{rw <-h} will replace every occurrence of {\tt rhs} with {\tt lhs}. 
-  
-  \mintinline{Lean}{rw [h1, h2,..., hn]} is the same as \mintinline{Lean}{rw h1, rw h2,..., rw hn}.
-  \item Given (a proof of) proposition \mintinline{Lean}{H:h1->h2}, then \mintinline{Lean}{apply H} will change the goal of proving \mintinline{Lean}{h2} to prove \mintinline{Lean}{h1}.
-  \item \mintinline{Lean}{linarith} is used when proving inequality from context. \mintinline{Lean}{linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If \mintinline{Lean}{linarith} failed, one has to either provide \mintinline{Lean}{linarith} with more propositions or use other tactics to change goal into something more manageable for \mintinline{Lean}{linarith}.
-  
-  \mintinline{Lean}{linarith [h1, ..., hn]} is equivalent to use \mintinline{Lean}{linarith} with additional (proofs of) propositions {\tt h1} \dots {\tt { hn}}.
-  \item If {\tt H} is already in context then \mintinline{Lean}{replace H := content} will change {\tt H} to the proposition that {\tt content} is proving. 
-  
-  \mintinline{Lean}{replace H : some_proposition} will add one more goal of proving \mintinline{Lean}{some_proposition} and then replace {\tt H} to the proposition proven.
-  \item \mintinline{Lean}{generalise H : lhs = var_name} will set {\tt var\_name} to {\tt lhs} and add (proof of) the proposition \mintinline{Lean}{H : lhs = var_name} to the current context.
-  \item {\tt refl} (for reflexive) is used to prove proposition of the form {\tt lhs = rhs} when {\tt lhs} is {\bf definitionally} equal to {\tt rhs}. Definitional equality is more general than two string being literally identical but is less general than being (canonical) isomorphic. For example
-  $$
-\sum_{i=0}^\infty \frac{1}{2^i}=\sum_{j=0}^\infty \frac{1}{2^j}
-  $$
-  is a definitional equality but
-  $$
-\mathbb R^n = \mathrm{Func}\left(\{0,\cdots, n-1\},\mathbb R\right)
-  $$ is not a definitional equality (strictly speaking perhaps not an equality at all).
-\item {\tt exact H} will prove current goal if the goal is definitionally equal to H. 
-\item \mintinline{Lean}{split} is used to prove goal of the form $h_1 \land h_2$. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively.
-\item \mintinline{Lean}{suffices H : some_proposition} ask a proof of the current goal with additional {\tt H}, then ask for a proof of {\tt H}.
-\item \mintinline{Lean}{norm_cast} is convert the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after \mintinline{Lean}{norm_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt Lean} is equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
-
-\mintinline{Lean}{norm_num} is equivalent to \mintinline{Lean}{norm_cast, simp}.
-\item \mintinline{Lean}{ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt ext}, an arbitrary element {\tt x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt ext var\_name} will force {\tt Lean} to introduce new variable under the identifier {\tt var\_name}.
-\item If \mintinline{Lean}{H : ∃ x : type, property_about_x} is in the current context, \mintinline{Lean}{choose x hx using H} will introduce {\tt x:type} with the assumption {\tt property\_about\_x} to the current context. 
-\item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
-\end{itemize}
-
-A proposition if not atomic is either a conjunction, a disjunction, or a proposition bounded by universal quantifier or existential quantifier.
-
-If goal is to prove a conjunction, for example $p \land q$. Then the general pattern of how a proof proceeds
 
 
-\begin{example}
-We can define the mean value of two real numbers by
+A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
+
+\subsection{prove a conjunction}\label{lean:conj}
+If goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
+
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
-def mean (x y : ℝ) : ℝ := (x + y) / 2
-\end{minted}
-Then \mintinline{Lean}{mean}\footnote{\mintinline{Lean}{mean} is not a function $\mathbb R^2\to\mathbb R$ but a function $\mathbb R\to\mathrm{Func}(\mathbb R,\mathbb R)$. This is called currying of a function} has type $\mathbb R\to \mathbb R\to \mathbb R$, \mintinline{Lean}{mean 1} has type $\mathbb R\to \mathbb R$ and \mintinline{Lean}{mean 1 2} has type $\mathbb R$. We can introduce and prove a little theorem about \mintinline{Lean}{mean} that the mean value of two numbers is greater than or equal to the minimum of the two numbers.
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
-theorem min_le_mean (x y : ℝ) : min x y ≤ (mean x y) :=
+theorem how_to_prove_conjunction (|$h_1$| : Prop) (|$h_2$| : Prop) : |$h_1\land h_2$| :=
 begin
+split,
+
+proof_of_|$h_1$|
+
+proof_of_|$h_2$|
+end
+\end{minted}
+
+
+\subsection{prove a disjunction}\label{lean:disjun}
+If the goal is to prove a disjunction of the form $h_1 \lor h_2$, one can use {\tt left} to change the goal to prove $h_1$ or {\tt right} to change the goal to prove $h_2$. Let us assume $h_1$ is a true proposition :
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem how_to_prove_disjunction (|$h_1$| : Prop) (|$h_2$| : Prop) : |$h_1\lor h_2$| :=
+begin
+left,
+  
+proof_of_|$h_1$|
+end
+\end{minted}
+
+
+\subsection{prove an implication}\label{lean:imp}
+If the goal is to prove an implication of the form $p \implies q$, one can use {\tt intro h$p$} to add {\tt h$p$:$p$} a proof of $p$ into the context and convert goal to prove $q$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem how_to_prove_implication (|$p$| : Prop) (|$q$| : Prop) : |$p$| -> |$q$| :=
+begin
+intro h|$p$|,
+  
+proof_of_|$q$|
+end
+\end{minted}
+
+If the goal is of the form $p_1\to p_2\to\dots p_n$, one can use {\tt intros h$p_1$ \dots h$p_n$} as an abbreviation of {\tt intro h$p_1$, intro h$p_2$,\dots, intro h$p_n$}.
+
+
+\subsection{prove an equivalence}\label{lean:eqv}
+An equivalence of the form $p \iff q$ is by definition $p\implies q \land q\implies p$. Thus by {\tt split} will change the goal to two goals, one to prove $p\implies q$, the other to prove $q \implies p$. Then use section \ref{lean:imp}.
+
+\subsection{prove a negation}
+A negation of the form $\neg p$ is by definition $p \implies \bot$. Thus {\tt intro h$p$} will add {\tt h$p$:$p$} to current context and convert the goal to prove a falsehood.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem how_to_prove_negation (|$p$| : Prop) : |$\neg p$| :=
+begin
+intro h|$p$|,
+
+proof_of_falsehood
+end
+\end{minted}
+
+\subsection{prove a proposition with $\forall$}\label{lean:forall}
+A proposition of the form $\forall a : \alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt Prop}$ can be proved also using {\tt intro $x_0$}. This will add an arbitrary $x_0:\alpha$ to the current context and change the goal to prove $p(x_0)$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∀ a : α, p a :=
+begin
+intro |$x_0$|,
+
+a_proof_of_|$p(x_0)$|
+end
+\end{minted}
+
+If the goal is the form $\forall a_1:\alpha_1,\forall a_2:\alpha_2,\dots,\forall a_n:\alpha_n, p\ a_1\ a_2\ \dots\ a_n$ can be proved using {\tt intros $a_1$ $a_2$ \dots\  $a_n$} as an abbreviation of {\tt intro $a_1$, intro $a_2$,\dots, intro $a_n$}.
+
+\subsection{prove a proposition with $\exists$}\label{lean:exists}
+A proposition of the form $\exists a:\alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt Prop}$ can be proved by {\tt use $x_0$}. This will convert the goal to prove $p(x_0)$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∃ a : α, p a :=
+begin
+a_construction_of_|$x_0$|
+
+use |$x_0$|,
+  
+a_proof_of_|$p(x_0)$|
+end
+\end{minted}
+
+
+\section{An example}
+To illustrate the above syntax and patterns, we present an example of defining mean and proving some basic properties thereof.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+import data.real.basic |\label{import:real}|
+import tactic |\label{import:tactic}|
+  
+noncomputable theory |\label{noncomputable}|
+open_locale classical |\label{proof_by_contradiction}|  
+
+def mean (x y : ℝ) : ℝ := (x + y) / 2 |\label{example:def}|
+  
+theorem min_le_mean : ∀ x y : ℝ, min x y ≤ (mean x y) := |\label{example:thm_begin}|
+begin
+intros x y,
 have ineq1 : min x y ≤ x := min_le_left x y,
 have ineq2 : min x y ≤ y := min_le_right x y,
-  
+    
 unfold mean, rw le_div_iff, rw mul_two, 
 apply add_le_add, 
 exact ineq1, exact ineq2, 
-
+  
 linarith,
 end
+  
+theorem mean_le_max : ∀ x y : ℝ, (mean x y) ≤ max x y :=
+begin
+intros x y,
+have ineq1 : x ≤ max x y := le_max_left x y,
+have ineq2 : y ≤ max x y := le_max_right x y,
+  
+unfold mean, rw div_le_iff, rw mul_two,
+apply add_le_add,
+exact ineq1, exact ineq2,
+  
+linarith,
+end |\label{example:thm_end}|
+  
+theorem a_number_in_between : 
+  ∀ x y : ℝ, x ≤ y -> ∃ z : ℝ, x ≤ z ∧ z ≤ y :=
+begin
+intros x y hxy,
+have ineq1 := min_le_mean x y,
+have ineq2 := mean_le_max x y,
+have min_eq_x := min_eq_left hxy,
+have max_eq_y := max_eq_right hxy,
+use mean x y,
+split,
+  
+{ conv_lhs {rw <-min_eq_x}, exact ineq1, },
+{ conv_rhs {rw <-max_eq_y}, exact ineq2, },
+end
+
 \end{minted}
-where
+
+Line \ref{import:real} will make basic properties of real available to use and line \ref{import:tactic} will make all the tactics we discussed amongst other more advanced tactics available to use. We add line \ref{noncomputable} so that {\tt lean} would ignore the issue of computability and line \ref{proof_by_contradiction} so that we can use proof by contradiction\footnote{{\tt Lean} by default use constructivism where $\neg\neg p\implies p$ is not an axiom. Thus the law of excluded middle is not by default a tautology, hence one could not prove by contradiction.}. 
+
+We define the mean value of two real numbers on line \ref{example:def}. Then {\tt mean}\footnote{{\tt mean} is not a function $\mathbb R^2\to\mathbb R$ but a function $\mathbb R\to\mathrm{Func}(\mathbb R,\mathbb R)$. This is called currying.} has type $\mathbb R\to \mathbb R\to \mathbb R$, {\tt mean 1} has type $\mathbb R\to \mathbb R$ and {\tt mean 1 2} has type $\mathbb R$. 
+
+We can introduce and prove theorems about {\tt mean} that the mean value of two numbers is greater than or equal to the minimum of the two numbers but less than the maximum of the two numbers. This is from line \ref{example:thm_begin} to line \ref{example:thm_end} where
 \begin{itemize}
-\item \mintinline{Lean}{min_le_left} is a proof of the proposition $\forall (x\ y : type), \min(x, y) \le x$ where $type$ is an implicit argument with a linear order defined. In this case, {\tt Lean} infers from context that $type$ is $\mathbb R$. Thus \mintinline{Lean}{min_le_left x y} is a proof of \mintinline{Lean}{min x y ≤ x}.
-\item \mintinline{Lean}{min_le_right} is a proof of the proposition $\forall (x\ y : type), \min(x, y) \le y$ where $type$ is an implicit argument with a linear order defined. In this case, {\tt Lean} infers from context that $type$ is $\mathbb R$. Thus \mintinline{Lean}{min_le_right x y} is a proof of \mintinline{Lean}{min x y ≤ y}.
-\item \mintinline{Lean}{le_div_iff} is a proof that $0 < c \to (a \le \frac{b}{c} \iff a\times c \le b)$ where $a,b,c$ are elements of a linear ordered field structure. So by \mintinline{Lean}{le_div_iff}, the goal would change from {\tt min x y ≤ (x + y) / 2} to {\tt min x y * 2 ≤ x + y}. Since \mintinline{Lean}{le_div_iff} requires the assumption that $0<c$, a new goal is created after the original goal to prove that {\tt 0 < 2} which is proved by the final \mintinline{Lean}{linarith}.
-\item \mintinline{Lean}{mul_two} proves the lemma that $\forall n:\alpha, n\times 2 = n+n$ where $\alpha$ is a semiring. Thus {\tt rw mul\_two} would change the goal of proving {\tt min x y * 2 ≤ x + y} to {\tt min x y + min x y ≤ x + y}.
-\item \mintinline{Lean}{add_le_add} proves the lemma that $a \le b \to c \le d \to a + c \le b + d$ where $a$, $b$, $c$ and $d$ are elements of an ordered additive commutative monoid. Since the goal now is to prove {\tt min x y + min x y ≤ x + y}, by {\tt apply add\_le\_add}, goal will be replaced by two goals of proving {\tt min x y ≤ x} and {\tt min x y ≤ y}. These are {\it exactly} {\tt ineq1} and {\tt ineq2}.
+  \item {\tt min\_le\_left} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le x$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt Lean} infers from context that $\alpha$ is $\mathbb R$. Thus {\tt min\_le\_left x y} is a proof of {\tt min x y ≤ x}.
+  \item Similarly, {\tt min\_le\_right} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le y$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt min\_le\_right x y} is a proof of {\tt min x y ≤ y}.
+  \item Similarly, {\tt le\_max\_left} is a proof of the proposition $\forall (x\ y : \alpha), x \le \max(x, y)$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt le\_max\_left} is a proof of {\tt x ≤ max x y}.
+  \item Similarly, {\tt le\_max\_right} is a proof of the proposition $\forall (x\ y : \alpha), y \le \max(x, y)$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt le\_max\_right} is a proof of {\tt y ≤ max x y}.
+  \item {\tt le\_div\_iff} is a proof that $0 < c \to (a \le \frac{b}{c} \iff a\times c \le b)$ where $a,b,c$ are elements of a type with a linear ordered field structure. So by {\tt rw le\_div\_iff}, the goal would change from {\tt min x y ≤ (x + y) / 2} to {\tt min x y * 2 ≤ x + y}. Since {\tt le\_div\_iff} requires the assumption that $0<c$, a new goal to prove that {\tt 0 < 2} is created after the original goal. This goal is proved by the final {\tt linarith}.
+  \item {\tt div\_le\_iff} is proof that $0 < b \implies (\frac a b \le c \iff a \le c \times b)$ where $a,b,c$ are elements of a type with a linear ordered field structure. So by {\tt rw div\_le\_iff} the goal would change from {\tt (x + y) / 2 ≤ max x y} to {\tt x + y ≤ max x y * 2}. Since {\tt div\_le\_iff} requires the assumption that $0 < b$, a new goal to prove $0 < 2$ is created after the original goal. This goal is proved by the final {\tt linarith}.
+  \item {\tt mul\_two} proves the lemma that $\forall n:\alpha, n\times 2 = n+n$ where $\alpha$ is a semiring. Thus {\tt rw mul\_two} would change the goal of proving {\tt min x y * 2 ≤ x + y} ({\tt x + y ≤ max x y * 2} resp.) to {\tt min x y + min x y ≤ x + y} ({\tt x + y ≤ max x y + max x y} resp.).
+  \item {\tt add\_le\_add} proves the lemma that $a \le b \to c \le d \to a + c \le b + d$ where $a$, $b$, $c$ and $d$ are elements of an ordered additive commutative monoid. Since the goal now is to prove {\tt min x y + min x y ≤ x + y}, by {\tt apply add\_le\_add}, goal will be replaced by two goals of proving {\tt min x y ≤ x} and {\tt min x y ≤ y}. These are {\it exactly} {\tt ineq1} and {\tt ineq2}.
 \end{itemize}
-\end{example}
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
 
@@ -244,12 +399,19 @@ There are five main files in the formalisation where
 \section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
 \section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
 
-\chapter{Further Work}
+% \chapter{Further Work}
+% An immediate next step would be formalising the transcendence of $\pi$.
 
-%% \section{Reflection}
+\chapter*{Reflection}
+\addcontentsline{toc}{chapter}{Reflection}
 
 %\bibliographystyle{alphanat}
 \nocite{*}
-\printbibliography
+\printbibliography[heading=bibintoc]
 
+% \inputminted[breaklines]{lean}{../small_things.lean}
+% \inputminted[breaklines]{lean}{../algebraic_countable_over_Z.lean}
+% \inputminted[breaklines]{lean}{../liouville_theorem.lean}
+% \inputminted[breaklines]{lean}{../e_trans_helpers2.lean}
+% \inputminted[breaklines]{lean}{../e_transcendental.lean}
 \end{document}
