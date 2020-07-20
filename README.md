@@ -63,4 +63,4 @@ axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
 Please see [this](https://jjaassoonn.github.io/e_transcendence_doc.html) for an explanation of the proof of transcendence of $e$ with reference to Lean code.
 
 I haven't finished documentation (not even close), but you can click around the proves I documented so far
-at [e_trans_helpers2.lean](https://jjaassoonn.github.io/transcendental/html/e_trans_helpers.html) and[e_transcendental.lean](https://jjaassoonn.github.io/transcendental/html/e_transcendental.html).
+at [e_trans_helpers2.lean](https://jjaassoonn.github.io/transcendental/html/e_trans_helpers2.html) and[e_transcendental.lean](https://jjaassoonn.github.io/transcendental/html/e_transcendental.html).

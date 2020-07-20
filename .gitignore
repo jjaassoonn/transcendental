@@ -14,6 +14,7 @@
 *.lol
 *.xdv
 *.run.xml
+*.DS_Store
 src/doc/test.lean
 /_target
 /leanpkg.path

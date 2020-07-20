@@ -649,9 +649,9 @@ end
 
 -- n ≤ n!
 lemma n_le_n_fact : ∀ n : nat, n ≤ n.fact
-| 0                         := by norm_num
-| 1                         := by norm_num
-| (nat.succ (nat.succ n))   := begin 
+| 0       := by norm_num
+| 1       := by norm_num
+| (n+2)   := begin
     have H := n_le_n_fact n.succ,
     conv_rhs {rw (nat.fact_succ n.succ)},
     have ineq1 : n.succ.succ * n.succ ≤ n.succ.succ * n.succ.fact, {exact nat.mul_le_mul_left (nat.succ (nat.succ n)) (n_le_n_fact (nat.succ n))},

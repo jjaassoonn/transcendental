@@ -1,5 +1,5 @@
 \documentclass{report}
-% \usepackage{hyperref}
+\usepackage{hyperref}
 \usepackage{fontspec}
 \setmainfont{CMU Serif}
 \setmonofont{FiraCode-Regular}
@@ -381,18 +381,27 @@ We can introduce and prove theorems about {\tt mean} that the mean value of two 
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
 
-% algebraic_over_Z.lean
+% % algebraic_over_Z.lean
 % % small_things.lean
-% e_trans_helpers2.lean
-% e_transcendental.lean
-% liouville.lean
+% % e_trans_helpers2.lean
+% % e_transcendental.lean
+% % liouville.lean
 
 \section*{Logistics of the formalisation}
 \addcontentsline{toc}{section}{Logistics of the formalisation}
 There are five main files in the formalisation where 
 \begin{enumerate}
 \item {\tt small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
-\item 1234
+\item {\tt algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
+\item {\tt liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
+\item {\tt e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
+$$
+\frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
+$$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
+$$
+\int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
+$$ where $f(X)\in\mathbb Z[X]$;
+\item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two set of contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
 \end{enumerate}
 
 \section{Countability argument}\label{fmlsn:count}
@@ -402,8 +411,8 @@ There are five main files in the formalisation where
 % \chapter{Further Work}
 % An immediate next step would be formalising the transcendence of $\pi$.
 
-\chapter*{Reflection}
-\addcontentsline{toc}{chapter}{Reflection}
+% \chapter*{Reflection}
+% \addcontentsline{toc}{chapter}{Reflection}
 
 %\bibliographystyle{alphanat}
 \nocite{*}
