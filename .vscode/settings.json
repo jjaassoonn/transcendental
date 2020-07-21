@@ -1,11 +1,4 @@
 {
-  "cSpell.words": [
-    "Hermite",
-    "Hermite's",
-    "Liouville",
-    "Liouville's",
-    "semiring"
-  ],
     "latex-workshop.latex.tools": [
         {
             "name": "latexmk",
@@ -19,6 +12,12 @@
                 "%DOC%"
             ]
         }
-    ]
-
+    ],
+    "cSpell.words": [
+        "Liouville",
+        "entscheidungsproblem",
+        "leibniz",
+        "liouville",
+        "mathlib"
+    ],
 }

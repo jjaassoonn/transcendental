@@ -1,5 +1,5 @@
 \documentclass{report}
-\usepackage{hyperref}
+% \usepackage{hyperref}
 \usepackage{fontspec}
 \setmainfont{CMU Serif}
 \setmonofont{FiraCode-Regular}
@@ -17,17 +17,18 @@
 \newtheorem{theorem}{Theorem}
 
 \usepackage{minted}
+\usemintedstyle{bw}
+% \setminted{fontsize=\footnotesize}
 
 \title{A formalisation of transcendence of $e$}
 \author{Jujian Zhang}
 
 \begin{document}
 \maketitle
-\tableofcontents
 
 % Abstract
-\abstract{}
-The objective of this report is to present formalisations of some basic theorems from transcendental number theory with {\tt Lean} and {\tt mathlib} in the hope that it will serve as a motivation for mathematicians to be more curious about interactive theorem proving. The following theorems are formalised:
+\begin{abstract}
+The objective of this report is to present formalizations of some basic theorems from transcendental number theory with {\tt Lean} and {\tt mathlib} in the hope that it will serve as a motivation for mathematicians to be more curious about interactive theorem proving. The following theorems are formalized:
 \begin{enumerate}
   \item the set of algebraic numbers is countable, hence transcendental number exists:
 
@@ -36,13 +37,13 @@ theorem algebraic_set_countable : set.countable algebraic_set
 theorem transcendental_number_exists : ∃ x : ℝ, transcendental x
 \end{minted}
 
-  \item all Liouville's numbers are transcendental:
+  \item all Liouville numbers are transcendental:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_numbers_transcendental : 
   ∀ x : ℝ, liouville_number x -> transcendental x
 \end{minted}
 
-  \item $\alpha := \sum_{i=0}^\infty\frac1{10^{i!}}$ is a Liouville's number hence $\alpha$ is transcendental.
+  \item $\alpha := \sum_{i=0}^\infty\frac1{10^{i!}}$ is a Liouville number hence $\alpha$ is transcendental.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_α : liouville_number α
@@ -55,10 +56,12 @@ theorem transcendental_α : transcendental α :=
 theorem e_transcendental : transcendental e
 \end{minted}
 \end{enumerate}
+\end{abstract}
 
-\section*{Disclaimer}
+% \section* {Disclaimer}
+% The plan is to a self-contained report so that after chapter \ref{intro:lean} any reader even without prior exposure to interactive theorem proving will be able to understand \ref{fmlsn} where the details of formalizations and proofs reside. This should be relatively straightforward since the author is a {\tt Lean}-dilettantes at best with only a partial picture of the full language. For the same reason, much of the code is perhaps not idiomatic or even plainly bad, thus it is not advisable to use this as a tutorial.
 
-The plan is to a self-contained report so that after chapter \ref{intro:lean} any reader even without prior exposure to interactive theorem proving will be able to understand \ref{fmlsn} where the details of formalisations and proofs reside. This should be relatively straightforward since the author is a {\tt Lean}-dilettantes at best with only a partial picture of the full language. For the same reason, much of the code is perhaps not idiomatic or even plainly bad, thus it is not advisable to use this as a tutorial.
+\tableofcontents
 
 \chapter{Overview}
 \section{Interactive theorem proving}
@@ -68,7 +71,7 @@ Around 1920s, the German mathematician David Hilbert put forward the Hilbert pro
   \item a proof of consistency of the said foundation;
   \item Entscheidungsproblem: an algorithm to determine if any proposition is universally valid given a set of axioms.
 \end{enumerate}
-The first two aims were later proved to be impossible by G\"odel and the celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer to execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm to spit out some unfathomable proofs, assuming computers are given the ability to check correctness of proofs, human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt Lean}. 
+The first two aims were later proved to be impossible by Gödel and the celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer to execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm to spit out some unfathomable proofs, assuming computers are given the ability to check correctness of proofs, human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt Lean}. 
 
 The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' will serve as an illustrative example of utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that mathematician even with great effort could not guarantee its correctness. A collaborative project using {\tt Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt HOL Light}\footnote{ibid.} verified the proof around 2014 and hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Using {\tt Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise modern notion of perfectoid spaces \cite{buzzard2020formalising}.
 
@@ -169,32 +172,43 @@ by_contra absurdum,
 a_proof_of_falsehood
 end
 \end{minted}
-
-  \item other tactics to finish or convert current goal into another set of goals:
+  \item proof in a forward manner i.e. introduce new theorem or convert known theorem in current context to approach the goal:
   \begin{itemize}
     \item {\tt have H := content} will introduce a new proposition whose proof is given by {\tt content}.
     
     {\tt have H : some\_proposition} will add one more goal of proving the proposition then introduce the proved proposition to the current context.
-  
-    \item {\tt unfold definition} is to unfold a definition to what is explicitly defined when the definition is introduced.
-  
-    \item {\tt simp} will simplify the goal with lemmas with an {\tt @[simp]} tag. These lemmas are usually small and trivial like $\forall m\in\mathbb N, 0+m=0$\footnote{this one is called {\tt nat.zero\_add}}.
-    
-    {\tt simp only [h1, \dots hn]} is to simplify only using {\tt h1 }\dots{\tt{ hn}}.
 
-    \item {\tt rw} is for term rewriting. For example, if we have {\tt h : lhs = rhs} or {\tt lhs<->rhs}, then {\tt rw h} will replace every occurrence of {\tt lhs} with {\tt rhs} and {\tt rw <-h} will replace every occurrence of {\tt rhs} with {\tt lhs}. 
-    
-    {\tt rw [h1, h2,..., hn]} is the same as {\tt rw h1, rw h2,..., rw hn}.
-    \item Since {\tt rw} and {\tt simp} will change all occurrence, this sometimes would be inconvenient. {\tt conv\_lhs \{tactics\}} will confine the scope of {\tt tactics} only to left hand side. Similarly {\tt conv\_rhs \{tactics\}} will confine the scope to right hand side.
-    \item Given (a proof of) proposition {\tt H: h1 -> h2}, then {\tt apply H} will change the goal of proving {\tt h2} to prove {\tt h1}.
-    \item {\tt ring} will try to prove the current goal using associativity and commutativity of addition and multiplication.
-    \item {\tt linarith} is used when proving inequality from context. {\tt linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt linarith} failed, one has to either provide {\tt linarith} with more propositions or use other tactics to change goal into something more manageable for {\tt linarith}.
-    
-    {\tt linarith [h1, ..., hn]} is equivalent to use {\tt linarith} with additional (proofs of) propositions {\tt h1} \dots {\tt { hn}}.
-    \item If {\tt H} is already in context then {\tt replace H := content} will change {\tt H} to a proof of the proposition that {\tt content} is proving.
+    \item If {\tt H} is in context then {\tt replace H := content} will change {\tt H} to (a proof of) the proposition that {\tt content} is proving.
     
     {\tt replace H : some\_proposition} will add one more goal of proving {\tt some\_proposition} and then replace {\tt H} to the proposition proven.
+    \item If {\tt H} is in context, {\tt simp at H} will simplify {\tt H} to using small lemmas\footnote{to be more precise, lemma with {\tt @[simp]} tag, i.e. lemmas declared in the following syntax {\tt @[simp] lemma lemma\_name args : Prop}. These lemma are usually trivial in nature such as {\tt nat.add\_zero} which asserts that $\forall n:\mathbb N, n + 0 = n$.}.
+    {\tt simp only [h1,\dots,hn]} is to simplify only using {\tt h1 }\dots{\tt{ hn}}.
+    \item {\tt rw} is for term rewriting. If we have {\tt h : lhs = rhs} or {\tt h : lhs<->rhs} and another {\tt H} in context, then {\tt rw h at H} will replace every occurrence of {\tt lhs} with {\tt rhs} in {\tt H} and {\tt rw <-h} will replace every occurrence of {\tt rhs} with {\tt lhs} in {\tt H}.
+  
+    {\tt rw [h1, h2,..., hn] at H} is the same as {\tt rw h1 at H, rw h2 at H,..., rw hn at H}.
+    
+    \item Since {\tt rw} and {\tt simp} will change all occurrence, this sometimes would be inconvenient. If {\tt H} is in context, {\tt conv\_lhs at H \{tactics\}} will confine the scope of {\tt tactics} only to left hand side of H; similarly {\tt conv\_rhs at H \{tactics\}} will confine the scope to right hand side of H.
+
     \item {\tt generalise H : lhs = var\_name} will set {\tt var\_name} to {\tt lhs} and add (proof of) the proposition {\tt H : lhs = var\_name} to the current context.
+    \item If {\tt H : ∃ x : type, property\_about\_x} is in the current context, {\tt choose x hx using H} will introduce {\tt x:type} with the assumption {\tt property\_about\_x} to the current context. 
+    \item If {\tt H : $p\land q$} is in the current context, then {\tt H.1} is (a proof of) $p$ and {\tt H.2} is (a proof of) $q$.
+  \end{itemize}
+
+  \item proof in a backward manner i.e. convert or replace the goal so that it is closer to what is known in context:
+  \begin{itemize}
+    \item {\tt unfold definition} is to unfold a definition to what is explicitly defined when the definition is introduced.
+    \item {\tt simp}, {\tt rw}, {\tt conv\_lhs \{tactics\}} and {\tt conv\_rhs \{tactics\}} is the same as above except now they change at goal.
+    \item Given (a proof of) proposition {\tt H: h1 -> h2}, then {\tt apply H} will change the goal of proving {\tt h2} to prove {\tt h1}.
+    \item {\tt suffices H : some\_proposition} ask a proof of the current goal with additional {\tt H}, then ask for a proof of {\tt H}.
+    \item {\tt norm\_cast} is convert the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt Lean} is equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
+    
+    {\tt norm\_num} is equivalent to {\tt norm\_cast, simp}.
+
+    \item {\tt ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt ext}, an arbitrary element {\tt x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt ext var\_name} will force {\tt Lean} to introduce new variable under the identifier {\tt var\_name}.
+  \end{itemize}
+
+  \item when the goal is easily provable, one can use the following to finish a goal:
+  \begin{itemize}
     \item {\tt refl} (for reflexive) is used to prove proposition of the form {\tt lhs = rhs} when {\tt lhs} is {\bf definitionally} equal to {\tt rhs}. Definitional equality is more general than two string being literally identical but is less general than being (canonical) isomorphic. For example
     $$
   \sum_{i=0}^\infty \frac{1}{2^i}=\sum_{j=0}^\infty \frac{1}{2^j}
@@ -203,20 +217,16 @@ end
     $$
   \mathbb R^n = \mathrm{Func}\left(\{0,\cdots, n-1\},\mathbb R\right)
     $$ is not a definitional equality (strictly speaking perhaps not an equality at all).
-  \item {\tt exact H} will prove current goal if the goal is definitionally equal to H. 
-  \item {\tt suffices H : some\_proposition} ask a proof of the current goal with additional {\tt H}, then ask for a proof of {\tt H}.
-  \item {\tt norm\_cast} is convert the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt Lean} is equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
+    \item {\tt exact H} will prove current goal if the goal is definitionally equal to H. 
   
-  {\tt norm\_num} is equivalent to {\tt norm\_cast, simp}.
-  \item {\tt ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt ext}, an arbitrary element {\tt x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt ext var\_name} will force {\tt Lean} to introduce new variable under the identifier {\tt var\_name}.
-  \item If {\tt H : ∃ x : type, property\_about\_x} is in the current context, {\tt choose x hx using H} will introduce {\tt x:type} with the assumption {\tt property\_about\_x} to the current context. 
-  \item If {\tt H : $p\land q$} is in the current context, then {\tt H.1} is a proof of $p$ and {\tt H.2} is a proof of $q$.
-  \item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
+    \item {\tt ring} will try to prove the current goal using associativity and commutativity of addition and multiplication.
+    \item {\tt linarith} is used when proving inequality from context. {\tt linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt linarith} failed, one has to either provide {\tt linarith} with more propositions or use other tactics to change goal into something more manageable for {\tt linarith}.
+  
+    {\tt linarith [h1, ..., hn]} is equivalent to use {\tt linarith} with additional (proofs of) propositions {\tt h1} \dots {\tt { hn}}.
   \end{itemize}
+
+  \item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
 \end{itemize}
-
-% In the formalisation, {\tt simp}, {\tt ring}, {\tt rw}, {\tt apply}, {\tt linarith}, {\tt replace}, {\tt generalise}, {\tt refl}, {\tt exact}, {\tt split}, {\tt suffices}, {\tt norm\_cast}, {\tt norm\_num}, {\tt ext} and {\tt choose} are used.
-
 
 
 A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
@@ -363,14 +373,14 @@ end
 
 \end{minted}
 
-Line \ref{import:real} will make basic properties of real available to use and line \ref{import:tactic} will make all the tactics we discussed amongst other more advanced tactics available to use. We add line \ref{noncomputable} so that {\tt lean} would ignore the issue of computability and line \ref{proof_by_contradiction} so that we can use proof by contradiction\footnote{{\tt Lean} by default use constructivism where $\neg\neg p\implies p$ is not an axiom. Thus the law of excluded middle is not by default a tautology, hence one could not prove by contradiction.}. 
+Line \ref{import:real} will make basic properties of real available to use and line \ref{import:tactic} will make all the tactics we discussed amongst other more advanced tactics available to use. We add line \ref{noncomputable} so that {\tt lean} would ignore the issue of computability and line \ref{proof_by_contradiction} so that we can use proof by contradiction\footnote{{\tt Lean} by default use constructivism where $\neg\neg p\implies p$ is not an axiom of deduction. Thus the law of excluded middle is not by default a tautology.}. 
 
 We define the mean value of two real numbers on line \ref{example:def}. Then {\tt mean}\footnote{{\tt mean} is not a function $\mathbb R^2\to\mathbb R$ but a function $\mathbb R\to\mathrm{Func}(\mathbb R,\mathbb R)$. This is called currying.} has type $\mathbb R\to \mathbb R\to \mathbb R$, {\tt mean 1} has type $\mathbb R\to \mathbb R$ and {\tt mean 1 2} has type $\mathbb R$. 
 
 We can introduce and prove theorems about {\tt mean} that the mean value of two numbers is greater than or equal to the minimum of the two numbers but less than the maximum of the two numbers. This is from line \ref{example:thm_begin} to line \ref{example:thm_end} where
 \begin{itemize}
   \item {\tt min\_le\_left} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le x$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt Lean} infers from context that $\alpha$ is $\mathbb R$. Thus {\tt min\_le\_left x y} is a proof of {\tt min x y ≤ x}.
-  \item Similarly, {\tt min\_le\_right} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le y$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt min\_le\_right x y} is a proof of {\tt min x y ≤ y}.
+  \item {\tt min\_le\_right} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le y$ In this case, {\tt min\_le\_right x y} is a proof of {\tt min x y ≤ y}.
   \item Similarly, {\tt le\_max\_left} is a proof of the proposition $\forall (x\ y : \alpha), x \le \max(x, y)$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt le\_max\_left} is a proof of {\tt x ≤ max x y}.
   \item Similarly, {\tt le\_max\_right} is a proof of the proposition $\forall (x\ y : \alpha), y \le \max(x, y)$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt le\_max\_right} is a proof of {\tt y ≤ max x y}.
   \item {\tt le\_div\_iff} is a proof that $0 < c \to (a \le \frac{b}{c} \iff a\times c \le b)$ where $a,b,c$ are elements of a type with a linear ordered field structure. So by {\tt rw le\_div\_iff}, the goal would change from {\tt min x y ≤ (x + y) / 2} to {\tt min x y * 2 ≤ x + y}. Since {\tt le\_div\_iff} requires the assumption that $0<c$, a new goal to prove that {\tt 0 < 2} is created after the original goal. This goal is proved by the final {\tt linarith}.
@@ -401,10 +411,20 @@ $$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$
 $$
 \int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 $$ where $f(X)\in\mathbb Z[X]$;
-\item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two set of contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
+\item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
 \end{enumerate}
 
 \section{Countability argument}\label{fmlsn:count}
+The main caveat in this part is internal specification of {\tt mathlib}. 
+A real number $x$ is in {\tt Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(T)\in\mathbb Z[T]$ such that $p$ is in the kernel of the unqiue $Z$-algebra homomorphism $Z[T]\to\mathbb R$ given by $T\mapsto x$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+∃ (p : polynomial ℤ), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
+\end{minted}
+Here the $\mathbb Z$-algebra homomorphism is {\tt polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function so that applicable to {\tt p}. The reason that a conversion is need is because algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) properties of algebra homomorphism.
+
+However in polynomial library of {\tt mathlib}, results about finiteness of root is {\tt polynomial.roots} has type {\tt polynomial $\alpha$-> finset $\alpha$}.
+
+
 \section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
 \section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
 
