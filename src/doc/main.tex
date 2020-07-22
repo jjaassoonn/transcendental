@@ -16,8 +16,13 @@
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 
-\usepackage{minted}
+\usepackage[newfloat]{minted}
 \usemintedstyle{bw}
+
+\usepackage{caption}
+
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Source Code}
 % \setminted{fontsize=\footnotesize}
 
 \title{A formalisation of transcendence of $e$}
@@ -32,27 +37,28 @@ The objective of this report is to present formalizations of some basic theorems
 \begin{enumerate}
   \item the set of algebraic numbers is countable, hence transcendental number exists:
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem algebraic_set_countable : set.countable algebraic_set
-theorem transcendental_number_exists : ∃ x : ℝ, transcendental x
+theorem transcendental_number_exists : 
+  ∃ x : ℝ, transcendental x
 \end{minted}
 
   \item all Liouville numbers are transcendental:
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_numbers_transcendental : 
   ∀ x : ℝ, liouville_number x -> transcendental x
 \end{minted}
 
   \item $\alpha := \sum_{i=0}^\infty\frac1{10^{i!}}$ is a Liouville number hence $\alpha$ is transcendental.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem liouville_α : liouville_number α
 theorem transcendental_α : transcendental α := 
   liouville_numbers_transcendental α liouville_α
 \end{minted}
 
   \item $e$ is transcendental:
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,fontsize=\footnotesize]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,fontsize=\footnotesize]{Lean}
 theorem e_transcendental : transcendental e
 \end{minted}
 \end{enumerate}
@@ -130,15 +136,36 @@ Theorems are true propositions, using the interpretation above, theorems are inh
 
 
 In {\tt Lean}, new definition can be introduced with the following syntax:
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 def name (arg|$_1$|:type|$_1$|) ... (arg|$_n$|:type|$_n$|) : return_type := contents
 
 def name' {arg|$_1$|:type|$_1$|} ... (arg|$_n$|:type|$_n$|) : return_type := contents
 \end{minted}
-Sometimes {\tt return\_type} can be dropped when it can be inferred from {\tt contents}. If an argument is surrounded by curly bracket instead of round bracket, then when the definition is invoked the said argument is implicit, i.e. {\tt name' a$_2$ ... a$_n$} where {\tt a$_i$:type$_i$}. To explicitly mention the said argument, one needs to use {\tt @name' a$_1$ ... a$_n$} where {\tt a$_i$:type$_i$}
-Theorems or lemmas are introduced with the following syntax:
+{\tt return\_type} is optional when it can be inferred from {\tt contents}. If an argument is surrounded by curly bracket instead of round bracket, then when the definition is invoked the said argument is implicit, i.e. {\tt name' a$_2$ ... a$_n$} where {\tt a$_i$:type$_i$}. To explicitly mention the said argument, one needs to use {\tt @name' a$_1$ ... a$_n$} where {\tt a$_i$:type$_i$}. One can use ``if then else'' to introduce a function whose value depends on the value of arguments:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
+def name args : return_type :=
+  if (h args)
+  then contents|$_1$|
+  else contents|$_2$|
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+def name args : return_type := 
+  ite (h args) contents|$_1$| contents|$_2$|
+\end{minted}
+
+New notations are introduced with the following syntax:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
+notation _`lhs`_ := _rhs_
+\end{minted}
+so that {\tt Lean} will treat every occurrence of {\tt \_`lhs`\_} as {\tt \_rhs\_} verbatim. For example \mintinline{Lean}{notation ℤ`[X]` := polynomial ℤ} will replace the {\tt Lean} type {\tt polynomial ℤ} with a more family notation of $\mathbb{Z}[X]$.
+
+For any type of $\alpha$, we can introduce a subtype of $\alpha$ by:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
+def α' := {x : α // property_satisfied_by_x}
+\end{minted}
+An element of type $\alpha'$ is of the form $\langle x, hx\rangle$ where $x:\alpha$ and $hx$ is a proof that $x$ satisfies the given property.
+
+Theorems or lemmas are introduced with the following syntax:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem name (arg|$_1$|:type|$_1$|) ... (arg|$_n$|:type|$_n$|) : content :=
 begin
   -- proof of the theorem
@@ -149,7 +176,7 @@ To write a proof understandable to {\tt Lean}, one need to use {\it tactic mode}
 \begin{itemize}
   \item proof by induction: if the goal is a proposition about natural number $n$, {\tt induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first goal is to prove the proposition for $n=0$ and the second goal is to prove the proposition $n+1$ with the additional inductive hypothesis {\tt IH};
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem awesome_theorem_about_natural_number (n : ℕ) : proposition|$_\mathtt{n}$| :=
 begin
   induction n with n IH,
@@ -163,7 +190,7 @@ end
 
   \item proof by contradiction: if the goal is to prove proposition $H$, {\tt by\_contra absurdum} will add {\tt absurdum : $\neg H$} into the current context and turn the goal into proving {\tt false};
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem awesome_theorem : awesome_proposition :=
 begin
 by_contra absurdum,
@@ -192,6 +219,7 @@ end
     \item {\tt generalise H : lhs = var\_name} will set {\tt var\_name} to {\tt lhs} and add (proof of) the proposition {\tt H : lhs = var\_name} to the current context.
     \item If {\tt H : ∃ x : type, property\_about\_x} is in the current context, {\tt choose x hx using H} will introduce {\tt x:type} with the assumption {\tt property\_about\_x} to the current context. 
     \item If {\tt H : $p\land q$} is in the current context, then {\tt H.1} is (a proof of) $p$ and {\tt H.2} is (a proof of) $q$.
+    \item If {\tt H : ite h1 h2 h3} is in the current context, then {\tt split\_ifs at H} will turn the current goal into two goals, the first one is to prove the original goal with the additional assumption {\tt h1} and {\tt h2}; the second one is to prove the original with goal with the additional assumption {\tt $\neg$h1} and {\tt h3}.
   \end{itemize}
 
   \item proof in a backward manner i.e. convert or replace the goal so that it is closer to what is known in context:
@@ -205,6 +233,7 @@ end
     {\tt norm\_num} is equivalent to {\tt norm\_cast, simp}.
 
     \item {\tt ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt ext}, an arbitrary element {\tt x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt ext var\_name} will force {\tt Lean} to introduce new variable under the identifier {\tt var\_name}.
+    \item If the goal is to prove {\tt ite h1 h2 h3} (or {\tt ite h1 h2 h3 = rhs}), then {\tt split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt h2} ({\tt h3 = rhs} resp.) with additional assumption {\tt h1}; the second one is to prove {\tt h3} ({\tt h3 = rhs} resp.) with additional assumption {\tt $\neg$h1}
   \end{itemize}
 
   \item when the goal is easily provable, one can use the following to finish a goal:
@@ -226,6 +255,7 @@ end
   \end{itemize}
 
   \item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
+  \item If the entirety of proof is one line, one can replace {\tt begin contents end} with {\tt by contents}.
 \end{itemize}
 
 
@@ -234,7 +264,7 @@ A proposition if not atomic is either a conjunction, a disjunction, an implicati
 \subsection{prove a conjunction}\label{lean:conj}
 If goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_conjunction (|$h_1$| : Prop) (|$h_2$| : Prop) : |$h_1\land h_2$| :=
 begin
 split,
@@ -249,7 +279,7 @@ end
 \subsection{prove a disjunction}\label{lean:disjun}
 If the goal is to prove a disjunction of the form $h_1 \lor h_2$, one can use {\tt left} to change the goal to prove $h_1$ or {\tt right} to change the goal to prove $h_2$. Let us assume $h_1$ is a true proposition :
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_disjunction (|$h_1$| : Prop) (|$h_2$| : Prop) : |$h_1\lor h_2$| :=
 begin
 left,
@@ -262,7 +292,7 @@ end
 \subsection{prove an implication}\label{lean:imp}
 If the goal is to prove an implication of the form $p \implies q$, one can use {\tt intro h$p$} to add {\tt h$p$:$p$} a proof of $p$ into the context and convert goal to prove $q$.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_implication (|$p$| : Prop) (|$q$| : Prop) : |$p$| -> |$q$| :=
 begin
 intro h|$p$|,
@@ -280,7 +310,7 @@ An equivalence of the form $p \iff q$ is by definition $p\implies q \land q\impl
 \subsection{prove a negation}
 A negation of the form $\neg p$ is by definition $p \implies \bot$. Thus {\tt intro h$p$} will add {\tt h$p$:$p$} to current context and convert the goal to prove a falsehood.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_negation (|$p$| : Prop) : |$\neg p$| :=
 begin
 intro h|$p$|,
@@ -292,7 +322,7 @@ end
 \subsection{prove a proposition with $\forall$}\label{lean:forall}
 A proposition of the form $\forall a : \alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt Prop}$ can be proved also using {\tt intro $x_0$}. This will add an arbitrary $x_0:\alpha$ to the current context and change the goal to prove $p(x_0)$.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∀ a : α, p a :=
 begin
 intro |$x_0$|,
@@ -306,7 +336,7 @@ If the goal is the form $\forall a_1:\alpha_1,\forall a_2:\alpha_2,\dots,\forall
 \subsection{prove a proposition with $\exists$}\label{lean:exists}
 A proposition of the form $\exists a:\alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt Prop}$ can be proved by {\tt use $x_0$}. This will convert the goal to prove $p(x_0)$.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∃ a : α, p a :=
 begin
 a_construction_of_|$x_0$|
@@ -317,11 +347,13 @@ a_proof_of_|$p(x_0)$|
 end
 \end{minted}
 
+\subsection{prove a proposition of {\tt ite}}
+
 
 \section{An example}
 To illustrate the above syntax and patterns, we present an example of defining mean and proving some basic properties thereof.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 import data.real.basic |\label{import:real}|
 import tactic |\label{import:tactic}|
   
@@ -391,11 +423,205 @@ We can introduce and prove theorems about {\tt mean} that the mean value of two 
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
 
-% % algebraic_over_Z.lean
-% % small_things.lean
-% % e_trans_helpers2.lean
-% % e_transcendental.lean
-% % liouville.lean
+\section{Countability argument}\label{fmlsn:count}
+The main caveat in this part is internal specification of {\tt mathlib}. 
+A real number $x$ is in {\tt Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unqiue $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
+∃ (p : polynomial ℤ), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
+\end{minted}
+Here the $\mathbb Z$-algebra homomorphism is {\tt polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function applicable to {\tt p}. The reason that a conversion is necessary is because algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) properties of algebra homomorphism.
+However in polynomial library of {\tt mathlib}, the definition of root is as following :
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
+def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
+\end{minted}
+
+Thus the first part of this formalisation is to unify the two evaluation methods -- denote $i$ to be the trivial embedding $\mathbb Z[X]\subseteq\mathbb R[X]$ and $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\to x$ then for all polynomial $p(X)\in\mathbb Z[X]$, then $\forall x\in\mathbb R,(i p)(x) = \iota_x p$:
+
+\begin{code}
+\label{code:countableUnify}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
+-- the trivial embedding $\mathbb{Z}[X]\subseteq\mathbb{R}[X]$
+def poly_int_to_poly_real (p : ℤ[X]) : polynomial ℝ := polynomial.map ℤembℝ p
+    
+def poly_int_to_poly_real_wd (p : ℤ[X]) := 
+  ∀ x : ℝ, polynomial.aeval ℤ ℝ x p = (poly_int_to_poly_real p).eval x
+    
+theorem poly_int_to_poly_real_well_defined |\label{codethm:countableUnify}|
+  (x : ℝ) (p : ℤ[X]) : poly_int_to_poly_real_wd p :=
+begin
+  proof_omitted
+end
+\end{minted}
+\caption{unifying two ways of evaluation}
+\end{code}
+
+For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | (i p)(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \_.roots} in fact has type {\tt finset ℝ}. The type {\tt finset} is a {\tt set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt finset} to {\tt set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in listing \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, two sets must be equal, then two sets are have finite cardinality:
+
+\begin{code}
+\label{lst:rootsDef}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def roots_real (p : ℤ[X]) : set ℝ := §\label{code:rootsDef}§
+  {x | polynomial.aeval ℤ ℝ x p}
+
+theorem roots_real_eq_roots (p : ℤ[X]) (hp : p ≠ 0) : 
+  roots_real p = §$\uparrow$§(poly_int_to_poly_real p).roots :=
+begin
+  proof_omitted
+end
+
+theorem roots_finite (p : polynomial ℤ) (hp : p ≠ 0) : 
+  set.finite (roots_real p) :=
+begin
+  proof_omitted
+end
+\end{minted}
+\caption{two ways of defining roots}
+\end{code}
+
+We defined the set of all algebraic numbers over $\mathbb Z$ to be
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def algebraic_set : set ℝ := {x | is_algebraic ℤ x}
+\end{minted}
+To investigate the countability of {\tt algebraic\_set}, we compare it with
+$$
+\bigcup_{n\in\mathbb N}\bigcup_{\substack{p\in\mathbb{Z}[X]\\ p\ne 0\\ \deg{p}<n+1}} \{x\in\mathbb{R}|\iota_xp=0\}.
+$$
+To this end, we introduce some types of interest:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+notation `int_n` n := fin n -> ℤ
+notation `nat_n` n := fin n -> ℕ
+notation `poly_n'` n := {p : ℤ[X] // p ≠ 0 ∧ p.nat_degree < n}
+notation `int_n'` n := {f : fin n -> ℤ // f ≠ 0}
+notation `int'` := {r : ℤ // r ≠ 0}
+\end{minted}
+
+where  $\langle m, hm\rangle$ is an element of {\tt fin n} if and only if $m$ is a natural number and $hm$ is a proof of $m < n$. Then {\tt fin n} is the type of only $n$ elements. Thus
+\begin{itemize}
+  \item {\tt int\_n n} is $\mathbb Z^n$;
+  \item {\tt int\_n' n} is $\mathbb Z^n-\{(0,\dots,0)\}$;
+  \item {\tt int'} is $\mathbb Z-\{0\}$;
+  \item {\tt nat\_n n} is $\mathbb N^n$;
+  \item {\tt poly\_n' n} is the type of non-zero integer polynomials with degree less than $n$.
+\end{itemize}
+
+Then $\mathbb Z\simeq \mathbb Z-\{0\}$ by the bijective function $s:\mathbb Z\to \mathbb Z-\{0\}$:
+\begin{equation*}
+n\mapsto\left\{
+\begin{aligned}
+& m & \text{if }m < 0\\
+& m + 1 & \text{if }m \ge 0
+\end{aligned}
+\right.
+\end{equation*}
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def strange_fun : ℤ -> int' := 
+  λ m, if h : m < 0 
+       then ⟨m, by linarith⟩ 
+       else ⟨m + 1, by linarith⟩
+
+theorem strange_fun_inj : 
+  function.injective strange_fun :=
+begin
+  proof_omitted
+end
+
+theorem strange_fun_sur : 
+  function.surjective strange_fun :=
+begin
+  proof_omitted
+end
+
+theorem int_eqiv_int' : ℤ §$\simeq$§ int' :=
+begin
+  apply equiv.of_bijective strange_fun,
+  split,
+  exact strange_fun_inj,
+  exact strange_fun_sur,
+end
+\end{minted}
+\caption{$\mathbb Z\simeq \mathbb Z-\{0\}$}
+\end{code}
+
+Then we prove that for all non-zero $n:\mathbb N$, non-zero integer polynomials of degree less than $n$ bijectively correspond to $\mathbb Z^n-\{(0,\dots,0)\}$ via the function:
+$p\mapsto \mathbf{z}$ where the $i$-th coordinate of $\mathbf{z}$ is the $i$-th coefficient of $p$.
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def identify (n : nat) : (poly_n' n) -> (int_n' n) := 
+  λ p, ⟨λ m, p.1.coeff m.1, a_proof_§$\mathbf{z}$§_is_not_zero⟩
+
+theorem sur_identify_n (n : nat) (hn : n ≠ 0) : 
+    function.surjective (identify n) :=
+begin
+  proof_omitted
+end
+
+theorem inj_identify_n (n : nat) (hn : n ≠ 0) : 
+  function.injective (identify n) :=
+begin
+  proof_omitted
+end
+
+theorem poly_n'_equiv_int_n' (n : nat) : 
+  (poly_n' n.succ) §$\simeq$§ (int_n' n.succ) :=
+begin
+  apply equiv.of_bijective (identify n.succ),
+  split,
+  exact inj_identify_n n.succ (nat.succ_ne_zero n),
+  exact sur_identify_n n.succ (nat.succ_ne_zero n),
+end
+\end{minted}
+\caption{non-zero integer polynomial with degree less than $n$ has the same cardinality as $\mathbb Z^n-\{(0,\dots,0)\}$, here {\tt n.succ} means $n+1$.}
+\end{code}
+
+Then we define two injective functions $F : \mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and $G : \mathbb{Z}^{n+1}-\{(0,\dots,0)\}\to\mathbb{Z}^{n+1}$ by:
+\begin{equation*}
+\begin{aligned}
+F (m_0,\dots,m_n) &= (s(m_0),\dots,s(m_n)) \\
+G (m_0,\dots,m_n) &= (m_0,\dots,m_n)
+\end{aligned}
+\end{equation*}
+where $s:\mathbb Z\to \mathbb Z-\{0\}$ is defined previously. By Schröder-Berstein theorem, there is then a bijective function $B : \mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and thus $\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$:
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def F (n : nat) : (int_n n.succ) -> (int_n' n.succ) := 
+  λ f, ⟨λ m, (strange_fun (f m)).1,
+    a_proof_of_§$(s(m_0),\dots,s(m_n))$§_non-zero⟩
+theorem F_inj (n : nat) : function.injective (F n) :=
+begin
+  proof_omitted
+end
+
+def G (n : nat) : (int_n' n.succ) -> (int_n n.succ) := 
+  λ f m, (f.1 m)
+theorem G_inj (n : nat) : function.injective (G n) :=
+begin
+  proof_omitted
+end
+
+theorem int_n_equiv_int_n' (n : nat) : 
+  (int_n n.succ) §$\simeq$§ int_n' n.succ :=
+begin
+  choose B HB using function.embedding.schroeder_bernstein (F_inj n) (G_inj n),
+  apply equiv.of_bijective B HB,
+end
+\end{minted}
+\caption{$\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$}
+\end{code}
+
+
+\section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
+\section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
+
+% \chapter{Further Work}
+% An immediate next step would be formalising the transcendence of $\pi$.
+
+% \chapter*{Reflection}
+% \addcontentsline{toc}{chapter}{Reflection}
+
+%\bibliographystyle{alphanat}
+\chapter{Glossary of definitions and theorems}
 
 \section*{Logistics of the formalisation}
 \addcontentsline{toc}{section}{Logistics of the formalisation}
@@ -414,27 +640,6 @@ $$ where $f(X)\in\mathbb Z[X]$;
 \item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
 \end{enumerate}
 
-\section{Countability argument}\label{fmlsn:count}
-The main caveat in this part is internal specification of {\tt mathlib}. 
-A real number $x$ is in {\tt Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(T)\in\mathbb Z[T]$ such that $p$ is in the kernel of the unqiue $Z$-algebra homomorphism $Z[T]\to\mathbb R$ given by $T\mapsto x$.
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines,escapeinside=||]{Lean}
-∃ (p : polynomial ℤ), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
-\end{minted}
-Here the $\mathbb Z$-algebra homomorphism is {\tt polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function so that applicable to {\tt p}. The reason that a conversion is need is because algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) properties of algebra homomorphism.
-
-However in polynomial library of {\tt mathlib}, results about finiteness of root is {\tt polynomial.roots} has type {\tt polynomial $\alpha$-> finset $\alpha$}.
-
-
-\section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
-\section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
-
-% \chapter{Further Work}
-% An immediate next step would be formalising the transcendence of $\pi$.
-
-% \chapter*{Reflection}
-% \addcontentsline{toc}{chapter}{Reflection}
-
-%\bibliographystyle{alphanat}
 \nocite{*}
 \printbibliography[heading=bibintoc]
 
