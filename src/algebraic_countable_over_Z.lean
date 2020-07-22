@@ -327,46 +327,6 @@ begin                                                                           
   exact sur_identify_n n.succ (nat.succ_ne_zero n),
 end
 
-def f : (int_n 1) -> (int_n' 1) :=                                                -- This is an injective function from ℤ to ℤ - {0}
-begin
-  intro r, split, swap, exact (fun m, ite ((r m) < 0) (r m) ((r m)+1)),
-  intro rid,
-  replace rid : (λ (m : fin 1), ite (r m < 0) (r m) (r m + 1)) 0 = 0, exact (congr_fun rid 0).trans rfl,
-  simp only [] at rid, by_cases (r 0 < 0), 
-    simp only [h, if_true] at rid, linarith,
-    simp only [h, if_false] at rid, linarith,
-end
-
-
-def g : (int_n' 1) -> (int_n 1) := λ h n, h.1 n                                   -- This is an injective function from ℤ - {0} to ℤ
-
-theorem int_1_equiv_int_1' : (int_n 1) ≃ (int_n' 1) :=                            -- We use the two injective functions and Schröder-Berstein theorem
-begin                                                                             -- to prove ℤ ≃ ℤ - {0}
-  suffices H1 : ∃ f : (int_n 1) -> (int_n' 1), function.bijective f,
-    choose h hh using H1,
-    exact equiv.of_bijective h hh,
-
-  suffices H2 : ∃ f : (int_n 1) -> (int_n' 1), ∃ g : (int_n' 1) -> (int_n 1), function.injective f ∧ function.injective g,
-    choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
-
-  use f, use g, split,
-  {
-    intros x1 x2 hx, ext, simp only [f, subtype.mk_eq_mk] at hx, 
-    replace hx := function.funext_iff.1 hx, replace hx := hx 0, fin_cases x,
-    split_ifs at hx, exact hx, simp only [not_lt] at h_1,
-    have h2 : 0 ≤ x2 0 + 1, exact add_nonneg h_1 trivial, rw <-hx at h2,
-    replace h2 : 0 = x1 0 ∨ 0 < x1 0, exact eq_or_lt_of_le h2, cases h2, rw <-h2 at h, linarith, linarith,
-    
-    simp only [not_lt] at h, replace h : 0 = x1 0 ∨ 0 < x1 0, exact eq_or_lt_of_le h,
-    cases h, rw <-h at hx, simp only [zero_add] at hx, linarith,
-
-    have ineq : x1 0 + 1 > 1, exact sub_lt_iff_lt_add.mp h, rw hx at ineq, linarith, simp only [add_left_inj] at hx, exact hx,
-  },
-  {
-    intros x1 x2 hx, simp only [g, id.def] at hx, exact subtype.eq hx,
-  }
-end
-
 def F (n : nat) : (int_n n.succ) -> (int_n' n.succ) := λ f,
 ⟨λ m, (strange_fun (f m)).1, λ rid, begin
   rw function.funext_iff at rid,
@@ -397,37 +357,28 @@ begin
   apply equiv.of_bijective B HB,
 end
 
-def fn {n : nat} : (int_n n.succ.succ) -> (int_n n.succ) × ℤ := λ r,                  -- This is an injection from ℤ^{n+1} to ℤⁿ × ℤ for n ≥ 1
+def fn (n : nat) : (int_n n.succ.succ) -> (int_n n.succ) × ℤ := λ r,                  -- This is an injection from ℤ^{n+1} to ℤⁿ × ℤ for n ≥ 1
 ⟨λ m, r (⟨m.1, nat.lt_trans m.2 (nat.lt_succ_self n.succ)⟩), r (⟨n.succ, nat.lt_succ_self n.succ⟩)⟩
 
-def gn {n : nat} : (int_n n.succ) × ℤ -> (int_n n.succ.succ) := λ r m,                 -- This is an injection from ℤⁿ × ℤ to ℤ^{n+1} for n ≥ 1
+theorem fn_inj (n : ℕ) : function.injective (fn n) := λ x1 x2 hx,
+begin
+    simp only [fn, id.def, prod.mk.inj_iff] at hx, cases hx with h1 h2, rw function.funext_iff at h1, ext,
+    by_cases (x = ⟨n.succ, nat.lt_succ_self n.succ⟩), rw <-h at h2, assumption,
+      simp only [fin.eq_iff_veq] at h, have h2 := x.2, replace h2 : x.1 ≤ n.succ := fin.le_last x,
+      have h3 : x.1 < n.succ := lt_of_le_of_ne h2 h,
+      have H := h1 ⟨x.1, h3⟩, simp only [fin.eta] at H, exact H,
+end
+
+def gn (n : nat) : (int_n n.succ) × ℤ -> (int_n n.succ.succ) := λ r m,                 -- This is an injection from ℤⁿ × ℤ to ℤ^{n+1} for n ≥ 1
 begin
   by_cases (m.1 = n.succ),
     exact r.2,
     exact r.1 (⟨m.1, lt_of_le_of_ne (fin.le_last m) h⟩),
 end
 
-theorem aux_int_n (n : nat) :                                                     -- So again using the two injections and Schröder-Berstein
-  (int_n n.succ.succ) ≃ (int_n n.succ) × ℤ :=                       -- We know ℤⁿ × ℤ ≃ ℤ^{n+1} for n ≥ 1
+theorem gn_inj (n : nat) : function.injective (gn n) := λ x1 x2 hx,
 begin
-  suffices H1 : ∃ f : (int_n n.succ.succ) -> (int_n n.succ) × ℤ, function.bijective f,
-    choose h hh using H1,
-    exact equiv.of_bijective h hh,
-
-  suffices H2 : ∃ f : (int_n n.succ.succ) -> (int_n n.succ) × ℤ, ∃ g : (int_n n.succ) × ℤ -> (int_n n.succ.succ), function.injective f ∧ function.injective g,
-    choose f g h using H2, exact function.embedding.schroeder_bernstein h.1 h.2,
-
-  use fn, use gn, split,
-  {
-    intros x1 x2 hx, simp only [fn, id.def, prod.mk.inj_iff] at hx, cases hx with h1 h2, rw function.funext_iff at h1, ext,
-    by_cases (x = ⟨n.succ, nat.lt_succ_self n.succ⟩), rw <-h at h2, assumption,
-      simp only [fin.eq_iff_veq] at h, have h2 := x.2, replace h2 : x.1 ≤ n.succ := fin.le_last x,
-      have h3 : x.1 < n.succ := lt_of_le_of_ne h2 h,
-      have H := h1 ⟨x.1, h3⟩, simp only [fin.eta] at H, exact H,
-  },
-
-  {
-    intros x1 x2 hx, cases x1 with p1 x1, cases x2 with p2 x2,
+cases x1 with p1 x1, cases x2 with p2 x2,
     ext; simp only []; simp only [gn, id.def] at hx; rw function.funext_iff at hx, swap,
       generalize hm : (⟨n.succ, nat.lt_succ_self n.succ⟩ : fin n.succ.succ) = m,
       have hm' : m.val = n.succ, rw <-hm, replace hx := hx m, simp only [hm', dif_pos] at hx, assumption,
@@ -439,7 +390,13 @@ begin
       have hm3 : m.1 < n.succ, exact lt_of_le_of_ne hm2 hm',
       have H : x = ⟨m.1, hm3⟩, rw fin.ext_iff at hm ⊢, simp only [] at hm ⊢, exact hm,
       rw H, exact hx,
-  },
+end
+
+theorem aux_int_n (n : nat) :                                                     -- So again using the two injections and Schröder-Berstein
+  (int_n n.succ.succ) ≃ (int_n n.succ) × ℤ :=                       -- We know ℤⁿ × ℤ ≃ ℤ^{n+1} for n ≥ 1
+begin
+choose B HB using function.embedding.schroeder_bernstein (fn_inj n) (gn_inj n),
+apply equiv.of_bijective B HB,
 end
 
 /--
@@ -450,8 +407,8 @@ end
   the first method.
 -/
 
-def algebraic_set'_n (n : nat) : set real := ⋃ p : (poly_n' n.succ), roots_real p.1
-def algebraic_set' : set real := ⋃ n : nat, algebraic_set'_n n.succ
+def algebraic_set'_n (n : ℕ) : set ℝ := ⋃ p : (poly_n' n.succ), roots_real p.1
+def algebraic_set' : set real := ⋃ n : ℕ, algebraic_set'_n n.succ
 
 theorem algebraic_set'_eq_algebraic_set : algebraic_set' = algebraic_set :=
 begin
@@ -484,18 +441,6 @@ begin
   },
 end
 
-theorem poly_n'_1_coeff_ne_0 (q : poly_n' 1) : q.1.coeff 0 ≠ 0 :=                 -- A non-zero polynomial of degree < 1 has a non-zero constant term
-begin
-  have h := q.2,
-  cases h with h1 h2,
-  have h : q.1 = polynomial.C (q.1.coeff 0), ext,
-  by_cases (n = 0), rw h, simp only [polynomial.coeff_C_zero],
-  rw polynomial.coeff_C, simp only [h, if_false], rw polynomial.coeff_eq_zero_of_nat_degree_lt,
-  suffices H : 1 ≤ n, linarith, replace h : n ≠ 0 := h, rw <-nat.lt_one_add_iff, norm_num, exact zero_lt_iff_ne_zero.mpr h,
-  rw h, simp only [polynomial.coeff_C_zero, ne.def], intro absurd, conv_rhs at h {rw absurd}, suffices H2 : polynomial.C (0 : int) = 0, conv_rhs at h {rw H2}, exact h1 h,
-  ext, simp only [polynomial.C_0],
-end
-
 -- So we can identify the set of non-zero polynomial of degree < 1 with ℤ - {0}
 
 theorem int_1_equiv_int : (int_n 1) ≃ ℤ :=                                        -- ℤ¹ ≃ ℤ
@@ -508,7 +453,7 @@ theorem int_1_equiv_int : (int_n 1) ≃ ℤ :=                                  
 
 /--
 - denumerable means countably infinite
-- countable means countably infinite or countable
+- countable means countably infinite or finite
 -/
 
 theorem int_n_denumerable {n : nat} : denumerable (int_n n.succ) :=               -- for all n ∈ ℕ, n ≥ 1 → ℤⁿ is denumerable

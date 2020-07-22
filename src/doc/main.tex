@@ -439,7 +439,6 @@ def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
 Thus the first part of this formalisation is to unify the two evaluation methods -- denote $i$ to be the trivial embedding $\mathbb Z[X]\subseteq\mathbb R[X]$ and $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\to x$ then for all polynomial $p(X)\in\mathbb Z[X]$, then $\forall x\in\mathbb R,(i p)(x) = \iota_x p$:
 
 \begin{code}
-\label{code:countableUnify}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 -- the trivial embedding $\mathbb{Z}[X]\subseteq\mathbb{R}[X]$
 def poly_int_to_poly_real (p : ℤ[X]) : polynomial ℝ := polynomial.map ℤembℝ p
@@ -454,12 +453,12 @@ begin
 end
 \end{minted}
 \caption{unifying two ways of evaluation}
+\label{code:countableUnify}
 \end{code}
 
-For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | (i p)(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \_.roots} in fact has type {\tt finset ℝ}. The type {\tt finset} is a {\tt set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt finset} to {\tt set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in listing \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, two sets must be equal, then two sets are have finite cardinality:
+For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | (i p)(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \_.roots} in fact has type {\tt finset ℝ}. The type {\tt finset} is a {\tt set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt finset} to {\tt set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, two sets must be equal, then two sets are have finite cardinality:
 
 \begin{code}
-\label{lst:rootsDef}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def roots_real (p : ℤ[X]) : set ℝ := §\label{code:rootsDef}§
   {x | polynomial.aeval ℤ ℝ x p}
@@ -477,6 +476,7 @@ begin
 end
 \end{minted}
 \caption{two ways of defining roots}
+\label{lst:rootsDef}
 \end{code}
 
 We defined the set of all algebraic numbers over $\mathbb Z$ to be
@@ -484,9 +484,12 @@ We defined the set of all algebraic numbers over $\mathbb Z$ to be
 def algebraic_set : set ℝ := {x | is_algebraic ℤ x}
 \end{minted}
 To investigate the countability of {\tt algebraic\_set}, we compare it with
-$$
-\bigcup_{n\in\mathbb N}\bigcup_{\substack{p\in\mathbb{Z}[X]\\ p\ne 0\\ \deg{p}<n+1}} \{x\in\mathbb{R}|\iota_xp=0\}.
-$$
+\begin{equation}
+  \bigcup_{n\in\mathbb N}\bigcup_{\substack{p\in\mathbb{Z}[X]\\ p\ne 0\\ \deg{p}<n+1}} \{x\in\mathbb{R}|\iota_xp=0\}.
+  \label{countability:setEq}
+\end{equation}
+
+
 To this end, we introduce some types of interest:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 notation `int_n` n := fin n -> ℤ
@@ -582,7 +585,7 @@ F (m_0,\dots,m_n) &= (s(m_0),\dots,s(m_n)) \\
 G (m_0,\dots,m_n) &= (m_0,\dots,m_n)
 \end{aligned}
 \end{equation*}
-where $s:\mathbb Z\to \mathbb Z-\{0\}$ is defined previously. By Schröder-Berstein theorem, there is then a bijective function $B : \mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and thus $\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$:
+where $s:\mathbb Z\to \mathbb Z-\{0\}$ is defined previously. By Schröder-Berstein theorem, there is then a bijection $\mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and thus $\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def F (n : nat) : (int_n n.succ) -> (int_n' n.succ) := 
@@ -608,6 +611,107 @@ begin
 end
 \end{minted}
 \caption{$\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$}
+\end{code}
+
+For any natural number $n\ge 1$, we then construct two injective function $f_n : \mathbb{Z}^{n+2}\to\mathbb{Z}^{n+1}\times\mathbb{Z}$ and $g_n:\mathbb{Z}^{n+1}\times\mathbb{Z}\to\mathbb{Z}^{n+2}$:
+\begin{equation*}
+\begin{aligned}
+f_n((m_0,\dots,m_{n+1}))&=((m_0,\dots,m_{n}),m_{n+1})\\
+g_n(((m_0,\dots,m_{n}), m_{n+1}))&=(m_0,\dots,m_{n+1})
+\end{aligned}
+\end{equation*}
+Then by Schr\"oder-Berstein theorem $\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$.
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def fn (n : nat) : 
+  (int_n n.succ.succ) -> (int_n n.succ) × ℤ :=  λ r,
+  ⟨λ m, r (⟨m.1, nat.lt_trans m.2 (nat.lt_succ_self n.succ)⟩), 
+   r (⟨n.succ, nat.lt_succ_self n.succ⟩)⟩
+theorem fn_inj (n : ℕ) : function.injective (fn n) :=
+begin
+  proof_omitted
+end
+
+def gn (n : nat) : (int_n n.succ) × ℤ -> (int_n n.succ.succ) := λ r m,
+begin
+  by_cases (m.1 = n.succ),
+    exact r.2,
+    exact r.1 (⟨m.1, lt_of_le_of_ne (fin.le_last m) h⟩),
+end
+theorem gn_inj (n : nat) : function.injective (gn n) :=
+begin
+  proof_omitted
+end
+  
+theorem aux_int_n (n : nat) :
+  (int_n n.succ.succ) §$\simeq$§ (int_n n.succ) × ℤ :=
+begin
+choose B HB using function.embedding.schroeder_bernstein (fn_inj n) (gn_inj n),
+apply equiv.of_bijective B HB,
+end
+\end{minted}
+\caption{$\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$}
+\end{code}
+
+Now we are finally in the position of using formula \ref{countability:setEq} to prove the countability of all algebraic numbers. We first define the set of real roots of non-zero integer polynomial of degree less than $n$ to be:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def algebraic_set'_n (n : ℕ) : set ℝ := 
+  §$\bigcup$§ p : (poly_n' n.succ), roots_real p.1
+\end{minted}
+Hence by taking union over all natural numbers we can obtain an equivalent definition of all algebraic number over $\mathbb{Z}$:
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def algebraic_set' : set real := 
+  §$\bigcup$§ n : ℕ, algebraic_set'_n n.succ
+
+theorem algebraic_set'_eq_algebraic_set : 
+  algebraic_set' = algebraic_set :=
+begin
+  proof_omitted
+end
+\end{minted}
+We prove by induction that for any $n\in\mathbb N$, $\mathbb{Z}^{n+1}$ is denumerable (i.e. countably infinite) where the base case is $\mathbb Z^1\simeq Z$ and the inductive step is to prove $\mathbb{Z}^{n+2}$ is denumerable using denumerability of $\mathbb{Z}^{n+1}$. Since non-zero integer polynomials of degree less than $n+1$ bijectively corresponds to $\mathbb{Z}^{n+1}$, we have non-zero integer polynomials of degree less than $n+1$ is denumerable hence is countable. Then the result of taking union over the countable set $\mathbb N$, the result $ \bigcup_{n\in\mathbb N}\bigcup_{p\in\mathbb{Z}[X], p\ne 0, \deg{p}<n+1} \{x\in\mathbb{R}|\iota_xp=0\}$ is still countable. Then finally the set of all algebraic numbers over $\mathbb Z$ is countable. Since $\mathbb R$ is uncountable, transcendental number must exist:
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem int_1_equiv_int : (int_n 1) §$\simeq$§ ℤ := 
+begin
+  proof_omitted
+end
+
+theorem int_n_denumerable {n : nat} :
+  denumerable (int_n n.succ) :=
+begin
+  proof_omitted
+end
+
+theorem poly_n'_denumerable (n : nat) : denumerable (poly_n' n.succ) :=
+begin
+  proof_omitted
+end
+
+theorem algebraic_set'_n_countable (n : nat) :
+  set.countable (algebraic_set'_n n) :=
+begin
+  proof_omitted
+end
+
+theorem algebraic_set'_countable : 
+  set.countable algebraic_set' :=
+  set.countable_Union 
+    (λ n, algebraic_set'_n_countable n.succ)
+
+theorem algebraic_set_countable : 
+  set.countable algebraic_set :=
+begin
+  rw <-algebraic_set'_eq_algebraic_set, 
+  exact algebraic_set'_countable
+end
+
+theorem transcendental_number_exists : ∃ x : ℝ, transcendental x :=
+begin
+  proof_omitted
+end
+\end{minted}
+\caption{algebraic numbers are countable, hence transcendental numbers exists}
 \end{code}
 
 
