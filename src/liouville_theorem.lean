@@ -6,7 +6,7 @@ import small_things
 noncomputable theory
 open_locale classical
 
-
+notation α`[X]` := polynomial α
 notation `transcendental` x := ¬(is_algebraic ℤ x)
 /--
 - a number is transcendental ↔ a number is not algebraic
@@ -18,7 +18,7 @@ def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(
 def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 -- x ↦ |f(x)| is continuous
-theorem abs_f_eval_around_α_continuous (f : polynomial ℝ) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
+theorem abs_f_eval_around_α_continuous (f : ℝ[X]) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
 begin
   have H : (λ x : ℝ, (abs (f.eval x))) = abs ∘ (λ x, f.eval x) := rfl,
   rw H,
@@ -29,12 +29,12 @@ end
 /--
 The next two lemmas state coefficient (support resp.) of $f ∈ ℤ[T]$ is the same as $f ∈ ℝ[T]$.
 -/
-private lemma same_coeff (f : polynomial ℤ) (n : ℕ): ℤembℝ (f.coeff n) = ((f.map ℤembℝ).coeff n) :=
+private lemma same_coeff (f : ℤ[X]) (n : ℕ): ℤembℝ (f.coeff n) = ((f.map ℤembℝ).coeff n) :=
 begin
   simp only [ring_hom.eq_int_cast, polynomial.coeff_map],
 end
 
-private lemma same_support (f : polynomial ℤ) : f.support = (f.map ℤembℝ).support :=
+private lemma same_support (f : ℤ[X]) : f.support = (f.map ℤembℝ).support :=
 begin
   ext, split,
   {
@@ -56,7 +56,7 @@ open_locale big_operators
 private lemma sum_eq (S : finset ℕ) (f g : ℕ -> ℝ) : (∀ x ∈ S, f x = g x) -> ∑ i in S, f i = ∑ i in S, g i :=
   λ h, @finset.sum_congr _ _ S S f g _ rfl h
 
-private lemma eval_f_a_div_b (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
+private lemma eval_f_a_div_b (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) = ((1:ℝ)/(b:ℝ)^f.nat_degree) * (∑ i in f.support, (f.coeff i : ℝ)*(a:ℝ)^i*(b:ℝ)^(f.nat_degree - i)) :=
 begin
   rw [finset.mul_sum, polynomial.eval_map, polynomial.eval₂, finsupp.sum, sum_eq], intros i hi,
@@ -95,13 +95,13 @@ begin
   norm_cast, linarith,
 end
 
-private lemma cast1 (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
+private lemma cast1 (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   ∑ i in f.support, (f.coeff i : ℝ)*(a:ℝ)^i*(b:ℝ)^(f.nat_degree - i) = (ℤembℝ (∑ i in f.support, (f.coeff i) * a^i * b ^ (f.nat_degree - i))) :=
 begin
   rw ring_hom.map_sum, rw sum_eq, intros i hi, norm_num,
 end
 
-private lemma ineq1 (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) : 
+private lemma ineq1 (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) : 
   ∑ i in f.support, (f.coeff i) * a^i * b ^ (f.nat_degree - i) ≠ 0 :=
 begin
   suffices eq1 : ℤembℝ (∑ i in f.support, (f.coeff i) * a^i * b ^ (f.nat_degree - i)) ≠ 0,
@@ -118,7 +118,7 @@ begin
   intro rid, norm_num at rid, replace rid := pow_eq_zero rid, norm_cast at rid, linarith,
 end
 
-private lemma ineq2 (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) : 
+private lemma ineq2 (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) : 
   ℤembℝ (∑ i in f.support, (f.coeff i) * a^i * b ^ (f.nat_degree - i)) ≠ 0 :=
 begin
   have cast1 := cast1 f f_deg a b b_non_zero a_div_b_not_root,
@@ -127,7 +127,7 @@ begin
   exact a_div_b_not_root (false.rec (polynomial.eval (↑a / ↑b) (polynomial.map ℤembℝ f) = 0) (ineq1 rid)),
 end
 
-private lemma ineqb (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
+private lemma ineqb (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   abs (1/(b:ℝ)^f.nat_degree) = 1/(b:ℝ)^f.nat_degree := 
 begin
   rw abs_of_pos, norm_num, norm_cast, refine pow_pos _ f.nat_degree, exact b_non_zero,
@@ -147,7 +147,7 @@ This is because `|f(a/b)|=|∑ λᵢ aⁱ/bⁱ| = (1/bⁿ) |∑ λᵢ aⁱ b^(n-
 - `ineq1` proves that if a/b is not a root of f then `∑ λᵢ aⁱ b^(n-i) ≠ 0`
 -/
 
-theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : polynomial ℤ) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
+theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
   @abs ℝ _ ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) ≥ 1/(b:ℝ)^f.nat_degree :=
 begin
   have eval1 := eval_f_a_div_b f f_deg a b b_non_zero a_div_b_not_root,               -- This is `f(a/b)=∑ λᵢ aⁱ/bⁱ`
@@ -188,14 +188,15 @@ N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't 
      f to be an integer polynomial of degree > 1.
 -/
 
-lemma about_irrational_root (α : real) (hα : irrational α) (f : polynomial ℤ) 
+lemma about_irrational_root (α : real) (hα : irrational α) (f : ℤ[X]) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
   have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
     by_contra rid,
-    simp only [classical.not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0, exact (congr_arg polynomial.nat_degree rid).trans rfl,
+    simp only [classical.not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0,
+    exact (congr_arg polynomial.nat_degree rid).trans rfl,
     rw f_nat_deg_zero at f_deg, linarith,
   },
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
@@ -481,8 +482,8 @@ transcendence.
 
 lemma liouville_numbers_irrational: ∀ (x : real), (liouville_number x) -> irrational x :=
 begin
-  intros x li_x a b hb rid, replace rid : x = ↑a / ↑b, linarith,                  -- Suppose x is a rational Liouville number: say x = a/b.
-  rw liouville_number at li_x,
+  intros x liouville_x a b hb rid, replace rid : x = ↑a / ↑b, linarith,                  -- Suppose x is a rational Liouville number: say x = a/b.
+  -- rw liouville_number at liouville_x,
   generalize hn : b.nat_abs + 1 = n,                                              -- Let n = |b| + 1. Then 2^(n-1) > b
   have b_ineq : 2 ^ (n-1) > b,
   {
@@ -490,10 +491,10 @@ begin
     have triv : b = b.nat_abs, rw <-int.abs_eq_nat_abs, rw abs_of_pos, assumption,rw triv, simp,
     have H := @nat.lt_pow_self 2 _ b.nat_abs,  norm_cast, exact H, exact lt_add_one 1,
   },
-  choose p hp using li_x n,                                                       -- Then there is a rational number p/q where q > 1
+  choose p hp using liouville_x n,                                                       -- Then there is a rational number p/q where q > 1
   choose q hq using hp, rw rid at hq,                                             -- such that 0 < |x- p/q| < 1/qⁿ
-  have q_pos : q > 0, linarith,                                                   -- i.e 0 < |(aq - bp)/bq| < 1/qⁿ
-  rw div_sub_div at hq, swap, norm_cast, linarith, swap, norm_cast, have hq1 := hq.1, linarith,
+  have q_pos : q > 0 := by linarith,                                                   -- i.e 0 < |(aq - bp)/bq| < 1/qⁿ
+  rw div_sub_div at hq,
   rw abs_div at hq,
   
   by_cases (abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)) = 0),                             -- Then aq ≠ bp
@@ -501,8 +502,9 @@ begin
     rw h at hq, simp only [one_div_eq_inv, gt_iff_lt, euclidean_domain.zero_div, inv_pos] at hq, have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2, linarith,
   },
   {
-    have ineq : ((@abs ℤ _ (a * q - b * p)):ℝ) = abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)), norm_cast,
-    have ineq2: (abs (a * q - b * p)) ≠ 0, by_contra rid, simp only [abs_eq_zero, classical.not_not] at rid, rw rid at ineq, simp only [int.cast_zero, abs_zero] at ineq, exact h (eq.symm ineq),
+    have ineq2: (abs (a * q - b * p)) ≠ 0,
+      by_contra rid, simp only [abs_eq_zero, classical.not_not] at rid, norm_cast at h, 
+      simp only [abs_eq_zero] at h, exact h rid,
     have ineq2':= abs_pos_iff.2 ineq2, rw [abs_abs] at ineq2',
     replace ineq2' : 1 ≤ abs (a * q - b * p), linarith,
     have ineq3 : 1 ≤ @abs ℝ _ (a * q - b * p), norm_cast, exact ineq2',           -- Then |aq - bp| ≠ 0, then |aq-bp| ≥ 1
@@ -530,8 +532,8 @@ begin
 
     /- other less important steps. We manipulated inequalities using multiplication and division, so we need to prove various things
        to be non-negative or postive. The proves are all more or less trivial. -/
-    norm_cast, apply pow_pos, exact q_pos,                                       
-    norm_cast, apply mul_pos, exact hb, exact q_pos,                              
+    apply pow_pos, norm_cast, exact q_pos, norm_cast, apply mul_pos,
+    exact hb, exact q_pos,                              
     norm_cast, exact b_ineq2,                                                    
     norm_cast, exact bot_le,
     exact q_ineq1,
@@ -539,12 +541,13 @@ begin
     exact q_pos,
     apply pow_nonneg, norm_cast, exact bot_le,
   },
+  norm_cast, linarith, norm_cast, linarith,
 end
 
 theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x := 
 begin
-  intros x li_x,                                                                  -- Let $x$ be any Liouville's number,
-  have irr_x : irrational x, exact liouville_numbers_irrational x li_x,           -- Then by previous theorem, it is irrational.
+  intros x liouville_x,                                                                  -- Let $x$ be any Liouville's number,
+  have irr_x : irrational x, exact liouville_numbers_irrational x liouville_x,           -- Then by previous theorem, it is irrational.
   intros rid, rw is_algebraic at rid,                                             -- assume x is algebraic over ℤ,
   choose f hf using rid,                                                          -- Let f be an integer polynomial who admitts x as a root.
   have f_deg : f.nat_degree > 1, {                                                -- Then f must have degree > 1, otherwise f have degree 0 or 1.                                                                         -- 
@@ -602,8 +605,8 @@ begin
   choose r hr using exists_r,                                                     -- Let r ∈ ℕ such tht 1/A ≤ 2^r (equivalently 1/2^r ≤ A)
   have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
   generalize hm : r + f.nat_degree = m,                                           -- Let m := r + n
-  replace li_x := li_x m,
-  choose a ha using li_x,                                                         -- Since x is Liouville, there are integers a and b with b > 1
+  replace liouville_x := liouville_x m,
+  choose a ha using liouville_x,                                                         -- Since x is Liouville, there are integers a and b with b > 1
   choose b hb using ha,                                                           -- such that 0 < |x - a/b| < 1/bᵐ = 1/bⁿ * 1/b^r.
 
   have ineq := hb.2.2, rw <-hm at ineq, rw pow_add at ineq,
@@ -622,7 +625,7 @@ begin
     apply div_pos, linarith, norm_cast, apply pow_pos, linarith,
   },
   conv_rhs at ineq4 {rw <-mul_div_assoc, rw mul_one},
-  have ineq5 :  abs (x - ↑a / ↑b) < A / ↑b ^ f.nat_degree, linarith,
+  have ineq5 :  abs (x - a / b:ℝ) < A / ↑b ^ f.nat_degree, linarith,
   have rid := hA.2 a b _, linarith, linarith,
 end
 

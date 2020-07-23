@@ -12,9 +12,9 @@
 \usepackage{amsfonts}
 \theoremstyle{definition}
 \newtheorem{example}{Example}
-
+\newtheorem{lemma}{Lemma}[section]
 \theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
 
 \usepackage[newfloat]{minted}
 \usemintedstyle{bw}
@@ -261,7 +261,7 @@ end
 
 A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
 
-\subsection{prove a conjunction}\label{lean:conj}
+\subsection*{prove a conjunction}\label{lean:conj}
 If goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
@@ -347,9 +347,6 @@ a_proof_of_|$p(x_0)$|
 end
 \end{minted}
 
-\subsection{prove a proposition of {\tt ite}}
-
-
 \section{An example}
 To illustrate the above syntax and patterns, we present an example of defining mean and proving some basic properties thereof.
 
@@ -422,12 +419,28 @@ We can introduce and prove theorems about {\tt mean} that the mean value of two 
 \end{itemize}
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
+\section*{Logistics of the formalisation}
+\addcontentsline{toc}{section}{Logistics of the formalisation}
+There are five main files in the formalisation where 
+\begin{enumerate}
+\item {\tt small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
+\item {\tt algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
+\item {\tt liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
+\item {\tt e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
+$$
+\frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
+$$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
+$$
+\int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
+$$ where $f(X)\in\mathbb Z[X]$;
+\item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
+\end{enumerate}
 
 \section{Countability argument}\label{fmlsn:count}
 The main caveat in this part is internal specification of {\tt mathlib}. 
 A real number $x$ is in {\tt Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unqiue $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
-∃ (p : polynomial ℤ), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
+∃ (p : ℤ[X]), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
 \end{minted}
 Here the $\mathbb Z$-algebra homomorphism is {\tt polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function applicable to {\tt p}. The reason that a conversion is necessary is because algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) properties of algebra homomorphism.
 However in polynomial library of {\tt mathlib}, the definition of root is as following :
@@ -469,7 +482,7 @@ begin
   proof_omitted
 end
 
-theorem roots_finite (p : polynomial ℤ) (hp : p ≠ 0) : 
+theorem roots_finite (p : ℤ[X]) (hp : p ≠ 0) : 
   set.finite (roots_real p) :=
 begin
   proof_omitted
@@ -683,7 +696,8 @@ begin
   proof_omitted
 end
 
-theorem poly_n'_denumerable (n : nat) : denumerable (poly_n' n.succ) :=
+theorem poly_n'_denumerable (n : nat) : 
+  denumerable (poly_n' n.succ) :=
 begin
   proof_omitted
 end
@@ -706,7 +720,8 @@ begin
   exact algebraic_set'_countable
 end
 
-theorem transcendental_number_exists : ∃ x : ℝ, transcendental x :=
+theorem transcendental_number_exists : 
+  ∃ x : ℝ, transcendental x :=
 begin
   proof_omitted
 end
@@ -715,7 +730,313 @@ end
 \end{code}
 
 
-\section{Liouville's theorem and Liouville's number}\label{fmlsn:li}
+\section{Liouville's theorem and Liouville number}\label{fmlsn:li}
+\subsection*{General theory about Liouville number}
+\addcontentsline{toc}{subsection}{General theory about Liouville number}
+A Liouville number is a real number that is ``almost rational'', i.e. for any $n\in\mathbb N$ there is a rational number\footnote{Without lose of generality, we are always assuming the denominator is a strictly positive natural number.} $\frac ab\in\mathbb Q$ such that $b > 1$ and $0<|x-\frac ab|<\frac1{b^n}$.
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def liouville_number (x : ℝ) := 
+  ∀ n : ℕ, ∃ a b : ℤ,  
+    b > 1 ∧ 
+    0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
+\end{minted}
+\caption{Definition of Liouville number}
+\end{code}
+
+We first prove a lemma about irrational root of an integer polynomial:
+\begin{lemma}\label{lemma:irrationalRoot}
+if $f$ is an integer polynomial with degree $m>1$ and $\alpha$ is an irrational root for $i(f)$ where $i:\mathbb Z[X]\to\mathbb R[X]$ is the trivial embedding, then there is a postive real number $A$ such that for every rational number $\frac ab$, $\left|\alpha-\frac ab\right|>\frac A {b^m}$:  
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,frame=single,framesep=2mm]{Lean}
+lemma about_irrational_root (α : ℝ)
+  (hα : irrational α) (f : ℤ[X]) 
+  (f_deg : f.nat_degree > 1)
+  (α_root : f_eval_on_ℝ f α = 0) :
+  ∃ A : ℝ, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a/b) > (A/b^(f.nat_degree)) :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+We will abuse the notation to denote $f$ as $i(f)\in\mathbb{R}[X]$
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+begin
+  have f_nonzero : f ≠ 0,
+    proof_omitted
+  generalize hfℝ: f.map ℤembℝ = f_ℝ,
+  have hfℝ_nonzero : f_ℝ ≠ 0,
+    proof_omitted
+  generalize hDf: f_ℝ.derivative = Df_ℝ,
+\end{minted}
+
+Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\left.\frac{\mathrm d}{\mathrm d t}\right|_{t=x}f(t)\right|$ is a continuous function and $[\alpha-1,\alpha+1]$ is a non-empty compact subset of $\mathbb R$, $\mathrm{abs} \circ Df$ attains a maximum on $[\alpha-1,\alpha+1]$ denote it by $M$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  have H := is_compact.exists_forall_ge 
+              a_proof_of_§$[\alpha-1,\alpha+1]$§_compact
+              a_proof_of_§$[\alpha-1,\alpha+1]$§_not_empty
+              a_proof_of_§$\mathrm{abs}\circ Df$§_continuous,
+
+  choose x_max hx_max using H,
+  generalize M_def: abs (Df_ℝ.eval x_max) = M,
+  have hM := hx_max.2, rw M_def at hM,
+  have M_non_zero : M ≠ 0,
+    proof_omitted
+  have M_pos : M > 0,
+    proof_omitted
+\end{minted}
+
+Let use consider the smallest element $B$ of the set $\{1, \frac 1 M\}\cup\{\left|\alpha-x\right|| f(x)=0 \land x\ne\alpha\}$, then $B>0$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  generalize roots_def :  f_ℝ.roots = f_roots,
+  generalize roots'_def : f_roots.erase α = f_roots',
+  generalize roots_distance_to_α : f_roots'.image (λ x, abs (α - x)) = distances,
+  generalize hdistances' : insert (1/M) (insert (1:ℝ) distances) = distances',
+  have hnon_empty: distances'.nonempty, 
+    proof_omitted
+  generalize hB : finset.min' distances' hnon_empty = B,
+  have allpos : ∀ x : ℝ, x §$\in$§ distances' -> x > 0,
+    proof_omitted
+  have B_pos : B > 0,
+    proof_omitted
+\end{minted}
+
+Let $A=\frac B 2$ then $A > B > 0$. We claim that $A$ satisfies the lemma, i.e. $A>0$ and for every rational number $\frac ab$, $\left|\alpha-a/b\right|>\frac A{b^m}$ where $m$ is the degree of $f$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  generalize hA : B / 2 = A,
+  use A, split,
+  a_proof_of_§$A>0$§
+\end{minted}
+
+We proceed by assuming that there exists a rational number $\frac a b$ such that $\left|\alpha-\frac a b\right|\le\frac A{b^m}$ for a contradiction. Since $b\ge 1$, we have $\left|\alpha-\frac ab\right|\le A < B$. Then $\frac a b$ is not root of $f$ because otherwise $B\le \left|\alpha-\frac ab\right|$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  by_contra absurd, 
+  simp only [gt_iff_lt, classical.not_forall, not_lt, classical.not_imp] at absurd,
+  choose a ha using absurd,
+  choose b hb using ha,                               
+  have hb2 : b ^ f.nat_degree ≥ 1,
+    proof_omitted
+  have hb21 : abs (α - a / b) ≤ A, 
+    proof_omitted
+  have hb22 : abs (α - a/b) < B,
+    proof_omitted
+  have hab0 : (a/b:ℝ) §$\in$§ set.Icc (α-1) (α+1),
+    proof_omitted
+  have hab1 : (a/b:ℝ) ≠ α,
+    proof_omitted
+  have hab2 : (a/b:ℝ) §$\notin$§ f_roots,
+    proof_omitted
+\end{minted}
+
+Since $\alpha\ne \frac a b$, we can assume without lose of generality that $\frac a b < \alpha$. Since $\mathrm{eval}_f:\mathbb R\to \mathbb R$ given by $x\mapsto f(x)$ is differentiable, we can use mean value theorem to find $x_0\in(\frac ab, \alpha)$ such that 
+\begin{equation*}
+\begin{aligned}
+  Df(x_0)&=\frac{\mathrm{eval}_f(\alpha)-\mathrm{eval}_f(\frac ab)}{\alpha-\frac ab} & [\text{Mean value theorem}]\\
+         &=-\frac{\mathrm{eval}_f(\frac ab)}{\alpha-\frac ab} & [\alpha\text{ is a root of } i(f)]
+\end{aligned}
+\end{equation*}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  have hab3 := ne_iff_lt_or_gt.1 hab1,
+  cases hab3,
+  have H := 
+    exists_deriv_eq_slope (λ x, f_ℝ.eval x) hab3 _ _, 
+  choose x0 hx0 using H,
+  have hx0r := hx0.2,
+  rw [polynomial.deriv, hDf, <-hfℝ] at hx0r,
+  rw [f_eval_on_ℝ] at α_root, rw [α_root, hfℝ] at hx0r, simp only [zero_sub] at hx0r,
+\end{minted}
+
+Then $|Df(x_0)|>0$ hence $\left|\alpha-\frac ab\right|=\left|\frac{\mathrm{eval}_f(\frac a b)}{Df(x_0)}\right|$ is non-zero. Since $M$ is the maximum of $\mathrm{abs}\circ Df$ on $[\alpha-1,\alpha+1]$. We have $|Df(x_0)|\le M$ and thus $\left|\alpha-\frac ab\right|\ge \frac{|\mathrm{eval}_f(\frac a b)|}{M}$. If we write $f(X)$ as $\sum_{j=0}^m \lambda_j X^j$ then
+\begin{equation*}
+\left|\mathrm{eval}_f\left(\frac a b\right)\right|=\left|\sum_{j=0}^m\lambda_j \frac{a^j}{b^j}\right|= \frac1{b^m}\left|\sum_{j=0}^m\lambda_j a^jb^{m-j}\right|\ge\frac1{b^m}
+\end{equation*}
+Hence we have $\left|\alpha-\frac a b\right|\ge \frac1{Mb^m}>\frac{A}{b^m}$. But we assumed $\left|\alpha-\frac ab\right|<\frac A{b^m}$ to start with, this is the desired contradiction.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
+  have Df_x0_nonzero : Df_ℝ.eval x0 ≠ 0,
+    proof_omitted
+  have H2 : abs(α - a/b) = abs((f_ℝ.eval (a/b:ℝ)) / (Df_ℝ.eval x0)),
+    proof_omitted
+
+  have ineq' : polynomial.eval (a/b:ℝ) (polynomial.map ℤembℝ f) ≠ 0,
+    proof_omitted
+  have ineq : abs (α - a/b) ≥ 1/(M*b^(f.nat_degree)),
+    proof_omitted
+  have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
+    proof_omitted
+  have ineq3 : abs (α - a / b) > A / b ^ f.nat_degree,
+    proof_omitted
+  have ineq4 : abs (α - a / b) > abs (α - a / b),
+    proof_omitted 
+  linarith,
+  
+  §\textrm{We omit the proof of differentiability of $\mathrm{ev}_f$, continuity of $\mathrm{abs}\circ Df$ and the case when $\frac{a}{b}>\alpha$}§
+  rest_omitted
+end
+\end{minted}
+\end{proof}
+
+We then prove irrationality of Liouville number. 
+\begin{lemma}
+Every Liouville number is irrational
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean} 
+lemma liouville_numbers_irrational: ∀ (x : ℝ), (liouville_number x) -> irrational x :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+Let $x$ be an arbitrary Liouville number and suppose for a contradiction that $x=\frac ab$, write $n=b+1$ then $2^{n-1}>b$.
+\begin{minted}[firstnumber=last,mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+begin
+  intros x liouville_x a b hb rid, 
+  replace rid : x = §$\uparrow$§a / §$\uparrow$§b, linarith,
+  generalize hn : b.nat_abs + 1 = n,
+  have b_ineq : 2 ^ (n-1) > b,
+    proof_omitted
+\end{minted}
+
+Since $x=\frac ab$ is a Liouville number we can find a rational number $\frac pq$ such that $q>1$ and $0<\left|\frac ab-\frac pq\right|<\frac1{q^n}$ or equivalently $0<\frac{\left|aq-bp\right|}{bq}<\frac1{q^n}$. If $aq-bp=0$, then $0<0$ is the desired contradiction.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean} 
+  choose p hp using liouville_x n,
+  choose q hq using hp, rw rid at hq,
+  have q_pos : q > 0 := by linarith, 
+  rw [div_sub_div at hq, abs_div at hq],
+
+  by_cases (abs (a*q-b*p:ℝ) = 0),
+  intermediate_step_omitted
+  linarith,
+\end{minted}
+
+If $aq-bp\ne 0$ then $\frac 1{bq}\le\frac{\left|aq-bp\right|}{bq}$. But we also have $b<2^{n-1}$ and $2^{n-1}q\le q^n$ because $q\ge 2$. Hence $bq<q^n$, then $\frac{\left|aq-bp\right|}{bq}>\frac1{q^n}$. This is the desired contradiction.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean} 
+  have ineq4 : 1 / (b * q : ℝ) ≤ (abs(a * q - b * p:ℝ)) / (b * q),
+    proof_omitted
+  have b_ineq'' : (b*q:ℝ) < (2:ℝ)^(n-1)*(q:ℝ), 
+    proof_omitted
+  have q_ineq3 : 2 ^ (n - 1) * q ≤ q ^ n,
+    proof_omitted
+  have b_ineq2 : b * q < q ^ n, linarith,
+  have rid'' : 
+    abs (a*q-b*p:ℝ) / (b*q:ℝ) > 1/q^n,
+    proof_omitted,
+  
+  have hq22 := hq2.2,
+  linarith,
+
+  §\textrm{We manipulated inequalities involving division and multiplication hence we need to prove several things to be positive.}§
+  proofs_omitted
+end
+\end{minted}
+\end{proof}
+
+With the above lemmas, we are ready to prove the transcendence of Liouville numbers.
+\begin{theorem}
+Every Liouville number is transcendental
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x := 
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+Let $x$ be an arbitrary Liouville number then $x$ is irrational. Assume for a contradiction that $x$ is algebraic, let $f$ be the non-zero integer polynomial admitting $x$ as root as a $\mathbb R$-polynomial. Then since $x$ is irrational, $f$ has degree at least 2.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  intros x liouville_x,
+  have irrational_x : irrational x := liouville_numbers_irrational x liouville_x,
+  intros rid, rw is_algebraic at rid,
+  choose f hf using rid, 
+  have f_deg : f.nat_degree > 1,
+    proof_omitted
+\end{minted}
+
+By using lemma \ref{lemma:irrationalRoot} we can find a real number $A>0$ such that for any rational number $\frac pq$, $\left|x-\frac pq\right|>\frac A{q^n}$ where $n$ is the degree of $f$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean} 
+  have about_root : f_eval_on_ℝ f x = 0,
+    proof_omitted
+  choose A hA using about_irrational_root x irrational_x f f_deg about_root,
+  have A_pos := hA.1,
+\end{minted}
+
+Since $\mathbb R$ is an Archimedean field, we can find an $r\in\mathbb N$ such that $\frac1A\le2^r$. Then consider $m:=r+n$. Since $x$ is a Liouville number, there is a rational number $\frac a b$ such that $b>1$ and $0<\left|x-\frac a b\right|<\frac1{b^m}=\frac1{b^r b^n}$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean} 
+  have exists_r := pow_big_enough A A_pos, 
+  choose r hr using exists_r,
+  have hr' : 1/(2^r) ≤ A,
+    proof_omitted
+  generalize hm : r + f.nat_degree = m,
+  replace liouville_x := liouville_x m,
+  choose a ha using liouville_x,
+  choose b hb using ha,
+
+  have ineq : abs (x-a/b:ℝ) < 1/((b:ℝ)^r)*(1/(b:ℝ)^f.nat_degree),
+    proof_omitted
+\end{minted}
+
+Since $b\ge 2$, we have $\frac1{b^r}\le\frac1{2^r}\le A$. Thus $\left|x-\frac a b\right|<\frac1{b^r b^n}\le \frac A{b^n}$. This contradicts lemma \ref{lemma:irrationalRoot} stating that $\left|x-\frac a b\right|>\frac{A}{q^n}$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean} 
+  have ineq3 : 1/(b:ℝ)^r ≤ A,
+    proof_omitted,
+  have ineq4 : 1 /(b:ℝ)^r * (1/(b:ℝ)^ f.nat_degree) ≤ (A / (b:ℝ)^f.nat_degree),
+    proof_omitted
+  have ineq5 :  abs (x - a/b:ℝ) < A/(b:ℝ)^f.nat_degree, linarith,
+  have rid := hA.2 a b _, linarith, linarith,
+end
+\end{minted}
+\end{proof}
+
+\subsection*{Construction of a Liouville number}
+\addcontentsline{toc}{subsection}{Construction of a Liouville number}
+
+Knowing that all Liouville numbers are transcendental, we now focus on constructing a Liouville number $$\alpha=\sum_{j=0}^\infty \frac1{10^{j!}}$$hence obtain a concrete example of transcendental number $\alpha$.
+
+\begin{lemma}
+$\alpha$ converges.
+\end{lemma}
+
+\begin{proof}
+Since for any $n\in\mathbb N$ we have $\frac 1{10^{n}}$ is none-negative and $\frac1{10^n}\le\frac1{10^{n!}}$, we can use comparison test against $\sum_{j=0}^\infty\frac1{10^j}$ to deduce the convergence of $\alpha$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def ten_pow_n_fact_inverse (n : ℕ) : ℝ := 
+  (1/10)^n.fact
+def ten_pow_n_inverse (n : ℕ) : ℝ := 
+  (1/10)^n
+
+lemma summable_ten_pow_n_fact_inverse : summable ten_pow_n_fact_inverse :=
+begin
+  exact @summable_of_nonneg_of_le _ 
+    ten_pow_n_inverse 
+    ten_pow_n_fact_inverse 
+    a_proof_of_§$\frac{1}{10^{n}}\ge0$§
+    a_proof_of_§$\frac{1}{10^n}\le\frac{1}{10^{n!}}$§
+    a_proof_of_§$\sum_{j=0}^\infty\frac{1}{10^n}$§_converges,
+end
+
+def α := §$\sum'$§ n, ten_pow_n_fact_inverse n
+\end{minted}
+\end{proof}
+
+\begin{lemma}
+  % theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), α_k k = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
+  % begin
+\end{lemma}
+
+\begin{theorem}
+$\alpha$ is a Liouville number
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem liouville_α : liouville_number α :=
+\end{minted}
+\end{theorem}
+\begin{proof}
+We need to prove that for an arbitrary $n\in\mathbb N$, there exists a rational number $\frac{p(n)}{q(n)}$ such that $p(n)>1$ and $0 < \left|\alpha-\frac{p(n)}{q(n)}\right|<\frac{1}{q(n)^n}$
+\end{proof}
+
 \section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
 
 % \chapter{Further Work}
@@ -725,24 +1046,8 @@ end
 % \addcontentsline{toc}{chapter}{Reflection}
 
 %\bibliographystyle{alphanat}
-\chapter{Glossary of definitions and theorems}
+% \chapter{Glossary of definitions and theorems}
 
-\section*{Logistics of the formalisation}
-\addcontentsline{toc}{section}{Logistics of the formalisation}
-There are five main files in the formalisation where 
-\begin{enumerate}
-\item {\tt small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
-\item {\tt algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
-\item {\tt liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
-\item {\tt e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
-$$
-\frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
-$$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
-$$
-\int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
-$$ where $f(X)\in\mathbb Z[X]$;
-\item {\tt e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt e\_trans\_helpers2.lean}.
-\end{enumerate}
 
 \nocite{*}
 \printbibliography[heading=bibintoc]
