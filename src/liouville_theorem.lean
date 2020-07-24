@@ -703,15 +703,16 @@ def α := ∑' n, ten_pow_n_fact_inverse n
 
 -- first k term
 -- `α_k k` is the kth partial sum $\sum_{i=0}^k \frac{1}{10^{i!}}$.
-def α_k (k : ℕ) := ∑ i in finset.range (k+1), ten_pow_n_fact_inverse i
+notation `α_k` k := ∑ ii in finset.range (k+1), ten_pow_n_fact_inverse ii
 
 -- `α_k k` is rational and can be written as $\frac{p}{10^{k!}}$ for some p ∈ ℕ.
-theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), α_k k = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
+theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), (α_k k) = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
 begin
-  induction k with k IH, rw α_k, simp only [pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero], rw ten_pow_n_fact_inverse, rw div_pow, rw one_pow, rw nat.fact_zero, rw pow_one,
-  use 1, norm_cast,                                                               -- To prove this, we use induction on k. The zeroth partial sum is zero. So p=1 works.                                                                               
-  choose pk hk using IH,                                                          -- If the kth partial sum = p / 10^{k!}
-  rw α_k at hk ⊢,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
+  induction k with k IH, 
+  simp only [ten_pow_n_fact_inverse, pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero], 
+  use 1, norm_cast,
+                                                                            
+  choose pk hk using IH,                                                                 -- Then the (k+1)th partial sum = p/10^{k!} + 10^{(k+1)!}
   generalize hm : 10^((k+1).fact - k.fact) = m,
   have eqm : 10^k.fact * m = 10^(k+1).fact,                                       -- If we set m = 10^{(k+1)!-k!}, then pm+1 works. This is algebra.
     rw <-hm, rw <-nat.pow_add, rw nat.add_sub_cancel', simp only [nat.fact_succ], rw le_mul_iff_one_le_left, exact inf_eq_left.mp rfl, exact nat.fact_pos k,
@@ -727,7 +728,7 @@ begin
 end
 
 -- rest term `α_k_rest k` is $\sum_{i=0}^\infty \frac{1}{(i+k+1)!}=\sum_{i=k+1}^\infty \frac{1}{i!}$
-def α_k_rest (k : ℕ) := ∑' n, ten_pow_n_fact_inverse (n + (k+1))
+notation `α_k_rest` k := ∑' ii, ten_pow_n_fact_inverse (ii + (k+1))
 
 private lemma sum_ge_term (f : ℕ -> ℝ) (hf : ∀ x:ℕ, f x > 0) (hf' : summable f): (∑' i, f i)  ≥ f 0 :=
 begin
@@ -741,9 +742,8 @@ begin
 end
 
 -- Since each summand in `α_k_rest k` is positive, the sum is positive.
-theorem α_k_rest_pos (k : ℕ) : α_k_rest k > 0 :=
+theorem α_k_rest_pos (k : ℕ) : (α_k_rest k) > 0 :=
 begin
-  rw α_k_rest,
   generalize hfunc : (λ n:ℕ, ten_pow_n_fact_inverse (n + (k + 1))) = fn,
   have ineq1 := sum_ge_term fn _ _,
   have ineq2 : fn 0 > 0,
@@ -755,9 +755,9 @@ begin
 end
 
 -- We also have for any k ∈ ℕ, α = (α_k k) + (α_k_rest k) 
-theorem α_truncate_wd (k : ℕ) : α = α_k k + α_k_rest k :=
+theorem α_truncate_wd (k : ℕ) : α = (α_k k) + α_k_rest k :=
 begin
-  rw α, rw α_k_rest, rw α_k,
+  rw α,
   have eq1 := @sum_add_tsum_nat_add ℝ _ _ _ _ ten_pow_n_fact_inverse (k+1) _,
   rw eq1, exact summable_ten_pow_n_fact_inverse,
 end
@@ -843,53 +843,55 @@ end
 theorem liouville_α : liouville_number α := 
 begin
   intro n,                                                                        -- We fix n ∈ ℕ.
-  have lemma1 := α_k_rat n,                                                       -- We know that the first n terms sums to p/10^{n!}
-  choose p hp using lemma1,                                                       -- for some p ∈ ℕ.
-  use p, use 10^(n.fact),                                                         -- we are going to prove 0 < |α - p/10^{n!}| < 1/10^{n! * n}
+  have lemma1 := α_k_rat n,                                                      -- we are going to prove 0 < |α - p/10^{n!}| < 1/10^{n! * n}
   have lemma2 := α_truncate_wd n,
-  split, norm_cast, refine ten_pow_n_fact_gt_one n,                               -- and that 10^{n!} > 1
+  replace lemma2 : (α_k_rest n) = α - α_k n,
+    exact eq_sub_of_add_eq' (eq.symm lemma2),                                            -- We know that the first n terms sums to p/10^{n!}
+  choose p hp using lemma1,                                                       -- for some p ∈ ℕ.
+  use p, use 10^(n.fact),
+  suffices :  0 < abs (α_k_rest n) ∧ abs (α_k_rest n) < 1/(10^ n.fact)^n,
+  {
+    split, norm_cast, exact ten_pow_n_fact_gt_one n,
+    rw [lemma2, hp] at this,
+    norm_cast at this,
+    tidy,
+  },                              
+  -- split, norm_cast, refine ten_pow_n_fact_gt_one n,                               -- and that 10^{n!} > 1
   split,                                                                          -- We first prove that 0 < |α - p/10^{n!}| or equivlanetly α ≠ p/10^{n!}
-    {                                                                             -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
-      rw abs_pos_iff, intro rid, simp only [int.cast_coe_nat, int.cast_pow, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact] at rid, rw [sub_eq_zero, <-hp] at rid, rw rid at lemma2,
-      have eq := (@add_left_eq_self ℝ _ (α_k_rest n) (α_k n)).1 _, have α_k_rest_pos := α_k_rest_pos n, linarith,
-      conv_rhs {rw lemma2, rw add_comm},
-    },
-    {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
-      conv_lhs {simp only [hp, int.cast_coe_nat, int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, int.cast_one, nat.fact], rw sub_eq_add_neg, rw <-hp, rw <-sub_eq_add_neg, simp only [lemma2, add_sub_cancel'],},
-      have triv : abs (α_k_rest n) = α_k_rest n,                                  -- i.e. absolute value of sum of the rest terms is a number < 1/10^{n! * n}
-      rw abs_of_pos, exact α_k_rest_pos n,                                        -- equivlanetly, since the rest terms sum to a positive number, that number is < 1/10^{n! * n}
-      rw triv, rw α_k_rest,
-
-      have ineq2 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
-      {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
-        apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
-        rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
-        {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
-          rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
-          exact ineq_i _ _,
-        },
-        apply pow_pos, linarith, rw <-pow_add, apply pow_pos, linarith,
-        exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (n+1)).2 summable_ten_pow_n_fact_inverse,
-        {
-          have s0 : summable (λ (b : ℕ), (1 / 10:ℝ) ^ b),
-          {
-            have triv : (λ (b : ℕ), (1 / 10:ℝ) ^ b) = ten_pow_n_inverse, ext, rw ten_pow_n_inverse, rw triv,
-            exact summable_ten_pow_n_inverse,
-          },
-          apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).fact > 0, apply pow_pos, linarith, linarith,
-        }
-      },                                                                          -- by previous inequlity $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}} < \frac{2}{10^{(n+1)!}} \le \frac{1}{10^{n!\times n}}$
-      have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) := lemma_ineq3 _,
-      rw nat.fact_succ' at ineq3,                                                 -- This what we want. So α is Liouville
-      have ineq4 : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) := lemma_ineq4 _,
-      have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) < (1 / ((10:ℝ) ^ n.fact) ^ n),
-      {
-        apply @lt_of_le_of_lt ℝ _ (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) (∑' (i : ℕ), (1 / 10) ^ i * (1 / 10) ^ (n + 1).fact) (1 / (10 ^ n.fact) ^ n),
-        exact ineq2, norm_cast at ineq2 ineq3 ineq4 ⊢, rw <-nat.succ_eq_add_one, rw nat.fact_succ', exact gt_of_gt_of_ge ineq4 ineq3,
+  {                                                                           -- otherwise the rest term from i=n+1 to infinity sum to zero, but we proved it to be positive.
+    rw abs_pos_iff, intro rid, have α_k_rest_pos := α_k_rest_pos n, linarith,
+  },
+  {                                                                             -- next we prove |α - p/10^{n!}| < 1/10^{n! * n}
+    rw [abs_of_pos (α_k_rest_pos n)],
+    have ineq2 : (∑' (j : ℕ), ten_pow_n_fact_inverse (j + (n + 1))) ≤ (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
+    {                                                                           -- Since for all i ∈ ℕ, 1/10^{(i+n+1)!} ≤  1/10ⁱ * 1/10^{(n+1)!}
+      apply tsum_le_tsum, intro i,                                              -- [this is because of one of previous inequalities plus some inequality manipulation]
+      rw ten_pow_n_fact_inverse, field_simp, rw one_div_le_one_div, rw <-pow_add, apply pow_le_pow, linarith,
+      {                                                                         -- we have the rest of term sums to a number ≤ $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}}$
+        rw <-nat.fact_succ, rw <-nat.succ_eq_add_one,
+        exact ineq_i _ _,
       },
-      norm_cast at ineq5, simp only [int.cast_pow, one_div_eq_inv, int.cast_bit0, int.cast_bit1, nat.cast_bit0, int.cast_one, nat.cast_bit1, nat.cast_one, nat.cast_pow] at ineq5 ⊢, 
-      exact ineq5,
+      apply pow_pos, linarith, rw <-pow_add, apply pow_pos, linarith,
+      exact (@summable_nat_add_iff ℝ _ _ _ ten_pow_n_fact_inverse (n+1)).2 summable_ten_pow_n_fact_inverse,
+      {
+        have s0 : summable (λ (b : ℕ), (1 / 10:ℝ) ^ b),
+        {
+          have triv : (λ (b : ℕ), (1 / 10:ℝ) ^ b) = ten_pow_n_inverse, ext, rw ten_pow_n_inverse, rw triv,
+          exact summable_ten_pow_n_inverse,
+        },
+        apply (summable_mul_right_iff _).1 s0, have triv : (1 / 10:ℝ) ^ (n + 1).fact > 0, apply pow_pos, linarith, linarith,
+      }
+    },                                                                          -- by previous inequlity $\sum_i^\infty \frac{1}{10^i}\times\frac{1}{10^{(n+1)!}} < \frac{2}{10^{(n+1)!}} \le \frac{1}{10^{n!\times n}}$
+    have ineq3 : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) := lemma_ineq3 _,
+    rw nat.fact_succ' at ineq3,                                                 -- This what we want. So α is Liouville
+    have ineq4 : (2 / 10 ^ (n.fact * n.succ):ℝ) < (1 / ((10:ℝ) ^ n.fact) ^ n) := lemma_ineq4 _,
+    have ineq5 : (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) < (1 / ((10:ℝ) ^ n.fact) ^ n),
+    {
+      apply @lt_of_le_of_lt ℝ _ (∑' (n_1 : ℕ), ten_pow_n_fact_inverse (n_1 + (n + 1))) (∑' (i : ℕ), (1 / 10) ^ i * (1 / 10) ^ (n + 1).fact) (1 / (10 ^ n.fact) ^ n),
+      exact ineq2, norm_cast at ineq2 ineq3 ineq4 ⊢, rw <-nat.succ_eq_add_one, rw nat.fact_succ', exact gt_of_gt_of_ge ineq4 ineq3,
     },
+    tidy,
+  },
 end
 
 -- Then our general theory about Liouville number in particular applies to α giving us α transcendental

@@ -15,6 +15,7 @@
 \newtheorem{lemma}{Lemma}[section]
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
 
 \usepackage[newfloat]{minted}
 \usemintedstyle{bw}
@@ -24,6 +25,8 @@
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Source Code}
 % \setminted{fontsize=\footnotesize}
+
+\everymath{\displaystyle}
 
 \title{A formalisation of transcendence of $e$}
 \author{Jujian Zhang}
@@ -252,6 +255,7 @@ end
     \item {\tt linarith} is used when proving inequality from context. {\tt linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt linarith} failed, one has to either provide {\tt linarith} with more propositions or use other tactics to change goal into something more manageable for {\tt linarith}.
   
     {\tt linarith [h1, ..., hn]} is equivalent to use {\tt linarith} with additional (proofs of) propositions {\tt h1} \dots {\tt { hn}}.
+    \item {\tt tidy} is to ask {\tt Lean} to try different tactics and finishes the goal if it possible.
   \end{itemize}
 
   \item If there is multiple goals, one can use {\tt \{ \}} to focus on the first one.
@@ -935,7 +939,7 @@ end
 \end{proof}
 
 With the above lemmas, we are ready to prove the transcendence of Liouville numbers.
-\begin{theorem}
+\begin{theorem}\label{thm:liouvilleTrans}
 Every Liouville number is transcendental
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x := 
@@ -1020,22 +1024,118 @@ end
 
 def α := §$\sum'$§ n, ten_pow_n_fact_inverse n
 \end{minted}
+$\dagger$: In {\tt Lean}, $\sum'$ is to indicate infinite sum while $\sum$ is for finite sum.
 \end{proof}
 
-\begin{lemma}
-  % theorem α_k_rat (k:ℕ) : ∃ (p : ℕ), α_k k = (p:ℝ) / ((10:ℝ) ^ k.fact) :=
-  % begin
+\begin{lemma}\label{lemma:partialSum}
+For every $k\in\mathbb N$, there exists some $p_k\in\mathbb N$ such that
+$$
+\sum_{j=0}^k\frac1{j^{k!}}=\frac{p_k}{10^{k!}}
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+notation `α_k` k := §$\sum$§ ii in finset.range(k+1), ten_pow_n_fact_inverse ii §\label{code:ii1}§
+
+notation `α_k_rest` k := 
+  §$\sum'$§ ii, ten_pow_n_fact_inverse (ii+(k+1)) §\label{code:ii2}§
+
+theorem α_k_rat (k:ℕ) : 
+  ∃ (p:ℕ), α_k k = (p:ℝ)/((10:ℝ)^k.fact) :=
+\end{minted}
 \end{lemma}
 
-\begin{theorem}
+\begin{proof}
+We prove by induction on $k$. For $k=0$, the zeroth partial sum is $\frac1{10^{0!}}=\frac1{10}$. Thus we can pick $p_0=1$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+begin
+  induction k with k IH,
+
+  simp only [ten_pow_n_fact_inverse, pow_one, finset.sum_singleton, finset.range_one, nat.fact_zero], 
+  use 1, norm_cast, 
+\end{minted}
+
+Assuming that $\sum_{j=0}^k\frac1{10^{j!}}=\frac{p_k}{10^{k!}}$, let $m:=10^{(k+1)!-k!}$, then we can set $p_{k+1}:=p_k m+1$ then
+$$
+\sum_{j=0}^{k+1}\frac1{10^{j!}}=\frac{p_k}{10^{k!}}+\frac1{10^{(k+1)!}}=\frac{p_km+1}{10^{(k+1)!}}=\frac{p_{k+1}}{10^{(k+1)!}}
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}                                                                            
+  choose pk hk using IH,
+  rw α_k at hk §$\vdash$§,
+  generalize hm : 10^((k+1).fact - k.fact) = m,
+  generalize hp : pk * m + 1 = p,
+  use p,
+    proof_omitted
+end
+\end{minted}
+$\dagger$ : At line \ref{code:ii1} and \ref{code:ii2} above, we use {\tt ii} as indexing variable is to avoid clashes.
+\end{proof}
+
+\begin{theorem}\label{thm:alphaTrans}
 $\alpha$ is a Liouville number
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem liouville_α : liouville_number α :=
 \end{minted}
 \end{theorem}
 \begin{proof}
-We need to prove that for an arbitrary $n\in\mathbb N$, there exists a rational number $\frac{p(n)}{q(n)}$ such that $p(n)>1$ and $0 < \left|\alpha-\frac{p(n)}{q(n)}\right|<\frac{1}{q(n)^n}$
+We need to prove that for an arbitrary $n\in\mathbb N$, there exists a rational number $\frac{p(n)}{q(n)}$ such that $p(n)>1$ and $0 < \left|\alpha-\frac{p(n)}{q(n)}\right|<\frac{1}{q(n)^n}$. By lemma \ref{lemma:partialSum} We know that for some $p\in\mathbb N$,
+$$
+\alpha=\sum_{j=0}^n\frac1{10^{j!}}+\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}=\frac p{10^{n!}}+\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}.
+$$
+
+We take $p(n)$ to be $p$ and $q(n)$ to be $10^{n!}$. Then $10^{n!}>1$, thus it suffices to prove $0<\left|\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}\right|<\left(\frac1{10^{n!}}\right)^n$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  intro n,
+  have lemma1 := α_k_rat n,
+  have lemma2 : (α_k_rest n) = α - α_k n,
+    proof_omitted
+  choose p hp using lemma1,
+  use p, use 10^(n.fact),
+  suffices : 0 < abs (α_k_rest n) ∧ 
+    abs (α_k_rest n) < 1/(10^n.fact)^n,
+    split,
+    a_proof_of_§$10^{n!}>1$§,
+    tidy,
+  split,
+\end{minted}
+
+Since each summand is strictly positive, $\left|\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}\right|=\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}} > 0$. Then we prove $\left|\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}\right|<\left(\frac1{10^{n!}}\right)^n$, or equivalently $\sum_{j=0}^\infty\frac1{10^{(j+n+1)!}}<\left(\frac1{10^{n!}}\right)^n$ instead. Because for all $j\in\mathbb N$, $10^j\times 10^{(n+1)!}\le 10^{(j+(n+1))!}$, we have
+\begin{equation*}
+\begin{aligned}
+\sum_{j=0}^\infty\frac1{10^{(j+(n+1))!}}&\le\sum_{j=0}^\infty\left(\frac1{10^j}\frac1{10^{(n+1)!}}\right)=\frac{1}{10^{(n+1)!}}\sum_{j=0}^\infty\frac1{10^j}\\
+&=\frac{10} 9\frac{1}{10^{(n+1)!}} < \frac2{10^{(n+1)!}}<\left(\frac1{10^{n!}}\right)^n
+\end{aligned}
+\end{equation*}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  rw [α_k_rest, abs_of_pos (α_k_rest_pos n)],
+
+  have ineq2 : 
+    (§$\sum'$§ (j:ℕ), ten_pow_n_fact_inverse (j+(n+1))) ≤ 
+    (§$\sum'$§ (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact),
+    proof_omitted
+  have ineq3 : 
+    (§$\sum'$§ (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n.fact*n.succ)) ≤ (2/10^n.succ.fact:ℝ),
+    proof_omitted
+  have ineq4 : (2 / 10 ^ (n.fact*n.succ):ℝ) < (1/((10:ℝ)^n.fact)^n),
+    proof_omitted,
+  have ineq5 : 
+    (§$\sum'$§ (j : ℕ), ten_pow_n_fact_inverse (j+(n+1))) < (1/((10:ℝ)^n.fact)^n),
+    proof_omitted
+  tidy,
+end
+\end{minted}
 \end{proof}
+
+Transcendence of $\alpha$ follows immediately from theorem \ref{thm:liouvilleTrans} and theorem \ref{thm:alphaTrans}.
+\begin{corollary}
+$\alpha$ is a transcendental number.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α 
+\end{minted}
+\end{corollary}
 
 \section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
 
