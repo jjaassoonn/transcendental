@@ -1,8 +1,11 @@
 \documentclass{report}
+
 % \usepackage{hyperref}
 \usepackage{fontspec}
 \setmainfont{CMU Serif}
 \setmonofont{FiraCode-Regular}
+
+\usepackage{graphicx}
 
 \usepackage[style=alphabetic,natbib=true]{biblatex}
 \addbibresource{ref.bib}
@@ -13,9 +16,11 @@
 \theoremstyle{definition}
 \newtheorem{example}{Example}
 \newtheorem{lemma}{Lemma}[section]
-\theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[section]
+\newtheorem{definition}{Definition}[section]
+
+\allowdisplaybreaks
 
 \usepackage[newfloat]{minted}
 \usemintedstyle{bw}
@@ -24,15 +29,27 @@
 
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Source Code}
-% \setminted{fontsize=\footnotesize}
+\setminted{fontsize=\footnotesize}
 
 \everymath{\displaystyle}
 
 \title{A formalisation of transcendence of $e$}
-\author{Jujian Zhang}
+\author{Jujian Zhang (CID: 01803812)\\[.5cm]{Supervisor: Prof. Kevin Buzzard}}
+\date{2020}
 
 \begin{document}
 \maketitle
+
+\clearpage\thispagestyle{empty}\addtocounter{page}{-1}
+\begin{center}
+  \textbf{Declaration}
+\end{center}
+I declare that this report was composed by myself, that the work contained here in is my own except where explicitly stated otherwise in the text.
+
+\begin{flushright}
+  \includegraphics[height=1.5\baselineskip]{signature.png}
+\end{flushright}
+\clearpage
 
 % Abstract
 \begin{abstract}
@@ -74,7 +91,7 @@ theorem e_transcendental : transcendental e
 
 \chapter{Overview}
 \section{Interactive theorem proving}
-Around 1920s, the German mathematician David Hilbert put forward the Hilbert programme to seek:
+Around 1920s, the German mathematician David Hilbert put forward the programme to seek:
 \begin{enumerate}
   \item an axiomatic foundation of mathematics;
   \item a proof of consistency of the said foundation;
@@ -423,22 +440,22 @@ We can introduce and prove theorems about {\tt \small mean} that the mean value 
 \end{itemize}
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
-\section*{Logistics of the formalisation}
-\addcontentsline{toc}{section}{Logistics of the formalisation}
-There are five main files in the formalisation where 
-\begin{enumerate}
-\item {\tt \small small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
-\item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
-\item {\tt \small liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
-\item {\tt \small e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
-$$
-\frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
-$$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
-$$
-\int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
-$$ where $f(X)\in\mathbb Z[X]$;
-\item {\tt \small e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt \small e\_trans\_helpers2.lean}.
-\end{enumerate}
+% \section*{Logistics of the formalisation}
+% \addcontentsline{toc}{section}{Logistics of the formalisation}
+% There are five main files in the formalisation where 
+% \begin{enumerate}
+% \item {\tt \small small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
+% \item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
+% \item {\tt \small liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
+% \item {\tt \small e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
+% $$
+% \frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
+% $$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
+% $$
+% \int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
+% $$ where $f(X)\in\mathbb Z[X]$;
+% \item {\tt \small e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt \small e\_trans\_helpers2.lean}.
+% \end{enumerate}
 
 \section{Countability argument}\label{fmlsn:count}
 The main caveat in this part is internal specification of {\tt \small mathlib}. 
@@ -1067,7 +1084,8 @@ $$
     proof_omitted
 end
 \end{minted}
-$\dagger$ : At line \ref{code:ii1} and \ref{code:ii2} above, we use {\tt \small ii} as indexing variable is to avoid clashes.
+$\dagger$ : At line \ref{code:ii1} and \ref{code:ii2} above, we use {\tt \small ii} as indexing variable is to avoid clashes.\\
+$\ddagger$ : {\tt finset.range n} ranges over $\{0,\dots,n-1\}$.
 \end{proof}
 
 \begin{theorem}\label{thm:alphaTrans}
@@ -1137,7 +1155,807 @@ theorem transcendental_α : transcendental α := liouville_numbers_transcendenta
 \end{minted}
 \end{corollary}
 
-\section{Hermite's proof of transcendence of $e$}\label{fmlsn:e}
+\section{Hermite's theorem}\label{fmlsn:e}
+Throughout this section $f$ will be an integer polynomial with degree $d$ and $t$ is a none-negative real number.
+
+% \subsection*{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
+% \addcontentsline{toc}{subsection}{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
+
+% The transcendence of $e$ requires an extensive use of the following lemma:
+% \begin{lemma}\label{lemma:derivProd}
+% Let $p$ and $q$ be two integer polynomials, then for any $n\in\mathbb N$, 
+%   $$\left(pq\right)^{(n)}=\sum_{j=0}^n{n\choose j}p^{(n-j)}q^{(j)}$$
+% where $p^{(i)}$ denotes the $i$-th (formal) derivative of polynomial $p$.
+
+% \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+% def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
+
+% lemma deriv_n_poly_prod (p q : ℤ[X]) (n : ℕ) :
+%   deriv_n (p * q) n = §$\sum$§ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) := 
+% begin
+%   induction n with n IH,
+%   rest_omitted
+% end
+% \end{minted}
+% $\dagger$: In {\tt Lean}, {\tt g \textasciicircum[$n$] x} is to apply {\tt g} $n$ times to {\tt x}.
+% \end{lemma}
+
+\begin{definition}
+we define
+$$
+I(f,t):=\int_0^t e^{t-x}\mathrm{eval}_f(x)\mathrm{d}x
+$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def II (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ := 
+  §$\int$§ x in set.Icc 0 t, real.exp(t-x)*(f_eval_on_ℝ f x) 
+\end{minted}
+
+If $f(X)=\sum_{j=0}^d\lambda_j X^j$, we define $\bar f(X):=\sum_{j=0}^d\left|\lambda_j\right|X^j$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def f_bar (f : ℤ[X]) : ℤ[X] :=
+{ support            := f.support,
+  to_fun             := λ n, abs (f.coeff n),
+  mem_support_to_fun := proof_omitted }
+\end{minted}
+$\dagger$: In {\tt Lean}, an integer polynomial is a function $\mathbb N\to\mathbb Z$ with finite support such that for any $n\in\mathbb N$ the value of the said function at $n$ is not zero if and only if $n$ is in the support of the said function. Thus to define $\bar f$, not only need we to specify the support and the function, a proof of $n$-th coefficient none-zero if and only if $n$ in support is needed as well.
+\end{definition}
+
+Let us estimate estimate an upper bound for $\left|I(f,t)\right|$ using $\bar f$.
+
+\begin{lemma}\label{lemma:absf}
+If $x\in[0,t]$, then $\left|\mathrm{eval}_f(x)\right|\le\mathrm{eval}_{\bar f}(t)$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
+  ∀ x §$\in$§ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+If we write $f(X)=\sum_{j=0}^d\lambda_j X^j$, then for any $x\in[0,t]$, we have $\left|\mathrm{eval}_f(x)\right|=\left|\sum_{j=0}^d\lambda_j x^j\right|\le \sum_{j=0}^d\left|\lambda_j x^j\right|$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intros x hx,
+  have lhs : f_eval_on_ℝ f x = §$\sum$§ i in f.support, (f.coeff i : ℝ) * x ^ i,
+    proof_omitted
+  rw lhs,
+  
+  have ineq1 : abs (§$\sum$§ (i : ℕ) in f.support, (f.coeff i:ℝ) * x ^ i) ≤ §$\sum$§ i in f.support, (abs (f.coeff i:ℝ) * (x ^ i)),
+    proof_omitted
+\end{minted}
+
+The right hand side $\mathrm{eval}_{\bar f}(t)=\sum_{j=0}^d \left|\lambda_j\right|t^j$. We conclude by noting that for any $n\in\mathbb N$, $x^n\le t^n$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  have rhs : f_eval_on_ℝ (f_bar f) t = §$\sum$§ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
+    proof_omitted
+  rw rhs,
+
+  have ineq2 : §$\sum$§ (i : ℕ) in f.support, abs (f.coeff i:ℝ) * x ^ i ≤  §$\sum$§ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
+  {
+      suffices : x ^ n ≤ t ^ n,
+        proof_omitted
+  },
+  exact le_trans ineq1 ineq2,  
+\end{minted}
+\end{proof}
+
+\begin{theorem}\label{lemma:Iupperbound}
+$$\left|I(f, t)\right|\le t e^t\mathrm{eval}_{\bar f}(t)$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
+  abs (II f t ht) ≤ t*t.exp*(f_eval_on_ℝ (f_bar f) t)
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+\begin{equation*}
+\begin{aligned}
+\left|I(f,t)\right|&=\left|\int_0^te^{t-x}\mathrm{eval}_f(x)\mathrm{d}x\right|\\
+                   &\le \int_0^t\left|e^{t-x}\mathrm{eval}_f(x)\right|\mathrm{d}x\\
+                   &\le t e^{t}\mathrm{eval}_{\bar f}(t)
+\end{aligned}
+\end{equation*}
+where the last inequality is due to $e^{t-x}\le e^t$ for all $x\in[0,t]$ and lemma \ref{lemma:absf}.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  have ineq1 :
+    abs (II f t ht) ≤ §$\int$§ (x : ℝ) in set.Icc 0 t, abs ((t-x).exp * f_eval_on_ℝ f x),
+    proof_omitted
+  have ineq2 : 
+    (§$\int$§ (x : ℝ) in set.Icc 0 t,
+      abs ((t-x).exp * f_eval_on_ℝ f x)) ≤ 
+    t * t.exp * f_eval_on_ℝ (f_bar f) t,
+    proof_omitted
+  exact le_trans ineq1 ineq2,
+end
+\end{minted}
+\end{proof}
+
+\begin{lemma}\label{lemma:byPartOnce}
+$$
+I(f,t):=\int_0^t e^{t-x}\mathrm{eval}_f(x)\mathrm{d}x=e^t\mathrm{eval}_f(0)-\mathrm{eval}_f(t)+I(f', t)
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma II_integrate_by_part 
+  (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
+  (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht)
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+Since $e^{t-x}=\frac{\mathrm d}{\mathrm d x}\left(-e^{t-x}\right)$, we can use integration by part.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  rw II,
+  have eq : 
+    (§$\int$§ x in set.Icc 0 t,
+      (t-x).exp * f_eval_on_ℝ f x) = 
+    (§$\int$§ x in set.Icc 0 t,
+      f_eval_on_ℝ f x * (deriv (λ x, -(real.exp (t-x))) x)),
+    proof_omitted
+  rw eq,
+  replace eq := integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht,
+  intermediate_steps_omitted
+  rw eq, ring,
+\end{minted}
+\end{proof}
+
+\begin{lemma}\label{lemma:byPartm}
+For any $m\in\mathbb{N}$,
+$$
+I(f,t):=\int_0^t e^{t-x}\mathrm{eval}_f(x)\mathrm{d}x=e^t\sum_{j=0}^m\mathrm{eval}_{f^{(j)}}(0)-\sum_{j=0}^m\mathrm{eval}_{f^{(j)}}(t)+I(f^{(m+1)}, t)
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) 
+  (ht : t ≥ 0) (m : ℕ) :
+  II f t ht = t.exp * (§$\sum$§ i in finset.range (m+1), (f_eval_on_ℝ (deriv_n f i) 0)) - (§$\sum$§ i in finset.range (m+1), f_eval_on_ℝ (deriv_n f i) t) + (II (deriv_n f (m+1)) t ht) :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+We prove by induction on $m$. The base case is lemma \ref{lemma:byPartOnce} 
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  induction m with m ih,
+  rw [deriv_n, II_integrate_by_part],
+  simplification_steps_omitted
+\end{minted}
+The inductive steps is to apply lemma \ref{lemma:byPartOnce} to $f^{(m+1)}$ and regroup.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  rw [ih, II_integrate_by_part],
+  simplification_steps_omitted
+end
+\end{minted}
+\end{proof}
+
+By the previous lemma, we obtain an alternative formulation of $I(f, t)$
+\begin{theorem}\label{lemma:II_eq_I}
+$$
+I(f,t)=e^t\left(\sum_{j=0}^d \mathrm{eval}_{f^{(j)}}(0)\right)-\sum_{j=0}^d\mathrm{eval}_{f^{(j)}}(t)
+$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ := 
+  t.exp * (§$\sum$§ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (§$\sum$§ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
+
+theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
+  II f t ht = I f t ht
+\end{minted}
+\end{theorem}
+\begin{proof}
+We use lemma \ref{lemma:byPartm} with $m:=d$, the degree of $f$. Then we get
+$$
+I(f,t):=\int_0^t e^{t-x}\mathrm{eval}_f(x)\mathrm{d}x=e^t\sum_{j=0}^d\mathrm{eval}_{f^{(j)}}(0)-\sum_{j=0}^d\mathrm{eval}_{f^{(j)}}(t)+I(f^{(d+1)}, t)
+$$
+together with $f^{(d+1)}$ is the zero polynomial so that $I(f^{(d+1)},t)=0$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  have II_integrate_by_part_m := 
+    II_integrate_by_part_m f t ht f.nat_degree,
+  have triv : deriv_n f (f.nat_degree + 1) = 0, 
+    proof_omitted
+  rw I, rw [triv, II_0, add_zero] at II_integrate_by_part_m,
+  assumption,
+end
+\end{minted}
+\end{proof}
+
+% \subsection*{Transcendence of $e$}
+% \addcontentsline{toc}{subsection}{Transcendence of $e$}
+\begin{definition}
+For any prime number $p$ and natural number $n$, we define an integer polynomial $f_{p,n}(X):=X^{p-1}\prod_{i=1}^n(X-i)^p$. For any integer polynomial $g$ with degree $n$ whose $i$-th coefficient is denoted by $g_i$, we define $J_{p}(g)=\sum_{j=0}^ng_j I(f_{p,n}, j)$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def f_p (p : ℕ) (hp : nat.prime p) (n : ℕ): ℤ[X] := 
+  polynomial.X ^ (p - 1) * 
+  (§$\prod$§ i in finset.range n, 
+    (polynomial.X - (polynomial.C (i+1:ℤ)))^p)
+
+def J (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : ℝ := 
+  §$\sum$§ i in finset.range g.nat_degree.succ, 
+    (g.coeff i : ℝ) * (II (f_p p hp g.nat_degree) i (nonneg_nat i))
+\end{minted}
+\end{definition}
+
+Let us evaluate an upper bound for $J_p(g)$
+\begin{theorem}\label{thm:upperbound}
+Let $g$ and $f_{p,n}$ be as above. Define
+$$M:=(d+1)\left(\max\{1,|g_0|,\dots,|g_m|\}(d+1)e^{d+1}\left(2(d+1)\right)^{1+d}\right).$$
+Then
+$$
+\left|J_p(g)\right|\le M^p
+$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def M (g : ℤ[X]) : ℝ :=
+  g.nat_degree.succ * ((max_abs_coeff_1 g) * (g.nat_degree+1) * ((g.nat_degree:ℝ)+1).exp * (2*(g.nat_degree+1))^(1+g.nat_degree))
+
+
+theorem abs_J_upper_bound 
+  (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) :
+  abs (J g p hp) ≤ (M g)^p :=
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+\begin{equation*}
+\begin{aligned}
+\left|J_p(g)\right|&=\left|\sum_{j=0}^ng_j I(f_{p,n}, j)\right| &[\text{by definition}]\\
+&\le\sum_{j=0}^n\left|g_jI(f_{p,n}, j)\right|\\
+{}^{\tt ineq1}&\le\sum_{j=0}^n\left|g_j\right|je^j\mathrm{eval}_{\bar{f}_{p,d}}(j)&[\text{by theorem \ref{lemma:Iupperbound}}]\\
+&\le\sum_{j=0}^n\max\{1,|g_0|,\dots,|g_m|\}\cdot(d+1)e^{d+1}\left(j^{p-1}\prod_{i=1}^n(j-i)^p\right)\\
+&\le\sum_{j=0}^n\max\{1,|g_0|,\dots,|g_m|\}\cdot(d+1)e^{d+1}\left((2d+1)^{p}\prod_{i=1}^n(2d+1)^p\right)\\
+{}^{\tt ineq2}&=(n+1)\left(\max\{1,|g_0|,\dots,|g_m|\}\cdot(n+1)e^{n+1}\left(2n+1\right)^{p(1+n)}\right)\\
+{}^{\tt ineq3}&\le(n+1)^p\left(\max\{1,|g_0|,\dots,|g_m|\}^p\cdot(n+1)^pe^{p(n+1)}\left(2n+1\right)^{p(1+n)}\right)\\
+&= M^p
+\end{aligned}
+\end{equation*}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem abs_J_upper_bound (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : abs (J g p hp) ≤ (M g)^p :=
+begin
+  have ineq1 := abs_J_ineq1'' g p hp,
+  have ineq2 := sum_ineq_1 g p hp,
+  have ineq3 := sum_ineq_2 g p hp,
+  have ineq4 := le_trans (le_trans ineq1 ineq2) ineq3,
+  rw [M, mul_pow, mul_pow, mul_pow, mul_pow, <-pow_mul, add_mul, one_mul],
+  have eq1 : g.nat_degree * p = p * g.nat_degree, rw mul_comm, rw eq1, exact ineq4,
+end
+\end{minted}
+$\dagger$: Later will see that as long as there exists for some $c>0$, $|J_p(g)|<c^p$, we can prove the transcendence of $e$. Thus here $M$ is choosed to be quite rough on purpose to trivialise small inequalities need to be proved such as $j^{p-1}<(2(n+1))^p$ for any $j=0,\dots,d$.
+\end{proof}
+
+For lower bound of $J_p(g)$ where $\mathrm{eval}_g(e)=0$, we need to work with more precision.
+%% TODO lower bound
+\begin{lemma}
+For any prime number $p$ and natural number $n$, $f_{p,n}(X)$ has degree $(n+1)p-1$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma deg_f_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p hp n).nat_degree = (n+1)*p - 1 :=
+begin
+  proof_omitted
+end
+\end{minted}
+\end{lemma}
+
+\begin{theorem}
+Let $g\in\mathbb Z[X]$ with degree $n$ whose $i$-th coefficient is denoted by $g_i$ such that $\mathrm{eval}_g(e)=0$ . Let $m=(n+1)p-1$. Then
+\begin{equation}\label{fm:important}
+J_p(g)=-\sum_{j=0}^m\sum_{k=0}^n g_k\mathrm{eval}_{f_{p,n}^{(j)}}(k)  
+\end{equation}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem J_eq' (g : ℤ[X]) 
+  (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) : 
+  (J g p hp) = 
+  - §$\sum$§ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ,
+    (§$\sum$§ k in finset.range g.nat_degree.succ,
+      (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) (k:ℝ))) :=
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+We consider the following equalities
+\begin{equation}\nonumber
+\begin{aligned}
+J_p(g)&=\sum_{k=0}^ng_k I(f_{p,n}, k) & [\text{definition}]\\
+{}^{\tt J\_eq1}&=\sum_{k=0}^ng_k\left[e^k\left(\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(0)\right)-\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(k)\right] & [\text{by lemma \ref{lemma:II_eq_I}}]\\
+{}^{\tt J\_eq2}&=\sum_{k=0}^ng_ke^k\left(\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(0)\right)-\sum_{k=0}^ng_k\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(k) \\
+&=\left(\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(0)\right)\sum_{k=0}^ng_ke^k-\sum_{k=0}^ng_k\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(k) \\
+{}^{\tt J\_eq3}&=-\sum_{k=0}^ng_k\sum_{j=0}^m\mathrm{eval}_{f_{p,n}^{(j)}}(k) & [\mathrm{eval}_g(e)=0]\\
+&=-\sum_{j=0}^m\sum_{k=0}^ng_k\mathrm{eval}_{f_{p,n}^{(j)}}(k)
+\end{aligned}
+\end{equation}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  rw [J_eq1, J_eq2, J_eq3, finset.sum_comm], 
+  simp only [zero_sub, neg_inj],
+  apply congr_arg, ext, rw finset.mul_sum,
+  assumption,
+end
+\end{minted}
+$\dagger$: Types too long to be displayed with clarity, thus we moved information about {\tt J\_eq$i$} to the start of the proof. 
+\end{proof}
+
+Summation in \ref{fm:important} actually starts at $j=p-1$ because of the following lemmas.
+\begin{lemma}\label{lemma:j_lt_p_sub_one}
+Let $g,p,n,f_{p,n}$ be like above. If $j < p-1$, then $\mathrm{eval}_{f_{p,n}^{(j)}}(0) = 0$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one 
+  (p : ℕ) (hp : nat.prime p) (n j : ℕ) (hj : j < p-1): 
+  polynomial.eval 0 (deriv_n (f_p p hp n) j) = 0 :=
+\end{minted}
+\end{lemma}
+\begin{proof}
+Let us agree to write $f_{p,n}(X)=X^{p-1}\Pi_{p,n}$ as a short hand. Then 
+\begin{equation}\label{eq:deriv_eval}
+\begin{aligned}
+f_{p,n}^{(j)}(X)&=\sum_{i=0}^j{j\choose i}(X^{p-1})^{(j-i)}\Pi_{p,n}^{(i)} \\
+\mathrm{eval}_{f_{p,n}^{(j)}}(0)&=\sum_{i=0}^j{j\choose i}\mathrm{eval}_{(X^{p-1})^{(j-i)}}(0)\mathrm{eval}_{\Pi_{p,n}^{(i)}}(0)
+\end{aligned}
+\end{equation}
+We prove that for all $i=0,\dots,j$, since $j-i<p-1$,
+\begin{equation}\label{eq:deriv_X}
+(X^{p-1})^{(j-i)}=\left(\prod_{k=0}^{j-i-1}{(p-1)-k}\right){X^{p-1-(j-i)}}. 
+\end{equation}
+Thus by substituting $0$, we get $\mathrm{eval}_{f_{p,n}^{(j)}}(0)=\sum_{i=0}^j{j\choose i}0=0$ 
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  §\textrm{corresponding to equation (\ref{eq:deriv_eval})}§
+  rw [deriv_n_poly_prod, eval_sum',polynomial.eval_mul], 
+  intermediate_steps_omitted
+
+  §\textrm{corresponding to equation (\ref{eq:deriv_X})}§
+  rw deriv_X_pow',
+  rest_omitted
+end
+\end{minted}
+\end{proof}
+
+Similarly, we have the following lemma:
+\begin{lemma}\label{lemma:lt_p_k_ge_1}
+Let $g,p,n,f_{p,n}$ be like above. If $j < p$, then $\mathrm{eval}_{f_{p,n}^{(j)}}(x) = 0$ for all $1\le x\le n$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma deriv_f_p_when_j_lt_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : 
+  ∀ x : ℕ, ∀ j : ℕ, j < p -> x > 0 -> x < n.succ -> 
+    polynomial.eval (x:ℤ) (deriv_n (f_p p hp n) j) = 0 :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+We prove this by induction on $n$.
+For $n=0$, there is no $1\le x\le0$, there is nothing to prove.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  induction n with n hn,
+  intros x j hj hx1 hx2,
+  linarith,
+\end{minted}
+For inductive step, assume $\mathrm{eval}_{f_{p,n}^{(j)}}(k) = 0$ for all $1\le k\le n$. Then for any $1\le x\le n+1$
+\begin{equation*}
+\begin{aligned}
+f_{p,n+1}&=f_{p,n}(X-(n+1))^p\\
+f_{p,n+1}^{(j)}&=\sum_{i=0}^j{j\choose i}f_{p,n}^{(j-i)}\left((X-(n+1))^p\right)^{(i)}\\
+\mathrm{eval}_{f_{p,n+1}^{(j)}}(x)&=\sum_{i=0}^j{j\choose i}\mathrm{eval}_{f_{p,n}^{(j-i)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(i)}}(x).
+\end{aligned}
+\end{equation*} 
+We will prove that for any $0\le y\le j$, 
+$$\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)}}(x)=0$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intros x j hj hx1 hx2,
+  rw [f_p_n_succ, deriv_n_poly_prod, eval_sum'], 
+  apply finset.sum_eq_zero, intros y hy,
+\end{minted}
+
+Either $x\le n$ or $x = n+1$. For $x\le n$, by inductive hypothesis we have $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)=0$ then of course $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)}}(x)=0$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  cases hx2,
+    simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, gt_iff_lt, int.coe_nat_eq_zero, int.cast_one, mul_eq_zero] at *,
+    rw IH x (j-y) (gt_of_gt_of_ge hj (nat.sub_le j y)) hx1 hx2,
+    tauto,
+\end{minted}
+
+For $x=n+1$, we show $\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)}}(x)=0$. This is true because
+$$
+\left((X-(n+1))^p\right)^{(y)}=\left(\prod_{i=0}^y(p-i)\right)(X-(n+1))^{p-y}
+$$
+and $p-y>0$ hence $0^{p-y}=0$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intermediate_steps_omitted
+  rw [hx2, deriv_X_sub_pow, polynomial.eval_mul, polynomial.eval_pow], 
+  simp only [polynomial.eval_X, polynomial.eval_C, int.coe_nat_succ, polynomial.eval_sub, sub_self, mul_eq_zero], 
+  right, apply zero_pow (nat.sub_pos_of_lt (gt_of_ge_of_gt hj hy))
+  exact le_of_lt (gt_of_ge_of_gt hj hy),
+\end{minted}
+\end{proof}
+
+Combine the previous lemma \ref{lemma:j_lt_p_sub_one} and lemma \ref{lemma:lt_p_k_ge_1}, we have the following corollary.
+\begin{corollary}\label{cor:part1}
+Let $g,p,n,f_{p,n}$ be like above. If $j < p-1$, then $\mathrm{eval}_{f_{p,n}^{(j)}}(k) = 0$ for all $0\le k\le n$.
+
+Thus
+$$
+\sum_{j=0}^{p-2}\sum_{k=0}^n g_k\mathrm{eval}_{f_{p,n}^{(j)}}(k)=0
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem deriv_f_p_k_eq_zero_when_j_lt_p_sub_one 
+  (p : ℕ) (hp : nat.prime p) (n j : ℕ) 
+  (hj : j < p - 1) (k : ℕ) 
+  (hk : k §$\in$§ finset.range n.succ): 
+  polynomial.eval (k:ℤ) (deriv_n (f_p p hp n) j) = 0 :=
+begin
+  cases k, 
+  exact deriv_f_p_k_eq_zero_k_eq_0_when_j_lt_p_sub_one p hp n j hj,
+  apply deriv_f_p_when_j_lt_p p hp n k.succ j (nat.lt_of_lt_pred hj) (nat.succ_pos k) (finset.mem_range.mp hk),
+end
+
+theorem J_partial_sum_from_one_to_p_sub_one 
+  (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : 
+  §$\sum$§ (j : ℕ) in finset.range (p - 1),
+  §$\sum$§ (k : ℕ) in finset.range g.nat_degree.succ,
+    g.coeff k * polynomial.eval §$\uparrow$§k (deriv_n (f_p p hp g.nat_degree) j) = 0 :=
+begin
+  rw finset.sum_eq_zero, intros, rw finset.sum_eq_zero, intros,
+  rw mul_eq_zero, right, 
+  rw deriv_f_p_k_eq_zero_when_j_lt_p_sub_one, simp only [finset.mem_range] at H, exact H, exact H_1,
+end
+\end{minted}
+\end{corollary}
+
+When $j=p-1$, we can express $\mathrm{eval}_{f_{p,n}^{(p-1)}}(0)$ in a closed form.
+\begin{theorem}\label{thm:f_p_psub1_deriv_0}
+Let $g,p,n,f_{p,n}$ be like above. Then 
+$$\mathrm{eval}_{f_{p,n}^{(p-1)}}(0)=(p-1)!(-1)^{np}(n!)^p$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem deriv_f_p_zero_when_j_eq_p_sub_one 
+  (p : ℕ) (hp : nat.prime p) (n : ℕ) : 
+  polynomial.eval 0 (deriv_n (f_p  p hp n) (p-1)) = 
+  (p-1).fact * (-1)^(n*p)*(n.fact)^p :=
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+We have the following equalities:
+\begin{equation*}
+\begin{aligned}
+f_{p,n}^{(p-1)}(X)&=\sum_{i=0}^{p-1}{p-1\choose i}(X^{p-1})^{(p-1-i)}\Pi_{p,n}^{(i)} \\
+\mathrm{eval}_{f_{p,n}^{(p-1)}}(0)&=\sum_{i=0}^{p-1}{p-1\choose i}\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)\mathrm{eval}_{\Pi_{p,n}^{(i)}}(0)\\
+&={p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)
+\end{aligned}
+\end{equation*}
+where the last equality is due to $\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ otherwise.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  rw [f_p, deriv_n_poly_prod, eval_sum'],
+  rw finset.sum_eq_single 0,
+
+  a_proof_of_§${p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)=(p-1)!(-1)^{np}(n!)^p$§
+
+  a_proof_o_f§$\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for all $i\ne0$§
+end
+\end{minted}
+\end{proof}
+
+Combine theorem \ref{thm:f_p_psub1_deriv_0} with lemma \ref{lemma:lt_p_k_ge_1}, we get the following corollary:
+\begin{corollary}\label{cor:part2}
+Let $g,p,n,f_{p,n}$ be like above. Then 
+$$
+\sum_{k=0}^n g_k \mathrm{eval}_{f_{p,n}^{(p-1)}}(k)=g_0 (p-1)! (-1)^{np} (n!)^p
+$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem J_partial_sum_from_p_sub_one_to_p
+  (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0)
+  (p : ℕ) (hp : nat.prime p) :
+  §$\sum$§ (k : ℕ) in finset.range g.nat_degree.succ, g.coeff k * polynomial.eval §$\uparrow$§k (deriv_n (f_p p hp g.nat_degree) (p - 1)) = 
+   g.coeff 0 * (§$\uparrow$§((p - 1).fact) * (-1) ^ (g.nat_degree * p) * §$\uparrow$§(g.nat_degree.fact) ^ p) :=
+begin
+  rw finset.sum_eq_single 0,
+
+  simp only [int.coe_nat_zero],
+  rw deriv_f_p_zero_when_j_eq_p_sub_one p hp g.nat_degree,
+
+  intros i hi1 hi2, rw mul_eq_zero, right,
+  apply deriv_f_p_when_j_lt_p p hp g.nat_degree,
+  rest_omitted
+end
+\end{minted}
+\end{corollary}
+
+The final piece of puzzle is to evaluate $f_{p,n}^{j}$ when $j\ge p$. We first consider when $k=0$:
+\begin{lemma}\label{lemma:ge_p0}
+Let $g,p,n,f_{p,n}$ be like above. Then if $j\ge p$ then $p!\mid\mathrm{eval}_{f_{p,n}^{(j)}}(0)$.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma k_eq_0_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n:ℕ) : 
+  ∀ j : ℕ, j ≥ p -> (p.fact:ℤ) §$\mid$§ polynomial.eval 0 (deriv_n (f_p p hp n) j) :=
+\end{minted}
+\end{lemma}
+\begin{proof}
+Using equation \ref{eq:deriv_eval}, we need to prove that for all $0\le x\le j$, 
+$$p!\mid {j\choose x}\mathrm{eval}_{(X^{p-1})^{(j-x)}}(0)\mathrm{eval}_{\Pi_{p,n}^{(x)}}(0)$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  rw f_p, intros j j_ge_p, rw [deriv_n_poly_prod, eval_sum'], 
+  apply finset.dvd_sum, intros x hx, 
+  simp only [polynomial.eval_C, polynomial.C_add, polynomial.C_1, polynomial.eval_mul, nat.fact],
+\end{minted}
+
+If $j-x=p-1$, then $\mathrm{eval}_{(X^{p-1})^{(j-x)}}(0)=(p-1)!$, so it suffices to prove that $p\mid\mathrm{eval}_{\Pi_{p,n}^{(x)}}(0)$. In this case, $x\ne 0$, otherwise $j=p-1>p$. For $x\ge 1$,
+\begin{equation}\label{eq:deriv_pow_dvd}
+\Pi_{p,n}^{(x)}=\left(\left(\prod_{i=1}^n(X-i)\right)^p\right)^{(x)}=p\left(\left(\prod_{i=1}^n(X-i)\right)^{p-1}\left(\prod_{i=1}^n(X-i)\right)'\right)^{(x-1)}
+\end{equation}
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  by_cases j - x = p - 1,
+  rw [h, deriv_X_pow'], simp only [mul_one, polynomial.eval_C, nat.sub_self, pow_zero],
+  rw <-fact_eq_prod',
+  suffices : 
+    (p:ℤ) §$\mid$§ polynomial.eval 0 (deriv_n (§$\prod$§ (x : ℕ) in finset.range n, (polynomial.X - (polynomial.C §$\uparrow$§x + 1)) ^ p) x),
+    proof_omitted
+  cases x,
+    simplification_omitted, linarith,
+    rw finset.prod_pow, 
+    apply dvd_poly_pow_deriv, §\textrm{corresponding to equation \ref{eq:deriv_pow_dvd}}§
+\end{minted}
+
+If $j-x\ne p-1$, either $j-x<p-1$ or $j-x > p-1$. If $j-x<p-1$ then $\mathrm{eval}_{(X^{p-1})^{j-x}}(0)=0$; if $j-x>p-1$, $(X^{p-1})^{j-x}$ is the zero polynomial.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  replace h : j - x < p - 1 ∨ j - x > p - 1, exact lt_or_gt_of_ne h,
+  cases h,
+    rw [(deriv_X_pow' (p-1) (j-x) (le_of_lt h)), polynomial.eval_mul], 
+    simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow], 
+    rw (rw (zero_pow (nat.sub_pos_of_lt h))),
+    simp only [zero_mul, mul_zero, dvd_zero],
+
+    rw deriv_X_pow_too_much,
+    simp only [zero_mul, mul_zero, polynomial.eval_zero, dvd_zero], 
+    assumption,
+\end{minted}
+\end{proof}
+
+\begin{lemma}
+Let $g,p,n,f_{p,n}$ be like above. Then $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(j)}}(k)$ for any $0<k\le n$ and any $p>0$, prime or composite.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+  lemma p_fact_dvd_prod_part (n : ℕ) : 
+  ∀ j : ℕ, ∀ k : ℕ, ∀ p : ℕ, p > 0 -> k > 0 -> k < n.succ ->
+  (p.fact:ℤ) §$\mid$§ polynomial.eval (k:ℤ) (deriv_n (§$\prod$§ i in finset.range n, (polynomial.X - polynomial.C (§$\uparrow$§i + 1))^p) j) :=
+\end{minted}
+\end{lemma}
+
+\begin{proof}
+We proceed by using strong induction on $j$. For $j=0$ we need to prove $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(0)}{p,n}}(k)=\mathrm{eval}_{\Pi_{p,n}}(k)$ for any $0<k\le n$. This is true because $\mathrm{eval}_{\Pi_{p,n}}(k)=0$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intros j,
+  apply nat.case_strong_induction_on j,
+  intros k p hp hk1 hk2,
+  rw zeroth_deriv, simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, nat.fact],
+  suffices : polynomial.eval (k:ℤ) (§$\prod$§ (i : ℕ) in finset.range n, (polynomial.X - (§$\uparrow$§i + 1)) ^ p) = 0,
+    rw this, exact dvd_zero §$\uparrow$§(nat.fact p),
+  a_proof_of_§$\mathrm{eval}_{\Pi_{p,n}}(k)=0$§
+\end{minted}
+For inductive case, we assume $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(m)}}(k)$ for all $m\le j$, $p>0$ and $0<k\le n$. This is certainly true for $p=1$, for $p!=1$. For $p>1$,
+\begin{equation*}
+\begin{aligned}
+\Pi_{p,n}^{(j+1)}&=\left(\left(\left(\prod_{i=0}^n(X-(i+1))\right)^p\right)'\right)^{(j)}\\
+  &=p\left(\left(\prod_{i=0}^n(X-(i+1))\right)^{p-1}\left(\prod_{i=0}^n(X-(i+1))\right)'\right)^{(j)}\\
+  &=p\sum_{i=0}^j{j\choose i}\Pi_{p-1,n}^{(j-i)}\left(\Pi_{1,n}'\right)^{(i)}
+\end{aligned}
+\end{equation*}
+By inductive hypothesis $(p-1)!\mid\Pi_{p-1,n}^{j-i}$ for any $i=0,\dots,j$. Thus $p!\mid\Pi_{p,n}^{(j+1)}$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intros j IH k p hp hk1 hk2,
+  rw [deriv_n, function.iterate_succ_apply, <-deriv_n, finset.prod_pow, poly_pow_deriv, deriv_n_poly_prod, eval_sum'],
+  apply finset.dvd_sum,
+  intros x hx,
+  by_cases (p=1), rw h, norm_num,
+
+  replace IH := IH (j-x) _ k (p-1) _ hk1 hk2,
+  intermediate_steps_omitted,
+  exact IH,
+\end{minted}
+\end{proof}
+
+Immediately by previous lemma and lemma \ref{lemma:ge_p0} and equation \ref{eq:deriv_eval}, we have:
+\begin{corollary}
+Let $g,p,n,f_{p,n}$ be like above. If $j\ge p$ then for all $0\le k\le n$ we have $p!\mid\mathrm{eval}_{f_{p,n}^{(j)}}(k)$. Then
+$$
+p!\mid\sum_{j=p}^m\sum_{k=0}^n g_k\mathrm{eval}_{f_{p,n}^{(j)}}(k)
+$$
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+lemma k_ge_1_case_when_j_ge_p (p : ℕ) (hp : nat.prime p) (n:ℕ) :
+  ∀ j : ℕ, j ≥ p -> ∀ k : ℕ, k < n.succ -> k > 0 -> (p.fact:ℤ) §$\mid$§ polynomial.eval (k:ℤ) (deriv_n (f_p p hp n) j) := 
+begin
+  intros j hj k hk1 hk2,
+  rw [f_p, deriv_n_poly_prod, eval_sum'], apply finset.dvd_sum, 
+  intros x hx,
+  rw polynomial.eval_mul, rw polynomial.eval_mul,
+  apply dvd_mul_of_dvd_right,
+  apply p_fact_dvd_prod_part n _ _ _ (nat.prime.pos hp) hk2 hk1,
+end
+
+theorem when_j_ge_p_k (p : ℕ) (hp : nat.prime p) (n:ℕ) :
+  ∀ j : ℕ, j ≥ p -> ∀ k : ℕ, k §$\in$§ finset.range n.succ -> (p.fact:ℤ) §$\mid$§ polynomial.eval (k:ℤ) (deriv_n (f_p p hp n) j) :=
+begin
+  intros j j_ge_p k hk,
+  simp only [finset.mem_range] at hk,
+  cases k,
+    exact k_eq_0_case_when_j_ge_p p hp n j j_ge_p,
+    exact k_ge_1_case_when_j_ge_p p hp n j j_ge_p k.succ hk (nat.succ_pos k),
+end
+
+theorem J_partial_sum_rest (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) :
+  (p.fact:ℤ) §$\mid$§ 
+    §$\sum$§ (j : ℕ) in finset.Ico p (f_p p hp g.nat_degree).nat_degree.succ,
+    §$\sum$§ (k : ℕ) in finset.range g.nat_degree.succ, g.coeff k * polynomial.eval (k:ℤ) (deriv_n (f_p p hp g.nat_degree) j) :=
+begin
+  apply finset.dvd_sum, intros x hx, 
+  apply finset.dvd_sum, intros y hy,
+  apply dvd_mul_of_dvd_right,
+  apply when_j_ge_p_k, simp only [finset.Ico.mem] at hx, 
+  exact hx.1, exact hy,
+end
+\end{minted}
+\end{corollary}
+
+We finally have everything we need to evaluate equation \ref{fm:important}: by previous corollary \ref{cor:part1} and corollary \ref{cor:part2} we have:
+\begin{corollary}
+Let $g,p,n,f_{p,n}$ be like above, there is some $M\in\mathbb Z$,
+$$
+J_p(g)=-g_0(p-1)!(-1)^{np} (n!)^p + p!\cdot M
+$$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem J_eq_final 
+  (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) 
+  (p : ℕ) (hp : nat.prime p) : 
+  ∃ M : ℤ, (J g p hp) = ℤembℝ ((-(g.coeff 0 * (§$\uparrow$§((p - 1).fact) * (-1) ^ (g.nat_degree * p) * §$\uparrow$§(g.nat_degree.fact) ^ p))) + (p.fact:ℤ) * M) :=
+begin
+  have J_eq := J_eq'' g e_root_g p hp, rw J_eq, rw <-ring_hom.map_neg,
+  have seteq : finset.range (f_p p hp g.nat_degree).nat_degree.succ = finset.range (p-1) §$\cup$§ {p-1} §$\cup$§ finset.Ico p (f_p p hp g.nat_degree).nat_degree.succ,
+    proof_omitted
+  rw seteq, rw finset.sum_union, rw finset.sum_union, 
+  rw J_partial_sum_from_one_to_p_sub_one g, rw zero_add, rw finset.sum_singleton,
+  rw J_partial_sum_from_p_sub_one_to_p g e_root_g,
+  
+  have H3 := J_partial_sum_rest g e_root_g p hp,
+  rw dvd_iff_mul at H3,
+  choose c eq3 using H3,
+  rw eq3, rw neg_add, use -c, rw neg_mul_eq_mul_neg §$\uparrow$§(p.fact),
+
+  rest_omitted
+end
+\end{minted}
+\end{corollary}
+
+We are now ready to prove a lower bound for $|J_p(g)|$.
+\begin{theorem}
+Let $g,p,n,f_{p,n}$ be like above, if we further assume $g_0\ne 0$, $p>n$ and $p>|g_0|$. Then $(p-1)!\le |J_p(g)|$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem abs_J_lower_bound 
+  (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) 
+  (coeff_nonzero : (g.coeff 0) ≠ 0) 
+  (p : ℕ) (hp : nat.prime p) 
+  (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : 
+  ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
+\end{minted}
+\end{theorem}
+
+\begin{proof}
+By previous theorem, for some $c\in\mathbb Z$
+$$
+|J_p(g)|=(p-1)!\left|(-g_0(-1)^{np}(n!)^p)+pc\right|.
+$$
+Thus to prove $|J_p(g)|>(p-1)!$, we prove $\left|(-g_0(-1)^{np}(n!)^p)+pc\right| \ge 1$, equivalently, $(-g_0(-1)^{np}(n!)^p)+pc\ne0$. Let us assume otherwise, i.e. assume $(-g_0(-1)^{np}(n!)^p)+pc=0$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  simplification_steps_omitted
+  intro rid,
+\end{minted}
+
+Then since $p\mid 0$, we have $p\mid (-g_0(-1)^{np}(n!)^p)+pc$ then $p\mid(-g_0(-1)^{np}(n!)^p)$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  have rid2 : (p:ℤ) §$\mid$§ g.coeff 0 * ((-1) ^ (g.nat_degree * p) * -§$\uparrow$§(g.nat_degree.fact ^ p)) + §$\uparrow$§p * c,
+  rw rid, exact dvd_zero §$\uparrow$§p,
+  
+  replace rid2 : (p:ℤ) §$\mid$§ g.coeff 0 * ((-1) ^ (g.nat_degree * p) * -§$\uparrow$§(g.nat_degree.fact ^ p)),
+    refine (dvd_add_iff_left _).2 rid2, exact dvd.intro c rfl,
+\end{minted}
+
+Assume $(-1)^{np}=1$, then we have $p\mid g_0 (n!)^p$, then either $p\mid |g_0|$ or $p\mid (n!)^p$. If $p\mid |g_0|$ then $p\le |g_0|$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  have triv : (-1:ℤ) ^ (g.nat_degree * p) = 1 ∨ (-1:ℤ) ^ (g.nat_degree * p) = -1 := neg_one_pow_eq_or _,
+  cases triv,
+  simplification_steps_omitted
+  rw nat.prime.dvd_mul at rid2,
+  cases rid2,
+    simplification_steps_omitted
+    have hm : p*m = (g.coeff 0).nat_abs, proof_omitted,
+    replace hm : p ≤ (g.coeff 0).nat_abs, proof_omitted,
+\end{minted}
+
+If $p\mid (n!)^p$, then since $p$ is a prime number $p\mid n!$  then $p\le n$.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  intermediate_steps_omitted
+  have H : p §$\mid$§ §$\uparrow$§(g.nat_degree.fact).nat_abs,
+  rw nat.prime.dvd_fact at H,
+\end{minted}
+
+For $(-1)^{np}=-1$, the same proof works mutatis mutandis,
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  rest_omitted
+end
+\end{minted}
+\end{proof}
+
+To fullfill the requirement of $g$ having none-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
+\begin{code}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+def min_degree_term (f : ℤ[X]) (hf : f ≠ 0) : ℕ := 
+  finset.min' (f.support) (non_empty_supp f hf)
+def make_const_term_nonzero (f : ℤ[X]) (hf : f ≠ 0) : ℤ[X] := 
+{ support := finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support,
+  to_fun := (λ n, (f.coeff (n+(min_degree_term f hf)))),
+  mem_support_to_fun := begin
+    intro n, split, intro hn, rw finset.mem_image at hn, choose a ha using hn, rw <-ha.2, rw nat.sub_add_cancel,
+    have eq2 := (f.3 a).1 ha.1, exact eq2,
+    rw min_degree_term, exact finset.min'_le f.support (non_empty_supp f hf) a ha.1,
+    intro hn, rw finset.mem_image, use n + min_degree_term f hf,
+    split,
+    exact (f.3 (n + min_degree_term f hf)).2 hn, simp only [nat.add_sub_cancel],
+  end,}
+\end{minted}
+
+In another word, we divide $g$ by $X^m$ where $m$ is the lowest none-zero monomial in $g$.
+\end{code}
+
+Because for any $x\ge 0$, $\lim_{n\to\infty}\frac{x^n}{n!}=0$ and there is an infinite amount of primes, we have the following theorem serving the coup de grace of proving transcendence of $e$.
+\begin{theorem}
+For any integer $z$ and non-negative real number $M$, there is some prime number $p>z$ such that $(p-1)!>M^p$
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem coup_de_grace (M : ℝ) (hM : M ≥ 0) (z : ℤ) : ∃ p : nat.primes, (p.val:ℤ) > z ∧ ((p.val-1).fact:ℝ) > M^p.val
+\end{minted} 
+\end{theorem}
+
+\begin{theorem}
+$e$ is transcendental.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+theorem e_transcendental : transcendental e :=
+\end{minted}
+\end{theorem}
+\begin{proof}
+We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has none-zero constant coefficent.
+
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+begin
+  by_contra e_algebraic,
+  rw is_algebraic at e_algebraic,
+  choose g' g'_def using e_algebraic,
+  have g'_nonzero := g'_def.1,
+  have e_root_g' := g'_def.2,
+  generalize g_def : make_const_term_nonzero g' g'_nonzero = g,
+  have coeff_zero_nonzero : (g.coeff 0) ≠ 0,
+    rw <-g_def, apply coeff_zero_after_change,
+  have e_root_g : (polynomial.aeval ℤ ℝ e) g = 0,
+    rw <-g_def,
+    apply non_zero_root_same, rw e, exact (1:ℝ).exp_ne_zero, exact e_root_g',
+\end{minted}
+
+There is prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M$ is defined as in theorem \ref{thm:upperbound}. Then $(p-1)!>M^p\ge|J_p(g)|>(p-1)!$ is the desired contradiction.
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
+  have contradiction := contradiction (M g) _ (max g.nat_degree (abs (g.coeff 0))),
+  choose p Hp using contradiction,
+  have abs_J_lower_bound := abs_J_lower_bound g e_root_g coeff_zero_nonzero p.val p.property _,
+  have rid := le_trans abs_J_lower_bound abs_J_upper_bound,
+  simplification_steps_omitted
+\end{minted}
+\end{proof}
+% Let us evaluate an upper bound for $J_p(g)$ where $g\in\mathbb{Z}[x]$ such that $\mathrm{eval}_g(e)=0$.
 
 % \chapter{Further Work}
 % An immediate next step would be formalising the transcendence of $\pi$.

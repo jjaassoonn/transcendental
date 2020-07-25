@@ -6,6 +6,8 @@ noncomputable theory
 open_locale classical
 open_locale big_operators
 
+notation α`[X]` := polynomial α
+
 
 /-- # Definition and some theorems about differentiating multiple times
 -/
@@ -13,12 +15,12 @@ open_locale big_operators
 /-Definition
 For any integer polynomial $f$ and $n\in\mathbb N$ we define `deriv_n f n` to be the $n$-th derivative of polynomial $f$. $h^{[n]}$ means $h\circ h\circ h\cdots\circ h$ $n$-times.
 -/
-def deriv_n (f : polynomial ℤ) (n : ℕ) : polynomial ℤ := polynomial.derivative ^[n] f
+def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
 
 /-Lemma 
 the zeroth derivative of polynomial $f$ is $f$ itself.
 -/
-lemma zeroth_deriv (f : polynomial ℤ) : deriv_n f 0 = f :=
+lemma zeroth_deriv (f : ℤ[X]) : deriv_n f 0 = f :=
 begin
     -- This is purely definition of `deriv_n f n`
     -- We also used $f^{[n]}=\mathrm{id}$ and $\mathrm{id} x = x$.
@@ -28,7 +30,7 @@ end
 /-Lemma
 the derivative of $f^{(n)}$ is $f^{(n+1)}$
 -/
-lemma deriv_succ (f : polynomial ℤ) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
+lemma deriv_succ (f : ℤ[X]) (n : ℕ) : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
 begin
     -- By definition and $h^{[n+1]}=h\circ h^{[n]}$
     rw [deriv_n, deriv_n, function.iterate_succ'],
@@ -46,7 +48,7 @@ end
 /-Lemma
 If the $n$-th coefficient of $f$ is $a_n$, then the $n$-th coefficient in $f^{(k)}$ is $\left(\prod_{i=0}^{k-1} (n+k-i)\right)a_{n+k}$
 -/
-lemma deriv_n_coeff (f : polynomial ℤ) (k : ℕ) : ∀ n : ℕ, (deriv_n f k).coeff n = (∏ i in finset.range k, (n+k-i)) * (f.coeff (n+k)) :=
+lemma deriv_n_coeff (f : ℤ[X]) (k : ℕ) : ∀ n : ℕ, (deriv_n f k).coeff n = (∏ i in finset.range k, (n+k-i)) * (f.coeff (n+k)) :=
 begin
     -- So we use induction on $k$
     induction k with k ih, 
@@ -78,7 +80,7 @@ end
 /-Lemma
 Like first derivative, higher derivatives still respect addition
 -/
-lemma deriv_n_add (p q :polynomial ℤ) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
+lemma deriv_n_add (p q :ℤ[X]) (n : ℕ) : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
 begin
     induction n with n ih, rw [deriv_n, deriv_n, deriv_n], simp only [id.def, function.iterate_zero],
     rw [deriv_n, deriv_n, deriv_n, function.iterate_succ'], simp only [function.comp_app], rw [<-deriv_n,<-deriv_n,<-deriv_n, ih], simp only [polynomial.derivative_add], 
@@ -87,7 +89,7 @@ end
 /-Lemma
 For any polynomial $f$ with degree $d$, the $d+1$-th derivative is zero.
 -/
-theorem deriv_too_much (f : polynomial ℤ): (deriv_n f (f.nat_degree + 1)) = 0 :=
+theorem deriv_too_much (f : ℤ[X]): (deriv_n f (f.nat_degree + 1)) = 0 :=
 begin
     -- We prove that all coefficient of $f^{(d+1)}$ is zero.
     ext,
@@ -122,7 +124,8 @@ We also have that for $p,q\in\mathbb Z[x]$,
     (p\times q)^{(n)} = \sum_{i=0}^n\left({n\choose i}p^{(i)}q^{(n-i)}\right)    
 \]
 -/
-theorem deriv_n_poly_prod (p q : polynomial ℤ) (n : ℕ) : deriv_n (p * q) n = ∑ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) :=
+
+lemma deriv_n_poly_prod (p q : ℤ[X]) (n : ℕ) : deriv_n (p * q) n = ∑ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) :=
 begin
     -- We prove by induction on $n$.
     induction n with n IH,
@@ -197,7 +200,8 @@ end
 /-Theorem
 For a polynomial $f$ then if $n>0$, we have $f^{(n)}=f^{(n-1)}\times f'$
 -/
-theorem poly_pow_deriv (f : polynomial ℤ) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
+
+theorem poly_pow_deriv (f : ℤ[X]) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
 begin
     induction n with n IH,
     exfalso, linarith,
@@ -526,10 +530,10 @@ We use integration by parts to prove
 
 The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
 -/
-def I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := 
+def I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ := 
     t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
 
-def II (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in set.Icc 0 t, real.exp(t - x) * (f_eval_on_ℝ f x)
+def II (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in set.Icc 0 t, real.exp(t - x) * (f_eval_on_ℝ f x)
 
 /-Theorem
 $I(0,t)$ is 0.
@@ -544,7 +548,7 @@ end
 By integration by part we have:
 \[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
 -/
-theorem II_integrate_by_part (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : 
+lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
     (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht) :=
 begin
     rw II,
@@ -556,7 +560,8 @@ begin
     rw eq,
     -- Apply integration by part to $$\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$.
     replace eq := integrate_by_part (f_eval_on_ℝ f) (λ (x : ℝ), -(t - x).exp) 0 t ht,
-    rw eq, simp only [mul_one, neg_sub_neg, real.exp_zero, sub_zero, mul_neg_eq_neg_mul_symm, sub_self],
+    rw eq, 
+    simp only [mul_one, neg_sub_neg, real.exp_zero, sub_zero, mul_neg_eq_neg_mul_symm, sub_self],
     replace eq : (∫ x in set.Icc 0 t, -(deriv (f_eval_on_ℝ f) x * (t - x).exp)) = ∫ x in set.Icc 0 t, -((λ x, (deriv (f_eval_on_ℝ f) x * (t - x).exp)) x),
     {
         apply same_integral, ext, simp only [],
@@ -580,15 +585,14 @@ Combine the theorem above with induction we get for all $m\in\mathbb N$
 I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 \]
 -/
-theorem II_integrate_by_part_m (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) (m : ℕ) :
+lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) (m : ℕ) :
     II f t ht = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range (m+1), f_eval_on_ℝ (deriv_n f i) t) + (II (deriv_n f (m+1)) t ht) :=
 begin
     induction m with m ih,
-    rw deriv_n, simp only [function.iterate_one, finset.sum_singleton, finset.range_one], rw II_integrate_by_part, rw deriv_n, simp only [id.def, function.iterate_zero],
+    rw [deriv_n,II_integrate_by_part], simp only [function.iterate_one, finset.sum_singleton, finset.range_one], rw deriv_n, simp only [id.def, function.iterate_zero],
 
-    rw ih,
+    rw [ih, II_integrate_by_part],
     have triv : m.succ + 1 = (m+1).succ := by ring, rw triv, generalize hM : m + 1 = M,
-    rw II_integrate_by_part,
     replace triv : t.exp * ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0 -
         ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t +
       (t.exp * f_eval_on_ℝ (deriv_n f M) 0 - f_eval_on_ℝ (deriv_n f M) t + II (deriv_n f M).derivative t ht)
@@ -612,11 +616,12 @@ end
 /-Theorem
 So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$ agrees.
 -/
-theorem II_eq_I (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : II f t ht = I f t ht :=
+theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : II f t ht = I f t ht :=
 begin
     have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
-    have triv := deriv_too_much f, rw triv at II_integrate_by_part_m, rw II_0 at II_integrate_by_part_m, simp only [add_zero] at II_integrate_by_part_m,
-    rw I, assumption,
+    have triv := deriv_too_much f, rw I, 
+    rw [triv, II_0, add_zero] at II_integrate_by_part_m,
+    assumption,
 end
 
 lemma norm_indicator {a b : ℝ} {h : a ≤ b} (f : ℝ -> ℝ) (x : ℝ) : ∥ set.indicator (set.Icc a b) f x ∥ = (set.indicator (set.Icc a b) (λ y, ∥ f y ∥)) x :=
@@ -629,7 +634,7 @@ end
 /-Theorem
 \[\left|I(f,t)\right|\le \int_0^t \left|e^{t-x}f(x)\right|\mathrm{d}x\]
 -/
-theorem abs_II_le1 (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ ∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x)) :=
+lemma abs_II_le1 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ ∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x)) :=
 begin
     have triv : (∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x))) = ∫ x in set.Icc 0 t, ∥(t-x).exp * (f_eval_on_ℝ f x)∥,
     {
@@ -656,19 +661,20 @@ end
 - We proved some theorems about $\bar{f}$
 -/
 
-def f_bar (f : polynomial ℤ) : polynomial ℤ :=
+def f_bar (f : ℤ[X]) : ℤ[X] :=
 { support := f.support,
   to_fun  := λ n, abs (f.coeff n),
-  mem_support_to_fun := λ n, ⟨begin
-    intro hn, simp only [abs_eq_zero, ne.def], have h := (f.3 n).1 hn, simp only [ne.def] at h, assumption
-  end, begin
-    intro hn, simp only [abs_eq_zero, ne.def] at hn, apply (f.3 n).2, simpa only [],
-  end⟩}
+  mem_support_to_fun := λ n, 
+    ⟨λ hn, begin
+        simp only [abs_eq_zero, ne.def], have h := (f.3 n).1 hn, simp only [ne.def] at h, assumption
+     end, λ hn, begin
+        simp only [abs_eq_zero, ne.def] at hn, apply (f.3 n).2, simpa only [],
+     end⟩}
 
 /-Theorem
 By our construction the $n$-th coefficient of $\bar{f}$ is the absolute value of $n$-th coefficient of $f$
 -/
-theorem bar_coeff (f : polynomial ℤ) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) :=
+theorem bar_coeff (f : ℤ[X]) (n : ℕ) : (f_bar f).coeff n = abs (f.coeff n) :=
 begin
     -- true by definition
     dsimp [f_bar], refl,
@@ -677,7 +683,7 @@ end
 /-Theorem
 By our construction, $\bar{f}$ and $f$ has the same support
 -/
-theorem bar_supp (f : polynomial ℤ) : (f_bar f).1 = f.1 :=
+theorem bar_supp (f : ℤ[X]) : (f_bar f).1 = f.1 :=
 begin
     -- true by definition
     dsimp [f_bar], refl,
@@ -686,7 +692,7 @@ end
 /-Theorem
 Since $\bar{f}$ and $f$ has the same support, they have the same degree.
 -/
-theorem bar_same_deg (f : polynomial ℤ) : (f_bar f).nat_degree = f.nat_degree :=
+theorem bar_same_deg (f : ℤ[X]) : (f_bar f).nat_degree = f.nat_degree :=
 begin
     apply polynomial.nat_degree_eq_of_degree_eq,
     -- degree is defined to be $\sup$ of support. Since support of $\bar{f}$ and $f$ are the same, their degree is the same.
@@ -704,24 +710,24 @@ end
 /-Theorem
 for any $f\in\mathbb Z$, if $\bar{f}=0$ then $f=0$
 -/
-theorem f_bar_eq_0 (f : polynomial ℤ) : f_bar f = 0 -> f = 0 :=
+theorem f_bar_eq_0 (f : ℤ[X]) : f_bar f = 0 -> f = 0 :=
 begin
     intro h, rw polynomial.ext_iff at h, ext,
     have hn := h n, simp only [polynomial.coeff_zero] at hn, rw bar_coeff at hn, simp only [abs_eq_zero, polynomial.coeff_zero] at hn ⊢, assumption,
 end
 
-private lemma coeff_sum (f : ℕ -> polynomial ℤ) (m : ℕ) (s : finset ℕ) : (∑ i in s, (f i).coeff m) = (∑ i in s, f i).coeff m :=
+private lemma coeff_sum (f : ℕ -> (ℤ[X])) (m : ℕ) (s : finset ℕ) : (∑ i in s, (f i).coeff m) = (∑ i in s, f i).coeff m :=
 begin
     apply finset.induction_on s, simp only [finset.sum_empty, polynomial.coeff_zero],
     intros a s ha, simp only [forall_prop_of_true, polynomial.finset_sum_coeff],
 end
 
-theorem coeff_f_bar_mul (f g : polynomial ℤ) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
+theorem coeff_f_bar_mul (f g : ℤ[X]) (n : ℕ) : (f_bar (f*g)).coeff n = abs(∑ p in finset.nat.antidiagonal n, (f.coeff p.1)*(g.coeff p.2)) :=
 begin
     rw bar_coeff (f*g) n, rw polynomial.coeff_mul,
 end
 
-theorem f_bar_eq (f : polynomial ℤ) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
+theorem f_bar_eq (f : ℤ[X]) : f_bar f = ∑ i in finset.range f.nat_degree.succ, polynomial.C (abs (f.coeff i)) * polynomial.X^i :=
 begin
     ext, rw bar_coeff, rw <-coeff_sum, simp_rw [polynomial.coeff_C_mul_X], simp only [finset.mem_range, finset.sum_ite_eq], split_ifs, refl, simp only [not_lt] at h, 
     rw polynomial.coeff_eq_zero_of_nat_degree_lt h, exact rfl,
@@ -731,7 +737,7 @@ end
 For any $x\in(0,t)$
 $|f(x)|\le \bar{f}(t)$
 -/
-theorem f_bar_ineq (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
+lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
 begin
     intros x hx,
     -- If we write $f(X)=a_0+a_1X+\cdots+a_nX^n$. Then $f(x)=a_0+a_1x+\cdots+a_nx^n$
@@ -764,7 +770,7 @@ begin
     rw rhs,
 
     -- Since $x^i\le t^i$, we have $|a_0|+|a_1|x+\cdots+|a_n|x^n\le|a_0|+|a_1|t+\cdots+|a_n|t^n$
-    have ineq2 : ∑ (i : ℕ) in f.support, abs ↑(f.coeff i) * x ^ i ≤  ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
+    have ineq2 : ∑ (i : ℕ) in f.support, abs (f.coeff i:ℝ) * x ^ i ≤  ∑ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
     {
         rw bar_supp, apply finset.sum_le_sum, intros n hn,
         suffices : x ^ n ≤ t ^ n,
@@ -777,7 +783,7 @@ begin
     exact le_trans ineq1 ineq2,
 end
 
-private lemma continuous_exp_f (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : continuous (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) :=
+private lemma continuous_exp_f (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : continuous (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) :=
 begin
     -- $|e^{t-x}f(x)|$ is composition of absolute value function and $e^{t-x}f(x)$
       have eq1 : (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) = abs ∘ (λ (x : ℝ), (real.exp (t - x) * f_eval_on_ℝ f x)) := by simp only [eq_self_iff_true], rw eq1,
@@ -816,7 +822,7 @@ $$
 \int_0^t |e^{t-x}f(d)|\mathrm{d}x\le te^t\bar{f}(t)
 $$
 -/
-private lemma II_le2' (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : (∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x))) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
+private lemma II_le2' (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : (∫ x in set.Icc 0 t, abs ((t-x).exp * (f_eval_on_ℝ f x))) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
     -- we are using `integral_le_max_times_length`
     -- so we need to prove $|e^{t-x}f(x)|\le e^t\bar{f}(t)$
@@ -830,7 +836,7 @@ begin
     have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
     rw triv at ineq1, exact ineq1,
 
-    -- This to provve the functions we used are measurable and integrable.
+    -- This to prove the functions we used are measurable and integrable.
     {
       split,
       apply measurable.measurable_on, exact is_measurable_Icc,
@@ -889,8 +895,10 @@ end
 /-Theorem
 $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
-theorem abs_II_le2 (f : polynomial ℤ) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
+theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
     -- combine `abs_II_le1` and previous lemma.
+    have ineq1 := (abs_II_le1 f t ht),
+    have ineq2 := (II_le2' f t ht),
     exact le_trans (abs_II_le1 f t ht) (II_le2' f t ht),
 end
