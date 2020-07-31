@@ -44,7 +44,7 @@
 \begin{center}
   \textbf{Declaration}
 \end{center}
-I declare that this report was composed by myself, that the work contained here in is my own except where explicitly stated otherwise in the text.
+I declare that this report was composed by myself, that the work contained herein is my own except where explicitly stated otherwise in the text.
 
 \begin{flushright}
   \includegraphics[height=1.5\baselineskip]{signature.png}
@@ -53,7 +53,7 @@ I declare that this report was composed by myself, that the work contained here 
 
 % Abstract
 \begin{abstract}
-The objective of this report is to present formalizations of some basic theorems from transcendental number theory with {\tt \small Lean} and {\tt \small mathlib} in the hope that it will serve as a motivation for mathematicians to be more curious about interactive theorem proving. The following theorems are formalized:
+The objective of this report is to present formalization of some basic theorems from transcendental number theory with {\tt \small Lean} and {\tt \small mathlib} in the hope that it will motivate and inspire other mathematicians, by igniting their curiosity about interactive theorem proving. The following theorems are formalized:
 \begin{enumerate}
   \item the set of algebraic numbers is countable, hence transcendental number exists:
 
@@ -91,48 +91,48 @@ theorem e_transcendental : transcendental e
 
 \chapter{Overview}
 \section{Interactive theorem proving}
-Around 1920s, the German mathematician David Hilbert put forward the programme to seek:
+Around 1920s, the German mathematician David Hilbert put forward a programme to seek:
 \begin{enumerate}
   \item an axiomatic foundation of mathematics;
   \item a proof of consistency of the said foundation;
   \item Entscheidungsproblem: an algorithm to determine if any proposition is universally valid given a set of axioms.
 \end{enumerate}
-The first two aims were later proved to be impossible by Gödel and the celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer to execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm to spit out some unfathomable proofs, assuming computers are given the ability to check correctness of proofs, human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt \small Lean}. 
+The first two aims were later proved to be impossible by Gödel and his celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, a computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer with which it execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm can spit out some unfathomable proofs, assuming computers are given the ability to check the correctness of proofs, so human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems, which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt \small Lean}. 
 
-The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' will serve as an illustrative example of utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that mathematician even with great effort could not guarantee its correctness. A collaborative project using {\tt \small Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt \small HOL Light}\footnote{ibid.} verified the proof around 2014 and hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt \small Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Using {\tt \small Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise modern notion of perfectoid spaces \cite{buzzard2020formalising}.
+The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' illustrates and exemplifies the utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that other mathematician even after great effort could not guarantee its correctness. A collaborative project using {\tt \small Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt \small HOL Light}\footnote{ibid.} verified the proof around 2014, hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt \small Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step closer to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Additionally, using {\tt \small Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise the modern notion of perfectoid spaces \cite{buzzard2020formalising}.
 
 \section{History of transcendental numbers}
 
-``Transcendence'' as a mathematical jargon first appeared in a Leibniz's 1682 paper where he proved that $\sin$ is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
+``Transcendence'' as a mathematical jargon first appeared in a Leibniz's 1682 paper where he proved that sine is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
 $$p_0(x)+p_1(x)\sin(x)+p_2(x)\sin(x)^2+\cdots+p_n(x)\sin(x)^n=0$$
-holds for all $x\in\mathbb R$ \cite{bourbaki1998elements}. The Swiss mathematician Johann Heinrich Lambert in his 1768 paper proved the irrationality of $e$ and $\pi$ where he also conjectured their transcendence \cite{lambert2004memoire}. It is until 1844 that Joseph Liouville proved the existence of any transcendental numbers and until 1851 an explicit example of transcendental number is actually given by its decimal expansion:\cite{10.2307/1988833}
+holds for all $x\in\mathbb R$ \cite{bourbaki1998elements}. The Swiss mathematician Johann Heinrich Lambert in his 1768 paper proved the irrationality of $e$ and $\pi$ and he also conjectured their transcendence \cite{lambert2004memoire}. It is not until 1844 that Joseph Liouville proved the existence of any transcendental number and until 1851 an explicit example of transcendental number was actually given by its decimal expansion:\cite{10.2307/1988833}
 $$\sum_{i=1}^\infty\frac1{10^{i!}}=0.11000100000\cdots.$$
-However, this construction is still artificial in nature. The first example of a real number proven to be transcendental that is not constructed for the purpose of being transcendental was $e$. Charles Hermite proved the transcendence of $e$ in 1873 with a method applicable with help of symmetric polynomial to transcendence of $\pi$ in 1882 and later to be generalised to Lindemann-Weierstrass theorem in 1885 stating that if $\alpha_1,\cdots, \alpha_n$ are distinct algebraic numbers then $e^{\alpha_1},\cdots,e^{\alpha_n}$ are linearly independent over the algebraic numbers \cite{baker1990transcendental}. The transcendence of $\pi$ was particularly celebrated because it immediately implied the impossibility of the ancient greek question of squaring the circle, i.e. it is not possible to construct a square, using compass and ruler only, with equal area to a circle. For this question is plainly equivalent to construct $\sqrt\pi$ which is not possible for otherwise $\pi$ is algebraic. Georg Cantor in 1874 proved that algebraic numbers are countable hence not only did transcendental numbers exist, they exist in a ubiquitous manner -- there is a bijection from the set of all transcendental numbers to $\mathbb R$ \cite{cantor1932uber,cantor1878beitrag}.
+However, this construction is still artificial in nature. The first example of a real number proven to be transcendental that is not constructed for the purpose of being transcendental was $e$. Charles Hermite proved the transcendence of $e$ in 1873 with a method applicable (with help of symmetric polynomial) to $\pi$ in 1882 and later to be generalised to Lindemann-Weierstrass theorem in 1885 stating that if $\alpha_1,\cdots, \alpha_n$ are distinct algebraic numbers then $e^{\alpha_1},\cdots,e^{\alpha_n}$ are linearly independent over the algebraic numbers \cite{baker1990transcendental}. The transcendence of $\pi$ was particularly celebrated because it immediately implied the impossibility of the ancient greek challenge of squaring the circle, i.e. it is not possible to construct a square, using compass and ruler only, with equal area to a circle. This question is plainly equivalent to construct $\sqrt\pi$, which is not possible for otherwise $\pi$ is algebraic. Georg Cantor in 1874 proved that algebraic numbers are countable hence not only do transcendental numbers exist, they exist in a ubiquitous manner -- there is a bijection from the set of all transcendental numbers to $\mathbb R$ \cite{cantor1932uber,cantor1878beitrag}.
 
-In 1900, Hilbert proposed twenty-three questions, the 7th of which is regarding transcendental numbers: Is $a^b$ transcendental, for any algebraic number $a$ that is not $0$ or $1$ and any irrational algebraic number $b$? The answer is yes by Gelfond-Schneider theorem in 1934 \cite{gelfond1934septieme}. This has some immediate consequences such that
+In 1900, Hilbert proposed twenty-three questions, the 7th of which is regarding transcendental numbers: Is $a^b$ transcendental, for any algebraic number $a$ that is not $0$ or $1$ and any irrational algebraic number $b$? The answer is yes provided by Gelfond-Schneider theorem in 1934 \cite{gelfond1934septieme}. This led to some immediate consequences such that
 \begin{enumerate}
   \item $2^{\sqrt2}$ and its square root ${\sqrt2}^{\sqrt2}$ are transcendental;
   \item $e^{\pi}$ is transcendental for $e^{\pi}=\left(e^{i\pi}\right)^{-i}=\left(-1\right)^{-i}$;
   \item $i^i=e^{-\frac\pi2}$ is transcendental etc.
 \end{enumerate}
-In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$ etc are proven to be transcendental. It is also conjectured by Stephen Schanuel that given any $n$ $\mathbb Q-$linearly independent $z_1,\cdots, z_n\in\mathbb C$, then $\mathrm{trdeg}\left(\mathbb Q(z_1,\cdots, zn, e^{z_1},\cdots, e^{z_n})/\mathbb Q\right)$ is at least $n$ \cite{lang1966introduction}. If this were proven, the algebraic independence of $e$ and $\pi$ would follow immediately by setting $z_1=1$ and $z_2=\pi i$ with Euler's identity.
+In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$, etc were proven to be transcendental. It was also conjectured by Stephen Schanuel that given any $n$ $\mathbb Q-$linearly independent $z_1,\cdots, z_n\in\mathbb C$, then $\mathrm{trdeg}\left(\mathbb Q(z_1,\cdots, zn, e^{z_1},\cdots, e^{z_n})/\mathbb Q\right)$ is at least $n$ \cite{lang1966introduction}. If this was proven, the algebraic independence of $e$ and $\pi$ would follow immediately by setting $z_1=1$ and $z_2=\pi i$ with Euler's identity.
 
 \chapter{Brief introduction to {\tt Lean}}\label{intro:lean}
 
-{\tt \small Lean} is developed by Leonardo de Moura at Microsoft Research Redmond from 2013 using dependent type theory and calculus of inductive constraint \cite{avigad2015theorem}. In this chapter, basic ideas of Curry-Howard isomorphism will be demonstrated by some basic examples of mathematical theorem expressed in {\tt \small Lean} using dependent type theory.
+{\tt \small Lean} was developed by Leonardo de Moura at Microsoft Research Redmond in 2013 using dependent type theory and calculus of inductive constraint \cite{avigad2015theorem}. In this chapter, basic ideas of Curry-Howard isomorphism will be demonstrated by some basic examples of mathematical theorem expressed in {\tt \small Lean} using dependent type theory.
 
 \section{Simple type theory}
-Unlike set theory where everything from natural numbers to modular forms is essentially a set. Type theory associate every expression with a {\tt \small type}. In set theory, an element can belongs to different sets, for example $0$ is simultaneously in $\mathbb N\subseteq\mathbb Q\subseteq\mathbb R\subseteq\mathbb C$. However an expression can only have one type. $0$ without any context will have type $\mathbb N$ and, to specify the zero with type $\mathbb R$ we write $(0:\mathbb R)$. If $a$ has type $\alpha$, we write $a:\alpha$. By a universe of types we mean a collection of types.Types can be combined to form new types in the following way:
+Unlike set theory where everything from natural numbers to modular forms is essentially a set, type theory associate every expression with a {\tt \small type}. In set theory, an element can belong to different sets, for example $0$ is simultaneously in $\mathbb N\subseteq\mathbb Q\subseteq\mathbb R\subseteq\mathbb C$. However an expression can only have one type. $0$ without any context will have type $\mathbb N$ and, to specify the zero with type $\mathbb R$ we write $(0:\mathbb R)$. If $a$ has type $\alpha$, we write $a:\alpha$. By a universe of types we mean a collection of types. Types can be combined to form new types in the following way:
 \begin{itemize}
-  \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the element of type $\alpha\to\beta$ is a function that for any element of $\alpha$ gives an element of $\beta$. For mathematician this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. This can be thought of $\mapsto$. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$.
+  \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the element of type $\alpha\to\beta$ is a function that for any element of $\alpha$ gives an element of $\beta$. For mathematicians this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: the expression $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$ is the function from natural numbers to natural numbers that add $1$ to any input.
   \item let $\alpha$ and $\beta$ be types then $\alpha\times\beta$ is the cartesian product of $\alpha$ and $\beta$: the element of type $\alpha\times\beta$ is an ordered tuple $(a,b)$ where $a:\alpha$ and $b:\beta$.
-  \item Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of type that for any $a:\alpha$,$\beta(a)$ is a type in $\mathcal U$. Then we can form the $\Pi$-type $$\prod_{a:\alpha}\beta(a)$$ whose element is of the form $f:\prod_{a:\alpha}\beta(a)$ such that for any $x:\alpha$, $f(x):\beta(x)$. Note that function type is actually an example of $\Pi$-type where $\beta$ is a constant family of types. For this reason, we also call $\Pi$-types dependent functions. For example if $\mathrm{Vec}(\mathbb{R},n)$ is the type of $\mathbb R^n$, then 
+  \item Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of type that for any $a:\alpha$, $\beta(a)$ is a type in $\mathcal U$. Then we can form the $\Pi$-type $$\prod_{a:\alpha}\beta(a)$$ whose element is of the form $f:\prod_{a:\alpha}\beta(a)$ such that for any $x:\alpha$, $f(x):\beta(x)$. Note that function type is actually an example of $\Pi$-type where $\beta$ is a constant family of types. For this reason, we also call $\Pi$-types dependent functions. For example if $\mathrm{Vec}(\mathbb{R},n)$ is the type of $\mathbb R^n$, then 
     $$n\mapsto\underbrace{(1,\cdots,1)}_{n\text{ times}}:\prod_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
   \item We also have dependent cartesian product or $\Sigma$-type: Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types in $\mathcal U$, then the $\Sigma$-type $$\sum_{a:\alpha}\beta(a)$$ whose element is of the form $(x,y):\sum_{a:\alpha}\beta(a)$ such that $x:\alpha$ and $y:\beta(x)$. Similarly $$\left(n,\underbrace{(1,\cdots,1)}_{n\text{ times}}\right):\sum_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
 \end{itemize}
 
 \subsection{Proposition as type}
-In type theory, a proposition $p$ can be thought as a type whose elements is a proof of $p$.
+In type theory, a proposition $p$ can be regarded as a type whose elements is a proof of $p$.
 
 \begin{example}
 $1+1=2$ is a proposition. {\tt \small rfl} is an element of type $1+1=2$ where {\tt \small rfl} is the assertion that every term equals to itself.
@@ -143,16 +143,16 @@ For two propositions $p$ and $q$, the implication $p\implies q$ then can be inte
 \end{example}
 
 \begin{example}
-If $p:\alpha\to\mathrm{proposition}$
-$\forall x : \alpha, p(x)$ can be interpreted as a $\Pi$-type $\prod_{x:\alpha} p(x)$. To prove $\forall x: \alpha, p(x)$, we need to find an element of type $\prod_{x:\alpha} p(x)$, equivalently for any $x:\alpha$, we need to find an element of type $p(x)$, equivalently for any $x:\alpha$, we need to find a proof of $p (x)$.
+If $p:\alpha\to\mathrm{proposition}$, the proposition
+$\forall x : \alpha, p(x)$ can be interpreted as a $\Pi$-type $\prod_{x:\alpha} p(x)$. To prove $\forall x: \alpha, p(x)$, we need to find an element of type $\prod_{x:\alpha} p(x)$; equivalently for any $x:\alpha$, we need to find an element of type $p(x)$; equivalently for any $x:\alpha$, we need to find a proof of $p (x)$.
 
-Similarly, $\exists x:\alpha, p(x)$ can be interpreted as a $\Sigma$-type $\sum_{x:\alpha} p(x)$. To prove $\exists x:\alpha, p(x)$ is to find an element $x$ of type $\alpha$ and prove $p(x)$, equivalently to find an element $x:\alpha$ and an element of type $p(x)$ and this is precisely $(x, p(x)):\sum_{a:\alpha} p(a)$.
+Similarly, $\exists x:\alpha, p(x)$ can be interpreted as a $\Sigma$-type $\sum_{x:\alpha} p(x)$. To prove $\exists x:\alpha, p(x)$ is to find an element $x$ of type $\alpha$ and prove $p(x)$, equivalent to find an element $x:\alpha$ and an element of type $p(x)$ and this is precisely $(x, p(x)):\sum_{a:\alpha} p(a)$.
 \end{example}
 
-Theorems are true propositions, using the interpretation above, theorems are inhabited types and to prove a theorem is to find an element of the required type.
+Theorems are true propositions. Using the interpretation above, theorems are inhabited types and to prove a theorem is to find an element of the required type.
 
 \section{{\tt Lean} and {\tt mathlib}}
-{\tt \small mathlib} is {\it the} collection of mathematical definition, theorems, lemmas built on {\tt \small Lean}. {\tt \small mathlib} includes topics in algebra, topology, manifolds and combinatorics etc. In this section, we are going to explain briefly how to use {\tt \small Lean} with {\tt \small mathlib}.
+{\tt \small mathlib} is the collection of mathematical definitions, theorems, lemmas built on {\tt \small Lean}. {\tt \small mathlib} includes topics in algebra, topology, manifolds and combinatorics etc. The following section will briefly explain how to use {\tt \small Lean} with {\tt \small mathlib}.
 
 
 In {\tt \small Lean}, new definition can be introduced with the following syntax:
@@ -161,7 +161,7 @@ def name (arg|$_1$|:type|$_1$|) ... (arg|$_n$|:type|$_n$|) : return_type := cont
 
 def name' {arg|$_1$|:type|$_1$|} ... (arg|$_n$|:type|$_n$|) : return_type := contents
 \end{minted}
-{\tt \small return\_type} is optional when it can be inferred from {\tt \small contents}. If an argument is surrounded by curly bracket instead of round bracket, then when the definition is invoked the said argument is implicit, i.e. {\tt \small name' a$_2$ ... a$_n$} where {\tt \small a$_i$:type$_i$}. To explicitly mention the said argument, one needs to use {\tt \small @name' a$_1$ ... a$_n$} where {\tt \small a$_i$:type$_i$}. One can use ``if then else'' to introduce a function whose value depends on the value of arguments:
+{\tt \small return\_type} is optional when it can be inferred from {\tt \small contents}. If an argument is enclosed by curly brackets instead of round brackets, then when the definition is invoked the said argument is implicit, i.e. {\tt \small name' a$_2$ ... a$_n$} where {\tt \small a$_i$:type$_i$}. To explicitly mention the said argument, one needs to use {\tt \small @name' a$_1$ ... a$_n$} where {\tt \small a$_i$:type$_i$}. One can use ``if then else'' to introduce a function whose value depends on the value of the arguments:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 def name args : return_type :=
   if (h args)
@@ -176,7 +176,7 @@ New notations are introduced with the following syntax:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
 notation _`lhs`_ := _rhs_
 \end{minted}
-so that {\tt \small Lean} will treat every occurrence of {\tt \small \_`lhs`\_} as {\tt \small \_rhs\_} verbatim. For example \mintinline{Lean}{notation ℤ`[X]` := polynomial ℤ} will replace the {\tt \small Lean} type {\tt \small polynomial ℤ} with a more family notation of $\mathbb{Z}[X]$.
+so that {\tt \small Lean} will treat every occurrence of {\tt \small \_`lhs`\_} as {\tt \small \_rhs\_} verbatim. For example \mintinline{Lean}{notation ℤ`[X]` := polynomial ℤ} will replace the {\tt \small Lean} type {\tt \small polynomial ℤ} with a more familiar notation of $\mathbb{Z}[X]$.
 
 For any type of $\alpha$, we can introduce a subtype of $\alpha$ by:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
@@ -194,7 +194,7 @@ end
 
 To write a proof understandable to {\tt \small Lean}, one need to use {\it tactic mode}. In {\tt \small Lean}, one can use
 \begin{itemize}
-  \item proof by induction: if the goal is a proposition about natural number $n$, {\tt \small induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first goal is to prove the proposition for $n=0$ and the second goal is to prove the proposition $n+1$ with the additional inductive hypothesis {\tt \small IH};
+  \item proof by induction: if the goal is a proposition about natural number $n$, {\tt \small induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first is to prove the proposition for $n=0$ and the second to prove the proposition $n+1$ with the additional inductive hypothesis {\tt \small IH};
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem awesome_theorem_about_natural_number (n : ℕ) : proposition|$_\mathtt{n}$| :=
@@ -219,7 +219,7 @@ by_contra absurdum,
 a_proof_of_falsehood
 end
 \end{minted}
-  \item proof in a forward manner i.e. introduce new theorem or convert known theorem in current context to approach the goal:
+  \item proof in a forward manner i.e. introduce new theorem into the current context or convert known theorem in the current context to approach the goal:
   \begin{itemize}
     \item {\tt \small have H := content} will introduce a new proposition whose proof is given by {\tt \small content}.
     
@@ -228,13 +228,13 @@ end
     \item If {\tt \small H} is in context then {\tt \small replace H := content} will change {\tt \small H} to (a proof of) the proposition that {\tt \small content} is proving.
     
     {\tt \small replace H : some\_proposition} will add one more goal of proving {\tt \small some\_proposition} and then replace {\tt \small H} to the proposition proven.
-    \item If {\tt \small H} is in context, {\tt \small simp at H} will simplify {\tt \small H} to using small lemmas\footnote{to be more precise, lemma with {\tt \small @[simp]} tag, i.e. lemmas declared in the following syntax {\tt \small @[simp] lemma lemma\_name args : Prop}. These lemma are usually trivial in nature such as {\tt \small nat.add\_zero} which asserts that $\forall n:\mathbb N, n + 0 = n$.}.
+    \item If {\tt \small H} is in context, {\tt \small simp at H} will simplify {\tt \small H} to using small lemmas\footnote{to be more precise, lemma with {\tt \scriptsize @[simp]} tag, i.e. lemmas declared in the following syntax {\tt \scriptsize @[simp] lemma lemma\_name args : Prop}. These lemma are usually trivial in nature such as {\tt \scriptsize nat.add\_zero} which asserts that $\forall n:\mathbb N, n + 0 = n$.}.
     {\tt \small simp only [h1,\dots,hn]} is to simplify only using {\tt \small h1 }\dots{\tt \small{ hn}}.
     \item {\tt \small rw} is for term rewriting. If we have {\tt \small h : lhs = rhs} or {\tt \small h : lhs<->rhs} and another {\tt \small H} in context, then {\tt \small rw h at H} will replace every occurrence of {\tt \small lhs} with {\tt \small rhs} in {\tt \small H} and {\tt \small rw <-h} will replace every occurrence of {\tt \small rhs} with {\tt \small lhs} in {\tt \small H}.
   
     {\tt \small rw [h1, h2,..., hn] at H} is the same as {\tt \small rw h1 at H, rw h2 at H,..., rw hn at H}.
     
-    \item Since {\tt \small rw} and {\tt \small simp} will change all occurrence, this sometimes would be inconvenient. If {\tt \small H} is in context, {\tt \small conv\_lhs at H \{tactics\}} will confine the scope of {\tt \small tactics} only to left hand side of H; similarly {\tt \small conv\_rhs at H \{tactics\}} will confine the scope to right hand side of H.
+    \item The fact that {\tt \small rw} and {\tt \small simp} change all term occurrences sometimes creates an inconvenience. If {\tt \small H} is in context, {\tt \small conv\_lhs at H \{tactics\}} will confine the scope of {\tt \small tactics} only to the left hand side of H; similarly {\tt \small conv\_rhs at H \{tactics\}} will confine the scope to the right hand side of H.
 
     \item {\tt \small generalise H : lhs = var\_name} will set {\tt \small var\_name} to {\tt \small lhs} and add (proof of) the proposition {\tt \small H : lhs = var\_name} to the current context.
     \item If {\tt \small H : ∃ x : type, property\_about\_x} is in the current context, {\tt \small choose x hx using H} will introduce {\tt \small x:type} with the assumption {\tt \small property\_about\_x} to the current context. 
@@ -247,18 +247,18 @@ end
     \item {\tt \small unfold definition} is to unfold a definition to what is explicitly defined when the definition is introduced.
     \item {\tt \small simp}, {\tt \small rw}, {\tt \small conv\_lhs \{tactics\}} and {\tt \small conv\_rhs \{tactics\}} is the same as above except now they change at goal.
     \item Given (a proof of) proposition {\tt \small H: h1 -> h2}, then {\tt \small apply H} will change the goal of proving {\tt \small h2} to prove {\tt \small h1}.
-    \item {\tt \small suffices H : some\_proposition} ask a proof of the current goal with additional {\tt \small H}, then ask for a proof of {\tt \small H}.
-    \item {\tt \small norm\_cast} is convert the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt \small norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt \small Lean} is equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
+    \item {\tt \small suffices H : some\_proposition} ask for a proof of the current goal with additional {\tt \small H}, then ask for a proof of {\tt \small H}.
+    \item {\tt \small norm\_cast} converts the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt \small norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt \small Lean} is defined as equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
     
     {\tt \small norm\_num} is equivalent to {\tt \small norm\_cast, simp}.
 
-    \item {\tt \small ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt \small ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt \small ext}, an arbitrary element {\tt \small x} of type $\alpha$ will be introduced to context then the goal will become to prove $x\in A\iff x\in B$. {\tt \small ext var\_name} will force {\tt \small Lean} to introduce new variable under the identifier {\tt \small var\_name}.
-    \item If the goal is to prove {\tt \small ite h1 h2 h3} (or {\tt \small ite h1 h2 h3 = rhs}), then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt \small h2} ({\tt \small h3 = rhs} resp.) with additional assumption {\tt \small h1}; the second one is to prove {\tt \small h3} ({\tt \small h3 = rhs} resp.) with additional assumption {\tt \small $\neg$h1}
+    \item {\tt \small ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt \small ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt \small ext}, an arbitrary element {\tt \small x} of type $\alpha$ will be introduced into context then the goal will become to prove $x\in A\iff x\in B$. {\tt \small ext var\_name} will force {\tt \small Lean} to introduce a new variable under the identifier {\tt \small var\_name}.
+    \item If the goal is to prove {\tt \small ite h1 h2 h3} (or {\tt \small ite h1 h2 h3 = rhs}), then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt \small h2} ({\tt \small h3 = rhs} resp.) with the additional assumption {\tt \small h1}; the second one is to prove {\tt \small h3} ({\tt \small h3 = rhs} resp.) with the additional assumption {\tt \small $\neg$h1}
   \end{itemize}
 
   \item when the goal is easily provable, one can use the following to finish a goal:
   \begin{itemize}
-    \item {\tt \small refl} (for reflexive) is used to prove proposition of the form {\tt \small lhs = rhs} when {\tt \small lhs} is {\bf definitionally} equal to {\tt \small rhs}. Definitional equality is more general than two string being literally identical but is less general than being (canonical) isomorphic. For example
+    \item {\tt \small refl} (for reflexive) is used to prove propositions of the form {\tt \small lhs = rhs} when {\tt \small lhs} is {\bf definitionally} equal to {\tt \small rhs}. Definitional equality is more general than two string being literally identical but is less general than being (canonically) isomorphic. For example
     $$
   \sum_{i=0}^\infty \frac{1}{2^i}=\sum_{j=0}^\infty \frac{1}{2^j}
     $$
@@ -266,10 +266,10 @@ end
     $$
   \mathbb R^n = \mathrm{Func}\left(\{0,\cdots, n-1\},\mathbb R\right)
     $$ is not a definitional equality (strictly speaking perhaps not an equality at all).
-    \item {\tt \small exact H} will prove current goal if the goal is definitionally equal to H. 
+    \item {\tt \small exact H} will prove the current goal if the goal is definitionally equal to {\tt \small H}. 
   
     \item {\tt \small ring} will try to prove the current goal using associativity and commutativity of addition and multiplication.
-    \item {\tt \small linarith} is used when proving inequality from context. {\tt \small linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt \small linarith} failed, one has to either provide {\tt \small linarith} with more propositions or use other tactics to change goal into something more manageable for {\tt \small linarith}.
+    \item {\tt \small linarith} is used when proving inequality from context. {\tt \small linarith} is semi-automated, so it can work with inequalities with symbols or variables but only to a degree. If {\tt \small linarith} fails, one has to either provide {\tt \small linarith} with more propositions or use other tactics to change the goal into something more manageable the use {\tt \small linarith}.
   
     {\tt \small linarith [h1, ..., hn]} is equivalent to use {\tt \small linarith} with additional (proofs of) propositions {\tt \small h1} \dots {\tt \small { hn}}.
     \item {\tt \small tidy} is to ask {\tt \small Lean} to try different tactics and finishes the goal if it possible.
@@ -283,7 +283,7 @@ end
 A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
 
 \subsection*{prove a conjunction}\label{lean:conj}
-If goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt \small split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
+If the goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt \small split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_conjunction (|$h_1$| : Prop) (|$h_2$| : Prop) : |$h_1\land h_2$| :=
@@ -311,7 +311,7 @@ end
 
 
 \subsection{prove an implication}\label{lean:imp}
-If the goal is to prove an implication of the form $p \implies q$, one can use {\tt \small intro h$p$} to add {\tt \small h$p$:$p$} a proof of $p$ into the context and convert goal to prove $q$.
+If the goal is to prove an implication of the form $p \implies q$, one can use {\tt \small intro h$p$} to add {\tt \small h$p$:$p$} a proof of $p$ into the context and convert the goal to proving $q$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_implication (|$p$| : Prop) (|$q$| : Prop) : |$p$| -> |$q$| :=
@@ -326,10 +326,10 @@ If the goal is of the form $p_1\to p_2\to\dots p_n$, one can use {\tt \small int
 
 
 \subsection{prove an equivalence}\label{lean:eqv}
-An equivalence of the form $p \iff q$ is by definition $p\implies q \land q\implies p$. Thus by {\tt \small split} will change the goal to two goals, one to prove $p\implies q$, the other to prove $q \implies p$. Then use section \ref{lean:imp}.
+An equivalence of the form $p \iff q$ is by definition $p\implies q \land q\implies p$. Thus {\tt \small split} will change the goal to two goals, one to prove $p\implies q$, the other to prove $q \implies p$. Then use section \ref{lean:imp}.
 
 \subsection{prove a negation}
-A negation of the form $\neg p$ is by definition $p \implies \bot$. Thus {\tt \small intro h$p$} will add {\tt \small h$p$:$p$} to current context and convert the goal to prove a falsehood.
+A negation of the form $\neg p$ is by definition $p \implies \bot$. Thus {\tt \small intro h$p$} will add {\tt \small h$p$:$p$} to the current context and convert the goal to proving a falsehood.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_prove_negation (|$p$| : Prop) : |$\neg p$| :=
@@ -341,7 +341,7 @@ end
 \end{minted}
 
 \subsection{prove a proposition with $\forall$}\label{lean:forall}
-A proposition of the form $\forall a : \alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt \small Prop}$ can be proved also using {\tt \small intro $x_0$}. This will add an arbitrary $x_0:\alpha$ to the current context and change the goal to prove $p(x_0)$.
+A proposition of the form $\forall a : \alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to$ {\tt \small Prop} can be proved also using {\tt \small intro $x_0$}. This will add an arbitrary $x_0:\alpha$ to the current context and change the goal to proving $p(x_0)$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∀ a : α, p a :=
@@ -355,7 +355,7 @@ end
 If the goal is the form $\forall a_1:\alpha_1,\forall a_2:\alpha_2,\dots,\forall a_n:\alpha_n, p\ a_1\ a_2\ \dots\ a_n$ can be proved using {\tt \small intros $a_1$ $a_2$ \dots\  $a_n$} as an abbreviation of {\tt \small intro $a_1$, intro $a_2$,\dots, intro $a_n$}.
 
 \subsection{prove a proposition with $\exists$}\label{lean:exists}
-A proposition of the form $\exists a:\alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to {\tt \small Prop}$ can be proved by {\tt \small use $x_0$}. This will convert the goal to prove $p(x_0)$.
+A proposition of the form $\exists a:\alpha, p(a)$ where $\alpha$ is a type and $p : \alpha\to$ {\tt \small Prop}  can be proved by {\tt \small use $x_0$}. This will convert the goal to proving $p(x_0)$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem how_to_proposition_with_universal_quantifier {|$\alpha$| : Type} (|$p$| : |$\alpha$| -> Prop) : ∃ a : α, p a :=
@@ -369,7 +369,7 @@ end
 \end{minted}
 
 \section{An example}
-To illustrate the above syntax and patterns, we present an example of defining mean and proving some basic properties thereof.
+To illustrate the above syntax and patterns, an example is presented here of defining mean value of two real numbers and proving some basic properties thereof.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 import data.real.basic |\label{import:real}|
@@ -423,11 +423,11 @@ end
 
 \end{minted}
 
-Line \ref{import:real} will make basic properties of real available to use and line \ref{import:tactic} will make all the tactics we discussed amongst other more advanced tactics available to use. We add line \ref{noncomputable} so that {\tt \small lean} would ignore the issue of computability and line \ref{proof_by_contradiction} so that we can use proof by contradiction\footnote{{\tt \small Lean} by default use constructivism where $\neg\neg p\implies p$ is not an axiom of deduction. Thus the law of excluded middle is not by default a tautology.}. 
+Line \ref{import:real} makes basic properties of real available to use and line \ref{import:tactic} makes all the tactics we discussed amongst other more advanced tactics available to use. We add line \ref{noncomputable} so that {\tt \small lean} would ignore the issue of computability and line \ref{proof_by_contradiction} so that we can use proof by contradiction\footnote{{\tt \small Lean} by default use constructivism where $\neg\neg p\implies p$ is not an axiom of deduction. Thus the law of excluded middle is not by default a tautology.}. 
 
-We define the mean value of two real numbers on line \ref{example:def}. Then {\tt \small mean}\footnote{{\tt \small mean} is not a function $\mathbb R^2\to\mathbb R$ but a function $\mathbb R\to\mathrm{Func}(\mathbb R,\mathbb R)$. This is called currying.} has type $\mathbb R\to \mathbb R\to \mathbb R$, {\tt \small mean 1} has type $\mathbb R\to \mathbb R$ and {\tt \small mean 1 2} has type $\mathbb R$. 
+We define the mean value of two real numbers on line \ref{example:def}. Then {\tt \small mean}\footnote{{\tt \small mean} is not a function $\mathbb R^2\to\mathbb R$ but a function $\mathbb R\to\mathrm{Func}(\mathbb R,\mathbb R)$. This is called currying.} has the type $\mathbb R\to \mathbb R\to \mathbb R$, {\tt \small mean 1} has the type $\mathbb R\to \mathbb R$ and {\tt \small mean 1 2} has the type $\mathbb R$. 
 
-We can introduce and prove theorems about {\tt \small mean} that the mean value of two numbers is greater than or equal to the minimum of the two numbers but less than the maximum of the two numbers. This is from line \ref{example:thm_begin} to line \ref{example:thm_end} where
+We can introduce and prove theorems about {\tt \small mean} stating that the mean value of two numbers is greater than or equal to the minimum of the two numbers but less than the maximum. This is from line \ref{example:thm_begin} to line \ref{example:thm_end} where
 \begin{itemize}
   \item {\tt \small min\_le\_left} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le x$ where $\alpha$ is an implicit argument with a linear order. In this case, {\tt \small Lean} infers from context that $\alpha$ is $\mathbb R$. Thus {\tt \small min\_le\_left x y} is a proof of {\tt \small min x y ≤ x}.
   \item {\tt \small min\_le\_right} is a proof of the proposition $\forall (x\ y : \alpha), \min(x, y) \le y$ In this case, {\tt \small min\_le\_right x y} is a proof of {\tt \small min x y ≤ y}.
@@ -440,37 +440,38 @@ We can introduce and prove theorems about {\tt \small mean} that the mean value 
 \end{itemize}
 
 \chapter{Formalisation using {\tt Lean}}\label{fmlsn}
-% \section*{Logistics of the formalisation}
-% \addcontentsline{toc}{section}{Logistics of the formalisation}
-% There are five main files in the formalisation where 
-% \begin{enumerate}
-% \item {\tt \small small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
-% \item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers. In this file we made an extensive use of Schröder-Berstein theorem.
-% \item {\tt \small liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
-% \item {\tt \small e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
-% $$
-% \frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
-% $$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
-% $$
-% \int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
-% $$ where $f(X)\in\mathbb Z[X]$;
-% \item {\tt \small e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt \small e\_trans\_helpers2.lean}.
-% \end{enumerate}
+
+\section*{Logistics of the formalisation}
+\addcontentsline{toc}{section}{Logistics of the formalisation}
+There are five main files in this project where 
+\begin{enumerate}
+\item {\tt \small small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
+\item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers with help of Schröder-Berstein theorem.
+\item {\tt \small liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
+\item {\tt \small e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
+$$
+\frac{\mathrm d^n}{\mathrm d x^n}uv = \sum_{i=0}^n{n \choose i}\frac{\mathrm d^i u}{\mathrm d x^i}\frac{\mathrm d^{n-i} v}{\mathrm d x^{n-i}}
+$$ where $u$ and $v$ are differentiable function from $\mathbb R$ to $\mathbb R$ and
+$$
+\int_0^t e^{t-x}f(x)\mathrm{d}x=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
+$$ where $f(X)\in\mathbb Z[X]$;
+\item {\tt \small e\_transcendental.lean} formalised transcendence of $e$ by assuming the algebraicity of $e$ which resulted in two contradictory bounds using the results from {\tt \small e\_trans\_helpers2.lean}.
+\end{enumerate}
 
 \section{Countability argument}\label{fmlsn:count}
-The main caveat in this part is internal specification of {\tt \small mathlib}. 
-A real number $x$ is in {\tt \small Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unqiue $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
+The main caveat in this part is the internal specification of {\tt \small mathlib}. 
+A real number $x$ in {\tt \small Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unqiue $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 ∃ (p : ℤ[X]), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
 \end{minted}
-Here the $\mathbb Z$-algebra homomorphism is {\tt \small polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function applicable to {\tt \small p}. The reason that a conversion is necessary is because algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) properties of algebra homomorphism.
+Here the $\mathbb Z$-algebra homomorphism is {\tt \small polynomial.aeval ℤ ℝ x}. $\Uparrow$ is to convert the homomorphism to a function applicable to {\tt \small p}. The reason that a conversion is necessary is because an algebra homomorphism contains more information than a function, it is a structure containing the map and other fields containing (proofs of) the properties of algebra homomorphism.
 However in polynomial library of {\tt \small mathlib}, the definition of root is as following :
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
 \end{minted}
 
-Thus the first part of this formalisation is to unify the two evaluation methods -- denote $i$ to be the trivial embedding $\mathbb Z[X]\subseteq\mathbb R[X]$ and $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\to x$ then for all polynomial $p(X)\in\mathbb Z[X]$, then $\forall x\in\mathbb R,(i p)(x) = \iota_x p$:
+Thus the first part of this formalisation is to unify the two evaluation methods -- denote $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\to x$ then for all polynomial $p(X)\in\mathbb Z[X]$ and for all $x\in\mathbb R,\mathrm{eval}_p(x) = \iota_x p$:
 
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
@@ -490,7 +491,7 @@ end
 \label{code:countableUnify}
 \end{code}
 
-For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | (i p)(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \small \_.roots} in fact has type {\tt \small finset ℝ}. The type {\tt \small finset} is a {\tt \small set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \small finset} to {\tt \small set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, two sets must be equal, then two sets are have finite cardinality:
+For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | \mathrm{eval}_p(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \small \_.roots} in fact has type {\tt \small finset ℝ}. The type {\tt \small finset} is a {\tt \small set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \small finset} to {\tt \small set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, the two sets must be equal, hence they have finite cardinality:
 
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
@@ -513,7 +514,7 @@ end
 \label{lst:rootsDef}
 \end{code}
 
-We defined the set of all algebraic numbers over $\mathbb Z$ to be
+We define the set of all algebraic numbers over $\mathbb Z$ to be
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def algebraic_set : set ℝ := {x | is_algebraic ℤ x}
 \end{minted}
@@ -609,7 +610,8 @@ begin
   exact sur_identify_n n.succ (nat.succ_ne_zero n),
 end
 \end{minted}
-\caption{non-zero integer polynomial with degree less than $n$ has the same cardinality as $\mathbb Z^n-\{(0,\dots,0)\}$, here {\tt \small n.succ} means $n+1$.}
+$\dagger$: {\tt\small n.succ} means $n+1$.
+\caption{non-zero integer polynomials with degree less than $n$ has the same cardinality as $\mathbb Z^n-\{(0,\dots,0)\}$}
 \end{code}
 
 Then we define two injective functions $F : \mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and $G : \mathbb{Z}^{n+1}-\{(0,\dots,0)\}\to\mathbb{Z}^{n+1}$ by:
@@ -687,7 +689,7 @@ end
 \caption{$\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$}
 \end{code}
 
-Now we are finally in the position of using formula \ref{countability:setEq} to prove the countability of all algebraic numbers. We first define the set of real roots of non-zero integer polynomial of degree less than $n$ to be:
+Now we are finally in the position of using formula \ref{countability:setEq} to prove the countability of all algebraic numbers. We first define the set of real roots of non-zero integer polynomials of degree less than $n$ to be:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def algebraic_set'_n (n : ℕ) : set ℝ := 
   §$\bigcup$§ p : (poly_n' n.succ), roots_real p.1
@@ -703,7 +705,11 @@ begin
   proof_omitted
 end
 \end{minted}
-We prove by induction that for any $n\in\mathbb N$, $\mathbb{Z}^{n+1}$ is denumerable (i.e. countably infinite) where the base case is $\mathbb Z^1\simeq Z$ and the inductive step is to prove $\mathbb{Z}^{n+2}$ is denumerable using denumerability of $\mathbb{Z}^{n+1}$. Since non-zero integer polynomials of degree less than $n+1$ bijectively corresponds to $\mathbb{Z}^{n+1}$, we have non-zero integer polynomials of degree less than $n+1$ is denumerable hence is countable. Then the result of taking union over the countable set $\mathbb N$, the result $ \bigcup_{n\in\mathbb N}\bigcup_{p\in\mathbb{Z}[X], p\ne 0, \deg{p}<n+1} \{x\in\mathbb{R}|\iota_xp=0\}$ is still countable. Then finally the set of all algebraic numbers over $\mathbb Z$ is countable. Since $\mathbb R$ is uncountable, transcendental number must exist:
+We prove by induction that for any $n\in\mathbb N$, $\mathbb{Z}^{n+1}$ is denumerable (i.e. countably infinite) where the base case is $\mathbb Z^1\simeq \mathbb Z$ and the inductive step is to prove $\mathbb{Z}^{n+2}$ is denumerable using the denumerability of $\mathbb{Z}^{n+1}$. Since non-zero integer polynomials of degree less than $n+1$ bijectively corresponds to $\mathbb{Z}^{n+1}$, we infer that non-zero integer polynomials of degree less than $n+1$ are denumerable hence countable. Then the result of taking union over the countable set $\mathbb N$: 
+\begin{equation*}
+\bigcup_{n\in\mathbb N}\bigcup_{\substack{p\in\mathbb{Z}[X]\\ p\ne 0\\ \deg{p}<n+1}} \{x\in\mathbb{R}|\iota_xp=0\}
+\end{equation*}
+is still countable. Then finally the set of all algebraic numbers over $\mathbb Z$ is conclude to be countable. Since $\mathbb R$ is uncountable, transcendental number must exist:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem int_1_equiv_int : (int_n 1) §$\simeq$§ ℤ := 
@@ -751,10 +757,10 @@ end
 \end{code}
 
 
-\section{Liouville's theorem and Liouville number}\label{fmlsn:li}
-\subsection*{General theory about Liouville number}
+\section{Liouville's theorem and Liouville numbers}\label{fmlsn:li}
+\subsection*{General theory about Liouville numbers}
 \addcontentsline{toc}{subsection}{General theory about Liouville number}
-A Liouville number is a real number that is ``almost rational'', i.e. for any $n\in\mathbb N$ there is a rational number\footnote{Without lose of generality, we are always assuming the denominator is a strictly positive natural number.} $\frac ab\in\mathbb Q$ such that $b > 1$ and $0<|x-\frac ab|<\frac1{b^n}$.
+A Liouville number is a real number that is ``almost rational'', i.e. for any $n\in\mathbb N$ there is a rational number\footnote{Without losing generality, we are always assuming the denominator is a strictly positive natural number.} $\frac ab\in\mathbb Q$ such that $b > 1$ and $0< |x-\frac ab|<\frac1{b^n}$.
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def liouville_number (x : ℝ) := 
@@ -765,9 +771,9 @@ def liouville_number (x : ℝ) :=
 \caption{Definition of Liouville number}
 \end{code}
 
-We first prove a lemma about irrational root of an integer polynomial:
+We first prove a lemma about irrational roots of an integer polynomial:
 \begin{lemma}\label{lemma:irrationalRoot}
-if $f$ is an integer polynomial with degree $m>1$ and $\alpha$ is an irrational root for $i(f)$ where $i:\mathbb Z[X]\to\mathbb R[X]$ is the trivial embedding, then there is a postive real number $A$ such that for every rational number $\frac ab$, $\left|\alpha-\frac ab\right|>\frac A {b^m}$:  
+if $f$ is an integer polynomial with degree $m>1$ and $\alpha$ is an irrational root for $i(f)$ where $i:\mathbb Z[X]\to\mathbb R[X]$ is the trivial embedding, then there is a postive real number $A$ such that for every rational number $\frac ab$, $\left|\alpha-\frac ab\right| >\frac A {b^m}$:  
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,frame=single,framesep=2mm]{Lean}
 lemma about_irrational_root (α : ℝ)
@@ -779,7 +785,7 @@ lemma about_irrational_root (α : ℝ)
 \end{lemma}
 
 \begin{proof}
-We will abuse the notation to denote $f$ as $i(f)\in\mathbb{R}[X]$
+We will abuse the notation to denote $f$ both as the integer polynomial and the real polynomial via trivial embedding.
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
 begin
   have f_nonzero : f ≠ 0,
@@ -790,7 +796,7 @@ begin
   generalize hDf: f_ℝ.derivative = Df_ℝ,
 \end{minted}
 
-Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\left.\frac{\mathrm d}{\mathrm d t}\right|_{t=x}f(t)\right|$ is a continuous function and $[\alpha-1,\alpha+1]$ is a non-empty compact subset of $\mathbb R$, $\mathrm{abs} \circ Df$ attains a maximum on $[\alpha-1,\alpha+1]$ denote it by $M$.
+Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\left.\frac{\mathrm d}{\mathrm d t}\right|_{t=x}f(t)\right|$ is a continuous function and $[\alpha-1,\alpha+1]$ is a non-empty compact subset of $\mathbb R$, $\mathrm{abs} \circ Df$ attains a maximum on $[\alpha-1,\alpha+1]$, denote it by $M$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
   have H := is_compact.exists_forall_ge 
@@ -807,7 +813,7 @@ Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\l
     proof_omitted
 \end{minted}
 
-Let use consider the smallest element $B$ of the set $\{1, \frac 1 M\}\cup\{\left|\alpha-x\right|| f(x)=0 \land x\ne\alpha\}$, then $B>0$.
+Let us consider the smallest element $B$ of the set $\{1, \frac 1 M\}\cup\{\left|\alpha-x\right|| f(x)=0 \land x\ne\alpha\}$, then $B>0$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
   generalize roots_def :  f_ℝ.roots = f_roots,
   generalize roots'_def : f_roots.erase α = f_roots',
@@ -830,7 +836,7 @@ Let $A=\frac B 2$ then $A > B > 0$. We claim that $A$ satisfies the lemma, i.e. 
   a_proof_of_§$A>0$§
 \end{minted}
 
-We proceed by assuming that there exists a rational number $\frac a b$ such that $\left|\alpha-\frac a b\right|\le\frac A{b^m}$ for a contradiction. Since $b\ge 1$, we have $\left|\alpha-\frac ab\right|\le A < B$. Then $\frac a b$ is not root of $f$ because otherwise $B\le \left|\alpha-\frac ab\right|$.
+We proceed by assuming that there exists a rational number $\frac a b$ such that $\left|\alpha-\frac a b\right|\le\frac A{b^m}$ for a contradiction. Since $b\ge 1$, we have $\left|\alpha-\frac ab\right|\le A < B$. Then $\frac a b$ is not a root of $f$ because otherwise $B\le \left|\alpha-\frac ab\right|$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
   by_contra absurd, 
@@ -851,7 +857,7 @@ We proceed by assuming that there exists a rational number $\frac a b$ such that
     proof_omitted
 \end{minted}
 
-Since $\alpha\ne \frac a b$, we can assume without lose of generality that $\frac a b < \alpha$. Since $\mathrm{eval}_f:\mathbb R\to \mathbb R$ given by $x\mapsto f(x)$ is differentiable, we can use mean value theorem to find $x_0\in(\frac ab, \alpha)$ such that 
+Since $\alpha\ne \frac a b$, we can assume without losing generality that $\frac a b < \alpha$. Since $\mathrm{eval}_f:\mathbb R\to \mathbb R$ given by $x\mapsto f(x)$ is differentiable, we can use mean value theorem to find $x_0\in\left(\frac ab, \alpha\right)$ such that 
 \begin{equation*}
 \begin{aligned}
   Df(x_0)&=\frac{\mathrm{eval}_f(\alpha)-\mathrm{eval}_f(\frac ab)}{\alpha-\frac ab} & [\text{Mean value theorem}]\\
@@ -900,11 +906,12 @@ end
 \end{minted}
 \end{proof}
 
-We then prove irrationality of Liouville number. 
+We then prove the irrationality of Liouville numbers.
 \begin{lemma}
 Every Liouville number is irrational
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean} 
-lemma liouville_numbers_irrational: ∀ (x : ℝ), (liouville_number x) -> irrational x :=
+lemma liouville_numbers_irrational: 
+  ∀ (x : ℝ), (liouville_number x) -> irrational x :=
 \end{minted}
 \end{lemma}
 
@@ -1063,7 +1070,7 @@ theorem α_k_rat (k:ℕ) :
 \begin{proof}
 We prove by induction on $k$. For $k=0$, the zeroth partial sum is $\frac1{10^{0!}}=\frac1{10}$. Thus we can pick $p_0=1$.
 
-\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
+\begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
   induction k with k IH,
 
@@ -1084,7 +1091,7 @@ $$
     proof_omitted
 end
 \end{minted}
-$\dagger$ : At line \ref{code:ii1} and \ref{code:ii2} above, we use {\tt \small ii} as indexing variable is to avoid clashes.\\
+$\dagger$ : In line \ref{code:ii1} and \ref{code:ii2} above, we use {\tt \small ii} as indexing variable is to avoid clashes.\\
 $\ddagger$ : {\tt finset.range n} ranges over $\{0,\dots,n-1\}$.
 \end{proof}
 
@@ -1146,7 +1153,7 @@ end
 \end{minted}
 \end{proof}
 
-Transcendence of $\alpha$ follows immediately from theorem \ref{thm:liouvilleTrans} and theorem \ref{thm:alphaTrans}.
+The transcendence of $\alpha$ follows immediately from theorem \ref{thm:liouvilleTrans} and theorem \ref{thm:alphaTrans}.
 \begin{corollary}
 $\alpha$ is a transcendental number.
 
@@ -1156,7 +1163,7 @@ theorem transcendental_α : transcendental α := liouville_numbers_transcendenta
 \end{corollary}
 
 \section{Hermite's theorem}\label{fmlsn:e}
-Throughout this section $f$ will be an integer polynomial with degree $d$ and $t$ is a none-negative real number.
+Throughout this section $f$ will be an integer polynomial with degree $d$, and $t$ is a none-negative real number.
 
 % \subsection*{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
 % \addcontentsline{toc}{subsection}{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
@@ -1199,10 +1206,10 @@ def f_bar (f : ℤ[X]) : ℤ[X] :=
   to_fun             := λ n, abs (f.coeff n),
   mem_support_to_fun := proof_omitted }
 \end{minted}
-$\dagger$: In {\tt Lean}, an integer polynomial is a function $\mathbb N\to\mathbb Z$ with finite support such that for any $n\in\mathbb N$ the value of the said function at $n$ is not zero if and only if $n$ is in the support of the said function. Thus to define $\bar f$, not only need we to specify the support and the function, a proof of $n$-th coefficient none-zero if and only if $n$ in support is needed as well.
+$\dagger$: In {\tt Lean}, an integer polynomial is a function $\mathbb N\to\mathbb Z$ with finite support such that for any $n\in\mathbb N$ the value of the said function at $n$ is not zero if and only if $n$ is in the support of the said function. Thus to define $\bar f$, not only need we to specify the support and the function, a proof of $n$-th coefficient being none-zero if and only if $n$ being in the support is needed as well.
 \end{definition}
 
-Let us estimate estimate an upper bound for $\left|I(f,t)\right|$ using $\bar f$.
+Let us estimate an upper bound for $\left|I(f,t)\right|$ using $\bar f$.
 
 \begin{lemma}\label{lemma:absf}
 If $x\in[0,t]$, then $\left|\mathrm{eval}_f(x)\right|\le\mathrm{eval}_{\bar f}(t)$
@@ -1225,7 +1232,7 @@ If we write $f(X)=\sum_{j=0}^d\lambda_j X^j$, then for any $x\in[0,t]$, we have 
     proof_omitted
 \end{minted}
 
-The right hand side $\mathrm{eval}_{\bar f}(t)=\sum_{j=0}^d \left|\lambda_j\right|t^j$. We conclude by noting that for any $n\in\mathbb N$, $x^n\le t^n$.
+On the right hand side, $\mathrm{eval}_{\bar f}(t)=\sum_{j=0}^d \left|\lambda_j\right|t^j$. We conclude by noting that for any $n\in\mathbb N$, $x^n\le t^n$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
   have rhs : f_eval_on_ℝ (f_bar f) t = §$\sum$§ i in (f_bar f).support, abs (f.coeff i:ℝ) * t ^ i,
@@ -1361,8 +1368,11 @@ end
 \end{minted}
 \end{proof}
 
-% \subsection*{Transcendence of $e$}
-% \addcontentsline{toc}{subsection}{Transcendence of $e$}
+\subsection*{Transcendence of $e$}
+\addcontentsline{toc}{subsection}{Transcendence of $e$}
+
+To prove the transcendence of $e$, we will assume the algebraicity for the hope of a contradiction.
+
 \begin{definition}
 For any prime number $p$ and natural number $n$, we define an integer polynomial $f_{p,n}(X):=X^{p-1}\prod_{i=1}^n(X-i)^p$. For any integer polynomial $g$ with degree $n$ whose $i$-th coefficient is denoted by $g_i$, we define $J_{p}(g)=\sum_{j=0}^ng_j I(f_{p,n}, j)$
 
@@ -1381,7 +1391,7 @@ def J (g : ℤ[X]) (p : ℕ) (hp : nat.prime p) : ℝ :=
 Let us evaluate an upper bound for $J_p(g)$
 \begin{theorem}\label{thm:upperbound}
 Let $g$ and $f_{p,n}$ be as above. Define
-$$M:=(d+1)\left(\max\{1,|g_0|,\dots,|g_m|\}(d+1)e^{d+1}\left(2(d+1)\right)^{1+d}\right).$$
+$$M:=(d+1)\left(\max\{1,|g_0|,\dots,|g_m|\}(n+1)e^{n+1}\left(2(n+1)\right)^{1+n}\right).$$
 Then
 $$
 \left|J_p(g)\right|\le M^p
@@ -1423,7 +1433,7 @@ begin
   have eq1 : g.nat_degree * p = p * g.nat_degree, rw mul_comm, rw eq1, exact ineq4,
 end
 \end{minted}
-$\dagger$: Later will see that as long as there exists for some $c>0$, $|J_p(g)|<c^p$, we can prove the transcendence of $e$. Thus here $M$ is choosed to be quite rough on purpose to trivialise small inequalities need to be proved such as $j^{p-1}<(2(n+1))^p$ for any $j=0,\dots,d$.
+$\dagger$: Later we will see that as long as there exists for some $c>0$, $|J_p(g)|<c^p$, we can prove the transcendence of $e$. Thus here $M$ is chosen to be quite rough on purpose to trivialise the small inequalities needing to be proved such as $j^{p-1}<(2(n+1))^p$ for any $j=0,\dots,d$.
 \end{proof}
 
 For lower bound of $J_p(g)$ where $\mathrm{eval}_g(e)=0$, we need to work with more precision.
@@ -1474,10 +1484,10 @@ begin
   assumption,
 end
 \end{minted}
-$\dagger$: Types too long to be displayed with clarity, thus we moved information about {\tt J\_eq$i$} to the start of the proof. 
+$\dagger$: Types too long to be displayed with clarity, thus the information about {\tt \small J\_eq$i$} was moved to the start of the proof. 
 \end{proof}
 
-Summation in \ref{fm:important} actually starts at $j=p-1$ because of the following lemmas.
+The summation in \ref{fm:important} actually starts at $j=p-1$ because of the following lemmas.
 \begin{lemma}\label{lemma:j_lt_p_sub_one}
 Let $g,p,n,f_{p,n}$ be like above. If $j < p-1$, then $\mathrm{eval}_{f_{p,n}^{(j)}}(0) = 0$.
 
@@ -1532,7 +1542,7 @@ begin
   intros x j hj hx1 hx2,
   linarith,
 \end{minted}
-For inductive step, assume $\mathrm{eval}_{f_{p,n}^{(j)}}(k) = 0$ for all $1\le k\le n$. Then for any $1\le x\le n+1$
+For the inductive step, assume $\mathrm{eval}_{f_{p,n}^{(j)}}(k) = 0$ for all $1\le k\le n$. Then for any $1\le x\le n+1$
 \begin{equation*}
 \begin{aligned}
 f_{p,n+1}&=f_{p,n}(X-(n+1))^p\\
@@ -1549,7 +1559,7 @@ $$\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)
   apply finset.sum_eq_zero, intros y hy,
 \end{minted}
 
-Either $x\le n$ or $x = n+1$. For $x\le n$, by inductive hypothesis we have $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)=0$ then of course $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)}}(x)=0$
+Here we have that either $x\le n$ or $x = n+1$. For $x\le n$, by inductive hypothesis we have $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)=0$ then of course $\mathrm{eval}_{f_{p,n}^{(j-y)}}(x)\mathrm{eval}_{\left((X-(n+1))^p\right)^{(y)}}(x)=0$
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
   cases hx2,
@@ -1572,7 +1582,7 @@ and $p-y>0$ hence $0^{p-y}=0$.
 \end{minted}
 \end{proof}
 
-Combine the previous lemma \ref{lemma:j_lt_p_sub_one} and lemma \ref{lemma:lt_p_k_ge_1}, we have the following corollary.
+Combining the previous lemmas \ref{lemma:j_lt_p_sub_one} and \ref{lemma:lt_p_k_ge_1}, we have the following corollary.
 \begin{corollary}\label{cor:part1}
 Let $g,p,n,f_{p,n}$ be like above. If $j < p-1$, then $\mathrm{eval}_{f_{p,n}^{(j)}}(k) = 0$ for all $0\le k\le n$.
 
@@ -1626,7 +1636,7 @@ f_{p,n}^{(p-1)}(X)&=\sum_{i=0}^{p-1}{p-1\choose i}(X^{p-1})^{(p-1-i)}\Pi_{p,n}^{
 &={p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)
 \end{aligned}
 \end{equation*}
-where the last equality is due to $\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ otherwise.
+where the last equality is due to $\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for $i\ne 0$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
   rw [f_p, deriv_n_poly_prod, eval_sum'],
@@ -1634,7 +1644,7 @@ begin
 
   a_proof_of_§${p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)=(p-1)!(-1)^{np}(n!)^p$§
 
-  a_proof_o_f§$\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for all $i\ne0$§
+  a_proof_of_§$\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for all $i\ne0$§
 end
 \end{minted}
 \end{proof}
@@ -1665,7 +1675,7 @@ end
 \end{minted}
 \end{corollary}
 
-The final piece of puzzle is to evaluate $f_{p,n}^{j}$ when $j\ge p$. We first consider when $k=0$:
+The final piece of the puzzle is to evaluate $f_{p,n}^{j}$ when $j\ge p$. We first consider when $k=0$:
 \begin{lemma}\label{lemma:ge_p0}
 Let $g,p,n,f_{p,n}$ be like above. Then if $j\ge p$ then $p!\mid\mathrm{eval}_{f_{p,n}^{(j)}}(0)$.
 
@@ -1718,7 +1728,7 @@ If $j-x\ne p-1$, either $j-x<p-1$ or $j-x > p-1$. If $j-x<p-1$ then $\mathrm{eva
 \end{minted}
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{e:lemma_prod_part}
 Let $g,p,n,f_{p,n}$ be like above. Then $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(j)}}(k)$ for any $0<k\le n$ and any $p>0$, prime or composite.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
@@ -1761,7 +1771,7 @@ By inductive hypothesis $(p-1)!\mid\Pi_{p-1,n}^{j-i}$ for any $i=0,\dots,j$. Thu
 \end{minted}
 \end{proof}
 
-Immediately by previous lemma and lemma \ref{lemma:ge_p0} and equation \ref{eq:deriv_eval}, we have:
+Immediately bys lemma \ref{lemma:ge_p0}, \ref{e:lemma_prod_part} and equation \ref{eq:deriv_eval}, we have:
 \begin{corollary}
 Let $g,p,n,f_{p,n}$ be like above. If $j\ge p$ then for all $0\le k\le n$ we have $p!\mid\mathrm{eval}_{f_{p,n}^{(j)}}(k)$. Then
 $$
@@ -1804,7 +1814,7 @@ end
 \end{minted}
 \end{corollary}
 
-We finally have everything we need to evaluate equation \ref{fm:important}: by previous corollary \ref{cor:part1} and corollary \ref{cor:part2} we have:
+We finally have everything we need to evaluate equation \ref{fm:important}: by previous corollaries \ref{cor:part1} \ref{cor:part2} we have:
 \begin{corollary}
 Let $g,p,n,f_{p,n}$ be like above, there is some $M\in\mathbb Z$,
 $$
@@ -1847,7 +1857,7 @@ theorem abs_J_lower_bound
 \end{theorem}
 
 \begin{proof}
-By previous theorem, for some $c\in\mathbb Z$
+By the previous theorem, for some $c\in\mathbb Z$
 $$
 |J_p(g)|=(p-1)!\left|(-g_0(-1)^{np}(n!)^p)+pc\right|.
 $$
@@ -1878,7 +1888,7 @@ Assume $(-1)^{np}=1$, then we have $p\mid g_0 (n!)^p$, then either $p\mid |g_0|$
     replace hm : p ≤ (g.coeff 0).nat_abs, proof_omitted,
 \end{minted}
 
-If $p\mid (n!)^p$, then since $p$ is a prime number $p\mid n!$  then $p\le n$.
+If $p\mid (n!)^p$, since $p$ is a prime number, $p\mid n!$  implies $p\le n$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
   intermediate_steps_omitted
   have H : p §$\mid$§ §$\uparrow$§(g.nat_degree.fact).nat_abs,
@@ -1892,7 +1902,7 @@ end
 \end{minted}
 \end{proof}
 
-To fullfill the requirement of $g$ having none-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
+To fullfill the requirement of $g$ having a none-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def min_degree_term (f : ℤ[X]) (hf : f ≠ 0) : ℕ := 
@@ -1910,10 +1920,10 @@ def make_const_term_nonzero (f : ℤ[X]) (hf : f ≠ 0) : ℤ[X] :=
   end,}
 \end{minted}
 
-In another word, we divide $g$ by $X^m$ where $m$ is the lowest none-zero monomial in $g$.
+In other words, we divide $g$ by $X^m$ where $m$ is the degree of the lowest none-zero monomial of $g$.
 \end{code}
 
-Because for any $x\ge 0$, $\lim_{n\to\infty}\frac{x^n}{n!}=0$ and there is an infinite amount of primes, we have the following theorem serving the coup de grace of proving transcendence of $e$.
+Because for any $x\ge 0$, $\lim_{n\to\infty}\frac{x^n}{n!}=0$ and there is an infinite amount of primes, we have the following theorem serving the coup de grace of attacking the algebraicity of $e$.
 \begin{theorem}
 For any integer $z$ and non-negative real number $M$, there is some prime number $p>z$ such that $(p-1)!>M^p$
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
@@ -1929,7 +1939,7 @@ theorem e_transcendental : transcendental e :=
 \end{minted}
 \end{theorem}
 \begin{proof}
-We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has none-zero constant coefficent.
+We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has a none-zero constant coefficent.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
@@ -1946,7 +1956,7 @@ begin
     apply non_zero_root_same, rw e, exact (1:ℝ).exp_ne_zero, exact e_root_g',
 \end{minted}
 
-There is prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M$ is defined as in theorem \ref{thm:upperbound}. Then $(p-1)!>M^p\ge|J_p(g)|>(p-1)!$ is the desired contradiction.
+There is a prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M$ is defined as in theorem \ref{thm:upperbound}. Then $(p-1)!>M^p\ge|J_p(g)|>(p-1)!$ is the desired contradiction.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
   have contradiction := contradiction (M g) _ (max g.nat_degree (abs (g.coeff 0))),
   choose p Hp using contradiction,
@@ -1955,13 +1965,14 @@ There is prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M$ 
   simplification_steps_omitted
 \end{minted}
 \end{proof}
-% Let us evaluate an upper bound for $J_p(g)$ where $g\in\mathbb{Z}[x]$ such that $\mathrm{eval}_g(e)=0$.
 
-% \chapter{Further Work}
+% \chapter{Reflection and further Work}
 % An immediate next step would be formalising the transcendence of $\pi$.
 
-% \chapter*{Reflection}
-% \addcontentsline{toc}{chapter}{Reflection}
+% \chapter*{Reflection and further work}
+% \addcontentsline{toc}{chapter}{Reflection and further work}
+
+
 
 %\bibliographystyle{alphanat}
 % \chapter{Glossary of definitions and theorems}

@@ -15,6 +15,7 @@
 *.xdv
 *.run.xml
 *.DS_Store
+*.sync_tex
 src/doc/test.lean
 /_target
 /leanpkg.path
