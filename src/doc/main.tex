@@ -51,6 +51,12 @@ I declare that this report was composed by myself, that the work contained herei
 \end{flushright}
 \clearpage
 
+\begin{center}
+  \textbf{Acknowledgement}
+\end{center}
+I would like to thanks professor Kevin Buzzard for supervising this project whose advise has helped me to write more idiomatic {\tt \small Lean} codes. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful for the {\tt\small Lean} community for providing {\tt\small library\_search} without which this project could not possibly make any noticeable progress.
+\clearpage
+
 % Abstract
 \begin{abstract}
 The objective of this report is to present formalization of some basic theorems from transcendental number theory with {\tt \small Lean} and {\tt \small mathlib} in the hope that it will motivate and inspire other mathematicians, by igniting their curiosity about interactive theorem proving. The following theorems are formalized:
@@ -115,14 +121,14 @@ In 1900, Hilbert proposed twenty-three questions, the 7th of which is regarding 
   \item $e^{\pi}$ is transcendental for $e^{\pi}=\left(e^{i\pi}\right)^{-i}=\left(-1\right)^{-i}$;
   \item $i^i=e^{-\frac\pi2}$ is transcendental etc.
 \end{enumerate}
-In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$, etc were proven to be transcendental. It was also conjectured by Stephen Schanuel that given any $n$ $\mathbb Q-$linearly independent $z_1,\cdots, z_n\in\mathbb C$, then $\mathrm{trdeg}\left(\mathbb Q(z_1,\cdots, zn, e^{z_1},\cdots, e^{z_n})/\mathbb Q\right)$ is at least $n$ \cite{lang1966introduction}. If this was proven, the algebraic independence of $e$ and $\pi$ would follow immediately by setting $z_1=1$ and $z_2=\pi i$ with Euler's identity.
+In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$, etc were proven to be transcendental. It was also conjectured by Stephen Schanuel that given any $n$ $\mathbb Q-$linearly independent $z_1,\cdots, z_n\in\mathbb C$, then $\mathrm{trdeg}\left(\mathbb Q(z_1,\cdots, z_n, e^{z_1},\cdots, e^{z_n})/\mathbb Q\right)$ is at least $n$ \cite{lang1966introduction}. If this was proven, the algebraic independence of $e$ and $\pi$ would follow immediately by setting $z_1=1$ and $z_2=\pi i$ with Euler's identity.
 
 \chapter{Brief introduction to {\tt Lean}}\label{intro:lean}
 
 {\tt \small Lean} was developed by Leonardo de Moura at Microsoft Research Redmond in 2013 using dependent type theory and calculus of inductive constraint \cite{avigad2015theorem}. In this chapter, basic ideas of Curry-Howard isomorphism will be demonstrated by some basic examples of mathematical theorem expressed in {\tt \small Lean} using dependent type theory.
 
 \section{Simple type theory}
-Unlike set theory where everything from natural numbers to modular forms is essentially a set, type theory associate every expression with a {\tt \small type}. In set theory, an element can belong to different sets, for example $0$ is simultaneously in $\mathbb N\subseteq\mathbb Q\subseteq\mathbb R\subseteq\mathbb C$. However an expression can only have one type. $0$ without any context will have type $\mathbb N$ and, to specify the zero with type $\mathbb R$ we write $(0:\mathbb R)$. If $a$ has type $\alpha$, we write $a:\alpha$. By a universe of types we mean a collection of types. Types can be combined to form new types in the following way:
+Unlike set theory where everything from basic things like natural numbers to complex constructions like modular forms is essentially a set, type theory associate every expression with a {\tt \small type}. In set theory, an element can belong to different sets, for example $0$ is simultaneously in $\mathbb N\subseteq\mathbb Q\subseteq\mathbb R\subseteq\mathbb C$. However an expression can only have one type. $0$ without any context will have type $\mathbb N$ and, to specify the zero with type $\mathbb R$ we write $(0:\mathbb R)$. If $a$ has type $\alpha$, we write $a:\alpha$. By a universe of types we mean a collection of types. Types can be combined to form new types in the following way:
 \begin{itemize}
   \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the element of type $\alpha\to\beta$ is a function that for any element of $\alpha$ gives an element of $\beta$. For mathematicians this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: the expression $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$ is the function from natural numbers to natural numbers that add $1$ to any input.
   \item let $\alpha$ and $\beta$ be types then $\alpha\times\beta$ is the cartesian product of $\alpha$ and $\beta$: the element of type $\alpha\times\beta$ is an ordered tuple $(a,b)$ where $a:\alpha$ and $b:\beta$.
@@ -139,7 +145,7 @@ $1+1=2$ is a proposition. {\tt \small rfl} is an element of type $1+1=2$ where {
 \end{example}
 
 \begin{example}
-For two propositions $p$ and $q$, the implication $p\implies q$ then can be interpreted as function $p\to q$. To say $\mathrm{imp}: p\to q$ is to say for any $\mathrm{hp}:p$ we have $\mathrm{imp}( \mathrm{hp}): q$, or equivalently given any $\mathrm{hp}$, a {\it proof} of proposition $p$, $\mathrm{imp}(\mathrm{hp})$ is a proof of proposition $q$. 
+For two propositions $p$ and $q$, the implication $p\implies q$ then can be interpreted as function $p\to q$. To say $\mathrm{imp}: p\to q$ is to say for any $\mathrm{hp}:p$ we have $\mathrm{imp}( \mathrm{hp}): q$, or equivalently given any $\mathrm{hp}$, a {\it proof} of proposition $p$, $\mathrm{imp}(\mathrm{hp})$ is a {\it proof} of proposition $q$. 
 \end{example}
 
 \begin{example}
@@ -176,7 +182,7 @@ New notations are introduced with the following syntax:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
 notation _`lhs`_ := _rhs_
 \end{minted}
-so that {\tt \small Lean} will treat every occurrence of {\tt \small \_`lhs`\_} as {\tt \small \_rhs\_} verbatim. For example \mintinline{Lean}{notation ℤ`[X]` := polynomial ℤ} will replace the {\tt \small Lean} type {\tt \small polynomial ℤ} with a more familiar notation of $\mathbb{Z}[X]$.
+so that {\tt \small Lean} will treat every occurrence of {\tt \small \_`lhs`\_} as {\tt \small \_rhs\_} verbatim. For example \mintinline{Lean}{notation ℤ`[X]` := polynomial ℤ} will replace {\tt \small polynomial ℤ} with a more familiar notation of $\mathbb{Z}[X]$.
 
 For any type of $\alpha$, we can introduce a subtype of $\alpha$ by:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=§§]{Lean}
@@ -194,7 +200,7 @@ end
 
 To write a proof understandable to {\tt \small Lean}, one need to use {\it tactic mode}. In {\tt \small Lean}, one can use
 \begin{itemize}
-  \item proof by induction: if the goal is a proposition about natural number $n$, {\tt \small induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first is to prove the proposition for $n=0$ and the second to prove the proposition $n+1$ with the additional inductive hypothesis {\tt \small IH};
+  \item proof by induction: if the goal is a proposition about natural number $n$, {\tt \small induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first is to prove the proposition for $n=0$ and the second to prove the proposition for $n+1$ with the additional inductive hypothesis {\tt \small IH};
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 theorem awesome_theorem_about_natural_number (n : ℕ) : proposition|$_\mathtt{n}$| :=
@@ -237,7 +243,7 @@ end
     \item The fact that {\tt \small rw} and {\tt \small simp} change all term occurrences sometimes creates an inconvenience. If {\tt \small H} is in context, {\tt \small conv\_lhs at H \{tactics\}} will confine the scope of {\tt \small tactics} only to the left hand side of H; similarly {\tt \small conv\_rhs at H \{tactics\}} will confine the scope to the right hand side of H.
 
     \item {\tt \small generalise H : lhs = var\_name} will set {\tt \small var\_name} to {\tt \small lhs} and add (proof of) the proposition {\tt \small H : lhs = var\_name} to the current context.
-    \item If {\tt \small H : ∃ x : type, property\_about\_x} is in the current context, {\tt \small choose x hx using H} will introduce {\tt \small x:type} with the assumption {\tt \small property\_about\_x} to the current context. 
+    \item If {\tt \small H : ∃ x : type, property\_about\_x} is in the current context, {\tt \small choose x hx using H} will introduce {\tt \small x:type} with the assumption {\tt \small hx : property\_about\_x} to the current context. 
     \item If {\tt \small H : $p\land q$} is in the current context, then {\tt \small H.1} is (a proof of) $p$ and {\tt \small H.2} is (a proof of) $q$.
     \item If {\tt \small H : ite h1 h2 h3} is in the current context, then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove the original goal with the additional assumption {\tt \small h1} and {\tt \small h2}; the second one is to prove the original with goal with the additional assumption {\tt \small $\neg$h1} and {\tt \small h3}.
   \end{itemize}
@@ -253,7 +259,7 @@ end
     {\tt \small norm\_num} is equivalent to {\tt \small norm\_cast, simp}.
 
     \item {\tt \small ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt \small ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt \small ext}, an arbitrary element {\tt \small x} of type $\alpha$ will be introduced into context then the goal will become to prove $x\in A\iff x\in B$. {\tt \small ext var\_name} will force {\tt \small Lean} to introduce a new variable under the identifier {\tt \small var\_name}.
-    \item If the goal is to prove {\tt \small ite h1 h2 h3} (or {\tt \small ite h1 h2 h3 = rhs}), then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt \small h2} ({\tt \small h3 = rhs} resp.) with the additional assumption {\tt \small h1}; the second one is to prove {\tt \small h3} ({\tt \small h3 = rhs} resp.) with the additional assumption {\tt \small $\neg$h1}
+    \item If the goal is to prove {\tt \small ite h1 h2 h3} (or {\tt \small ite h1 h2 lhs = rhs}), then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt \small h2} ({\tt \small lhs = rhs} resp.) with the additional assumption {\tt \small h1}; the second one is to prove {\tt \small h3} ({\tt \small lhs = rhs} resp.) with the additional assumption {\tt \small $\neg$h1}.
   \end{itemize}
 
   \item when the goal is easily provable, one can use the following to finish a goal:
@@ -282,7 +288,7 @@ end
 
 A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
 
-\subsection*{prove a conjunction}\label{lean:conj}
+\subsection{prove a conjunction}\label{lean:conj}
 If the goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt \small split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
@@ -322,7 +328,7 @@ proof_of_|$q$|
 end
 \end{minted}
 
-If the goal is of the form $p_1\to p_2\to\dots p_n$, one can use {\tt \small intros h$p_1$ \dots h$p_n$} as an abbreviation of {\tt \small intro h$p_1$, intro h$p_2$,\dots, intro h$p_n$}.
+If the goal is of the form $p_1\to p_2\to\dots p_n$, one can use {\tt \small intros h$p_1$ \dots\, h$p_n$} as an abbreviation of {\tt \small intro h$p_1$, intro h$p_2$,\dots, intro h$p_n$}.
 
 
 \subsection{prove an equivalence}\label{lean:eqv}
@@ -471,7 +477,7 @@ However in polynomial library of {\tt \small mathlib}, the definition of root is
 def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
 \end{minted}
 
-Thus the first part of this formalisation is to unify the two evaluation methods -- denote $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\to x$ then for all polynomial $p(X)\in\mathbb Z[X]$ and for all $x\in\mathbb R,\mathrm{eval}_p(x) = \iota_x p$:
+Thus the first part of this formalisation is to unify the two evaluation methods -- denote $\iota_x$ to be the unique $\mathbb Z$-algebra homomorphism $\iota_x : \mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$ then for all polynomial $p(X)\in\mathbb Z[X]$ and for all $x\in\mathbb R,\mathrm{eval}_p(x) = \iota_x p$:
 
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
@@ -491,7 +497,7 @@ end
 \label{code:countableUnify}
 \end{code}
 
-For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | \mathrm{eval}_p(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \small \_.roots} in fact has type {\tt \small finset ℝ}. The type {\tt \small finset} is a {\tt \small set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \small finset} to {\tt \small set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, the two sets must be equal, hence they have finite cardinality:
+For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | \mathrm{eval}_p(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \footnotesize \_.roots} in fact has type {\tt \footnotesize finset ℝ}. The type {\tt \footnotesize finset} is a {\tt \footnotesize set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \footnotesize finset} to {\tt \footnotesize set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, the two sets must be equal, hence they have finite cardinality for a none-zero polynomial:
 
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
@@ -545,7 +551,7 @@ where  $\langle m, hm\rangle$ is an element of {\tt \small fin n} if and only if
 
 Then $\mathbb Z\simeq \mathbb Z-\{0\}$ by the bijective function $s:\mathbb Z\to \mathbb Z-\{0\}$:
 \begin{equation*}
-n\mapsto\left\{
+m\mapsto\left\{
 \begin{aligned}
 & m & \text{if }m < 0\\
 & m + 1 & \text{if }m \ge 0
@@ -689,7 +695,7 @@ end
 \caption{$\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$}
 \end{code}
 
-Now we are finally in the position of using formula \ref{countability:setEq} to prove the countability of all algebraic numbers. We first define the set of real roots of non-zero integer polynomials of degree less than $n$ to be:
+Now we are finally in the position of using equation \ref{countability:setEq} to prove the countability of all algebraic numbers. We first define the set of real roots of non-zero integer polynomials of degree less than $n$ to be:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def algebraic_set'_n (n : ℕ) : set ℝ := 
   §$\bigcup$§ p : (poly_n' n.succ), roots_real p.1
@@ -705,7 +711,7 @@ begin
   proof_omitted
 end
 \end{minted}
-We prove by induction that for any $n\in\mathbb N$, $\mathbb{Z}^{n+1}$ is denumerable (i.e. countably infinite) where the base case is $\mathbb Z^1\simeq \mathbb Z$ and the inductive step is to prove $\mathbb{Z}^{n+2}$ is denumerable using the denumerability of $\mathbb{Z}^{n+1}$. Since non-zero integer polynomials of degree less than $n+1$ bijectively corresponds to $\mathbb{Z}^{n+1}$, we infer that non-zero integer polynomials of degree less than $n+1$ are denumerable hence countable. Then the result of taking union over the countable set $\mathbb N$: 
+We prove by induction that for any $n\in\mathbb N$, $\mathbb{Z}^{n+1}$ is denumerable (i.e. countably infinite) where the base case is $\mathbb Z^1\simeq \mathbb Z$ and the inductive step is to prove $\mathbb{Z}^{n+2}$ is denumerable using the denumerability of $\mathbb{Z}^{n+1}$. Since non-zero integer polynomials of degree less than $n+1$ bijectively corresponds to $\mathbb{Z}^{n+1}$, we infer that non-zero integer polynomials of degree less than $n+1$ are denumerable hence countable. Then the result of taking union over the countable set $\mathbb N$
 \begin{equation*}
 \bigcup_{n\in\mathbb N}\bigcup_{\substack{p\in\mathbb{Z}[X]\\ p\ne 0\\ \deg{p}<n+1}} \{x\in\mathbb{R}|\iota_xp=0\}
 \end{equation*}
@@ -753,14 +759,14 @@ begin
   proof_omitted
 end
 \end{minted}
-\caption{algebraic numbers are countable, hence transcendental numbers exists}
+\caption{algebraic numbers are countable, hence transcendental numbers exists.}
 \end{code}
 
 
 \section{Liouville's theorem and Liouville numbers}\label{fmlsn:li}
 \subsection*{General theory about Liouville numbers}
 \addcontentsline{toc}{subsection}{General theory about Liouville number}
-A Liouville number is a real number that is ``almost rational'', i.e. for any $n\in\mathbb N$ there is a rational number\footnote{Without losing generality, we are always assuming the denominator is a strictly positive natural number.} $\frac ab\in\mathbb Q$ such that $b > 1$ and $0< |x-\frac ab|<\frac1{b^n}$.
+A Liouville number is a real number that is ``almost rational'', i.e. for any $n\in\mathbb N$ there is a rational number\footnote{Without losing generality, we are always assuming, for any rational number, the denominator is a strictly positive natural number.} $\frac ab\in\mathbb Q$ such that $b > 1$ and $0< |x-\frac ab|<\frac1{b^n}$.
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def liouville_number (x : ℝ) := 
@@ -796,7 +802,7 @@ begin
   generalize hDf: f_ℝ.derivative = Df_ℝ,
 \end{minted}
 
-Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\left.\frac{\mathrm d}{\mathrm d t}\right|_{t=x}f(t)\right|$ is a continuous function and $[\alpha-1,\alpha+1]$ is a non-empty compact subset of $\mathbb R$, $\mathrm{abs} \circ Df$ attains a maximum on $[\alpha-1,\alpha+1]$, denote it by $M$.
+Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\left.\frac{\mathrm d}{\mathrm d t}\right|_{t=x}f(t)\right|$ is a continuous function and $[\alpha-1,\alpha+1]$ is a non-empty compact subset of $\mathbb R$, $\mathrm{abs} \circ Df$ attains a maximum on $[\alpha-1,\alpha+1]$, denote it by $M$. Then $M>0$ for otherwise $M=0$ then $Df(x)=0$ for all $x\in[\alpha-1,\alpha+1]$ implying that $f$ is constant contradicting the degree of $f$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
   have H := is_compact.exists_forall_ge 
@@ -813,7 +819,7 @@ Since $\mathrm{abs}\circ Df : \mathbb R\to\mathbb R$ given by $x\mapsto \left|\l
     proof_omitted
 \end{minted}
 
-Let us consider the smallest element $B$ of the set $\{1, \frac 1 M\}\cup\{\left|\alpha-x\right|| f(x)=0 \land x\ne\alpha\}$, then $B>0$.
+Let us consider the smallest element $B$ of the set $\left\{1, \frac 1 M\right\}\cup\{\left|\alpha-x\right|| f(x)=0 \land x\ne\alpha\}$, then $B>0$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,firstnumber=last,frame=single,framesep=2mm]{Lean}
   generalize roots_def :  f_ℝ.roots = f_roots,
   generalize roots'_def : f_roots.erase α = f_roots',
@@ -1206,7 +1212,7 @@ def f_bar (f : ℤ[X]) : ℤ[X] :=
   to_fun             := λ n, abs (f.coeff n),
   mem_support_to_fun := proof_omitted }
 \end{minted}
-$\dagger$: In {\tt Lean}, an integer polynomial is a function $\mathbb N\to\mathbb Z$ with finite support such that for any $n\in\mathbb N$ the value of the said function at $n$ is not zero if and only if $n$ is in the support of the said function. Thus to define $\bar f$, not only need we to specify the support and the function, a proof of $n$-th coefficient being none-zero if and only if $n$ being in the support is needed as well.
+$\dagger$: In {\tt Lean}, an integer polynomial is a function $\mathbb N\to\mathbb Z$ with finite support such that for any $n\in\mathbb N$ the value of the said function at $n$ is not zero if and only if $n$ is in the support of the said function. Thus to define $\bar f$, not only need we to specify the support and the function, a proof of $n$-th coefficient being non-zero if and only if $n$ being in the support is needed as well.
 \end{definition}
 
 Let us estimate an upper bound for $\left|I(f,t)\right|$ using $\bar f$.
@@ -1902,7 +1908,7 @@ end
 \end{minted}
 \end{proof}
 
-To fullfill the requirement of $g$ having a none-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
+To fullfill the requirement of $g$ having a non-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def min_degree_term (f : ℤ[X]) (hf : f ≠ 0) : ℕ := 
@@ -1920,7 +1926,7 @@ def make_const_term_nonzero (f : ℤ[X]) (hf : f ≠ 0) : ℤ[X] :=
   end,}
 \end{minted}
 
-In other words, we divide $g$ by $X^m$ where $m$ is the degree of the lowest none-zero monomial of $g$.
+In other words, we divide $g$ by $X^m$ where $m$ is the degree of the lowest non-zero monomial of $g$.
 \end{code}
 
 Because for any $x\ge 0$, $\lim_{n\to\infty}\frac{x^n}{n!}=0$ and there is an infinite amount of primes, we have the following theorem serving the coup de grace of attacking the algebraicity of $e$.
@@ -1939,7 +1945,7 @@ theorem e_transcendental : transcendental e :=
 \end{minted}
 \end{theorem}
 \begin{proof}
-We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has a none-zero constant coefficent.
+We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has a non-zero constant coefficent.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
@@ -1966,13 +1972,12 @@ There is a prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M
 \end{minted}
 \end{proof}
 
-% \chapter{Reflection and further Work}
-% An immediate next step would be formalising the transcendence of $\pi$.
+\chapter*{Conclusion and future work}
+\addcontentsline{toc}{chapter}{Conclusion and future work}
 
-% \chapter*{Reflection and further work}
-% \addcontentsline{toc}{chapter}{Reflection and further work}
+This project lives in an interdisciplinary area between mathematics and computer science. Even interactive theorem proving is not necessarily suitable for every mathematician, its pedagogical value is enormous because by formalising theorems the logic of proofs are disentangled and one is forced to be precise and explicit. Hence a proof in {\tt \small Lean} often challenge users to prove intuitions in a rigourous manner. For example, Alan Baker deemed the evaluation of $J_p(g)$ in equation \ref{fm:important} to be clear, but by formalising one has to get hands dirty by actually performing the evaluation \cite{baker1990transcendental}. Then anyone else interested in the proof can choose to read or discard relavent sections depending on whether she/he shares the same intuitions with the author.
 
-
+This is perhaps both a blessing and a curse -- by forbidding to use words like ``trival'' or ``clearly'', one often finds her/himself proving truly trivial propositions as well, for example to prove that $\mathbb Z^1\simeq \mathbb Z$. Hence there are at least two directions in which future works could take. One is to formalise more theorems of interest for example the transcendence of $\pi$; the other is to use the (meta-)programming facilities of {\tt\small Lean} to make more tactics so that learning and using {\tt\small Lean} could be more effortless.
 
 %\bibliographystyle{alphanat}
 % \chapter{Glossary of definitions and theorems}
