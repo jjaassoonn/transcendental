@@ -231,8 +231,6 @@ fundamental theorem of calculus and integration by part is assumed. I am waiting
 
 axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
 
-#check @measure_theory.integral ℝ ℝ _ _ _ _ _ _ _ _
-
 axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
     (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x))
 
@@ -280,15 +278,34 @@ $$
 \int_S f = \int_S g
 $$
 -/
-theorem same_integral'' {S : set ℝ} (f g : ℝ -> ℝ) : (∀ x ∈ S, f x = g x) -> (∫ x in S, f x) = ∫ x in S, g x :=
+theorem same_integral'' {S : set ℝ} (f g : ℝ -> ℝ) {hf : measurable f} {hg : measurable g} : (∀ x ∈ S, f x = g x) -> (∫ x in S, f x) = ∫ x in S, g x :=
 begin
   intro h,
-  sorry
---   squeeze_simp,
---   apply (congr_arg measure_theory.integral),
---   library_search,
---  apply congr_arg,
- --measure_theory.set_integral, ext, simp only [set.indicator], split_ifs, exact h x h_1, refl,
+
+  simp only [],
+  apply measure_theory.integral_congr_ae, 
+  simp only [], exact hf,
+  simp only [], exact hg,
+  simp only [],
+  refine (@measure_theory.ae_restrict_iff ℝ _ _ S _ _).2 _,
+  have set_eq : { x | f x = g x } = { x | (f - g) x = 0 },
+  {
+    ext, split,
+    intro hx, simp only [set.mem_set_of_eq, pi.sub_apply] at hx ⊢,
+    rw sub_eq_zero, exact hx,
+    intro hx, simp only [set.mem_set_of_eq, pi.sub_apply] at hx ⊢,
+    rw sub_eq_zero at hx, exact hx,
+  },
+  rw set_eq,
+  have H : measurable (f - g),
+  {
+      change measurable ((λ x, f x) - (λ x, g x)),
+      apply measurable.sub;
+      simp only []; assumption,
+  },
+  refine @H ({0} : set ℝ) _,
+  exact is_measurable_singleton 0,
+  apply measure_theory.ae_of_all, exact h,
 end
 
 /-Theorem
@@ -500,7 +517,7 @@ $$
 \int_a^b f\le (b-a)c
 $$
 -/
-theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f ∧ measure_theory.integrable f} (a b : ℝ) (h : b ≥ a) (c : ℝ) 
+theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f} (a b : ℝ) (h : b ≥ a) (c : ℝ) 
     (f_nonneg : ∀ x ∈ set.Icc a b, f x ≥ 0) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) : 
     (∫ x in a..b, f x) ≤ (b - a) * c :=
 begin
@@ -517,7 +534,7 @@ begin
         refine f_nonneg x _ _,
         linarith, linarith,
         simp only [pi.zero_apply],
-        refine is_measurable_le measurable_zero h1.1,
+        refine is_measurable_le measurable_zero h1,
     },
     rw triv1,
     have triv2 := @interval_integral.norm_integral_le_of_norm_le_const ℝ _ _ _ _ _ _ a b c f _,
@@ -899,59 +916,24 @@ begin
     -- so we need to prove $|e^{t-x}f(x)|\le e^t\bar{f}(t)$
     have ineq1 := integral_le_max_times_length ((λ x, abs ((t - x).exp * f_eval_on_ℝ f x))) 0 t ht (t.exp * f_eval_on_ℝ (f_bar f) t) _ _,
     simp only [sub_zero] at ineq1, 
-    -- have triv0 : measure_theory.integral ((set.Icc 0 t).indicator ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)))) =
-    --   measure_theory.integral ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x))),
-    -- {
-    --   apply same_integral', ext y, split_ifs, simp [set.indicator, h],
-    -- }, rw <-triv0,
     have triv : t * (t.exp * f_eval_on_ℝ (f_bar f) t) = t * t.exp * f_eval_on_ℝ (f_bar f) t := by ring,
     rw triv at ineq1, exact ineq1,
 
     -- This to prove the functions we used are measurable and integrable.
     {
-      split,
-      refine continuous.measurable _,
-      have func_eq : abs ∘ (λ (x : ℝ), (t-x).exp * f_eval_on_ℝ f x) = (λ (x : ℝ), abs ((t-x).exp * f_eval_on_ℝ f x)),
-      {
-          simp only [eq_self_iff_true],
-      },
-      rw <-func_eq,
-      apply continuous.comp,
-      apply measurable.measurable_on, exact is_measurable_Icc,
-      -- We prove $|e^{t-x}f(x)|$ is continuous and thus measurable.
-      apply continuous.measurable,
-      exact continuous_exp_f f t ht,
-      
-      -- To prove $e^{t-x}f(x)$ is integrable on $[0,t]$ we use that $[0,t]$ is compact so a maximum of $e^{t-x}f(x)$ exists.
-      have hmax := @is_compact.exists_forall_ge _ _ _ _ _ _ (set.Icc 0 t) (compact_Icc) (⟨0, begin simp only [set.left_mem_Icc], exact ht end⟩) (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) _,
-      choose max hmax using hmax,
-      -- Let $M$ be $e^{t-max}f(max)$
-      generalize hM :  abs (real.exp (t - max) * f_eval_on_ℝ f max) = M,
-      -- We compare the function with the constant function $M$.
-      set bound : ℝ -> ℝ := (set.Icc 0 t).indicator (λ _, M) with hbound,
-      apply @measure_theory.integrable_of_integrable_bound _ _ _ _ ((set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x))) bound,
-      -- as proved before, constant functions are integrable on closed interval.
-      simp [hbound], apply integrable_const_Icc,
-      rw <-hM, exact abs_nonneg (real.exp (t - max) * f_eval_on_ℝ f max), exact ht,
-      
-      -- Now we prove that $M$ is indeed a bound.
-      suffices :  ∀ (a : ℝ), ∥(set.Icc 0 t).indicator (λ (x : ℝ), abs (real.exp (t - x) * f_eval_on_ℝ f x)) a∥ ≤ bound a,
-        exact measure_theory.ae_of_all measure_theory.measure_space.volume this,
-      intros y, simp only [hbound, set.indicator, set.mem_Icc], rw real.norm_eq_abs, split_ifs, rw abs_abs,
-      rw <-hM, exact hmax.2 y h, simp only [abs_zero],
-
-      exact continuous.continuous_on (continuous_exp_f f t ht),
+      refine continuous.measurable _, 
+      apply continuous_exp_f _ _ ht,
     },
 
     -- This is to prove $0\le|e^{t-x}f(x)|$
     {
-        intros x hx, simp only [ge_iff_le], simp only [set.indicator, set.mem_Icc], split_ifs, exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
+        intros x hx, simp only [ge_iff_le],
         exact abs_nonneg (real.exp (t - x) * f_eval_on_ℝ f x),
     },
 
     -- This is to prove $|e^{t-x}f(x)|\le e^t \bar{f}(t)$
     {
-        intros x hx, simp only [set.indicator, set.mem_Icc], split_ifs,
+        intros x hx, simp only [set.indicator, set.mem_Icc],
         rw abs_mul,
         have triv : abs (t - x).exp = (t-x).exp, {
             apply abs_of_pos, exact (t - x).exp_pos,
@@ -965,8 +947,6 @@ begin
             rw real.exp_le_exp, rw sub_le, simp only [sub_self], exact hx.1,
         },
         exact mul_le_mul ineq2 ineq1 (abs_nonneg _) (le_of_lt (real.exp_pos t)),
-        simp only [not_and, not_le] at h,
-        have rid1 := h hx.1, have rid2 := hx.2, linarith,
     },
 end
 
