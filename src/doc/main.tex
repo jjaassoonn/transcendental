@@ -279,6 +279,7 @@ end
   
     {\tt \small linarith [h1, ..., hn]} is equivalent to use {\tt \small linarith} with additional (proofs of) propositions {\tt \small h1} \dots {\tt \small { hn}}.
     \item {\tt \small tidy} is to ask {\tt \small Lean} to try different tactics and finishes the goal if it possible.
+    \item {\tt \small tauto} is used to prove a goal of tautology.
   \end{itemize}
 
   \item If there is multiple goals, one can use {\tt \small \{ \}} to focus on the first one.
@@ -466,7 +467,7 @@ $$ where $f(X)\in\mathbb Z[X]$;
 
 \section{Countability argument}\label{fmlsn:count}
 The main caveat in this part is the internal specification of {\tt \small mathlib}. 
-A real number $x$ in {\tt \small Lean} is algebraic over $\mathbb Z$ if and only if there exists a nonzero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unqiue $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
+A real number $x$ in {\tt \small Lean} is algebraic over $\mathbb Z$ if and only if there exists a non-zero polynomial $p(X)\in\mathbb Z[X]$ such that $p$ is in the kernel of the unique $\mathbb Z$-algebra homomorphism $\mathbb Z[X]\to\mathbb R$ given by $X\mapsto x$.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 ∃ (p : ℤ[X]), p ≠ 0 ∧ |$\Uparrow$|(polynomial.aeval ℤ ℝ x) p = 0
 \end{minted}
@@ -662,7 +663,7 @@ f_n((m_0,\dots,m_{n+1}))&=((m_0,\dots,m_{n}),m_{n+1})\\
 g_n(((m_0,\dots,m_{n}), m_{n+1}))&=(m_0,\dots,m_{n+1})
 \end{aligned}
 \end{equation*}
-Then by Schr\"oder-Berstein theorem $\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$.
+Then by Schröder-Berstein theorem $\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$.
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def fn (n : nat) : 
@@ -779,7 +780,7 @@ def liouville_number (x : ℝ) :=
 
 We first prove a lemma about irrational roots of an integer polynomial:
 \begin{lemma}\label{lemma:irrationalRoot}
-if $f$ is an integer polynomial with degree $m>1$ and $\alpha$ is an irrational root for $i(f)$ where $i:\mathbb Z[X]\to\mathbb R[X]$ is the trivial embedding, then there is a postive real number $A$ such that for every rational number $\frac ab$, $\left|\alpha-\frac ab\right| >\frac A {b^m}$:  
+if $f$ is an integer polynomial with degree $m>1$ and $\alpha$ is an irrational root for $i(f)$ where $i:\mathbb Z[X]\to\mathbb R[X]$ is the trivial embedding, then there is a positive real number $A$ such that for every rational number $\frac ab$, $\left|\alpha-\frac ab\right| >\frac A {b^m}$:  
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,breaklines, escapeinside=§§,frame=single,framesep=2mm]{Lean}
 lemma about_irrational_root (α : ℝ)
@@ -1170,28 +1171,6 @@ theorem transcendental_α : transcendental α := liouville_numbers_transcendenta
 
 \section{Hermite's theorem}\label{fmlsn:e}
 Throughout this section $f$ will be an integer polynomial with degree $d$, and $t$ is a none-negative real number.
-
-% \subsection*{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
-% \addcontentsline{toc}{subsection}{Evaluating $I(f,t)=\int_0^te^{t-x}\mathrm{eval}_{f}(x)\mathrm{d}x$}
-
-% The transcendence of $e$ requires an extensive use of the following lemma:
-% \begin{lemma}\label{lemma:derivProd}
-% Let $p$ and $q$ be two integer polynomials, then for any $n\in\mathbb N$, 
-%   $$\left(pq\right)^{(n)}=\sum_{j=0}^n{n\choose j}p^{(n-j)}q^{(j)}$$
-% where $p^{(i)}$ denotes the $i$-th (formal) derivative of polynomial $p$.
-
-% \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
-% def deriv_n (f : ℤ[X]) (n : ℕ) : ℤ[X] := polynomial.derivative ^[n] f
-
-% lemma deriv_n_poly_prod (p q : ℤ[X]) (n : ℕ) :
-%   deriv_n (p * q) n = §$\sum$§ k in finset.range n.succ, (polynomial.C (n.choose k:ℤ)) * (deriv_n p (n-k)) * (deriv_n q k) := 
-% begin
-%   induction n with n IH,
-%   rest_omitted
-% end
-% \end{minted}
-% $\dagger$: In {\tt Lean}, {\tt g \textasciicircum[$n$] x} is to apply {\tt g} $n$ times to {\tt x}.
-% \end{lemma}
 
 \begin{definition}
 we define
@@ -1908,7 +1887,7 @@ end
 \end{minted}
 \end{proof}
 
-To fullfill the requirement of $g$ having a non-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
+To fulfil the requirement of $g$ having a non-zero coefficient, we divide $g$ by a suitable power of $X$ as following:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def min_degree_term (f : ℤ[X]) (hf : f ≠ 0) : ℕ := 
@@ -1947,7 +1926,7 @@ theorem e_transcendental : transcendental e :=
 \end{minted}
 \end{theorem}
 \begin{proof}
-We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has a non-zero constant coefficent.
+We prove by contradiction. Assume $e$ is algebraic then there is an integer polynomial $g$ such that $\mathrm{eval}_g(e)=0$. Divide $g$ by some suitable power of $X$ if necessary, we can assume that $g$ has a non-zero constant coefficient.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
@@ -1977,9 +1956,9 @@ There is a prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M
 \chapter*{Conclusion and future work}
 \addcontentsline{toc}{chapter}{Conclusion and future work}
 
-This project lives in an interdisciplinary area between mathematics and computer science. Even interactive theorem proving is not necessarily suitable for every mathematician, its pedagogical value is enormous because by formalising theorems the logic of proofs are disentangled and one is forced to be precise and explicit. Hence a proof in {\tt \small Lean} often challenge users to prove intuitions in a rigourous manner. For example, Alan Baker deemed the evaluation of $J_p(g)$ in equation \ref{fm:important} to be clear, but by formalising one has to get hands dirty by actually performing the evaluation \cite{baker1990transcendental}. Then anyone else interested in the proof can choose to read or discard relavent sections depending on whether she/he shares the same intuitions with the author.
+This project lives in an interdisciplinary area between mathematics and computer science. Even interactive theorem proving is not necessarily suitable for every mathematician, its pedagogical value is enormous because by formalising theorems the logic of proofs are disentangled and one is forced to be precise and explicit. Hence a proof in {\tt \small Lean} often challenge users to prove intuitions in a rigorous manner. For example, Alan Baker deemed the evaluation of $J_p(g)$ in equation \ref{fm:important} to be clear, but by formalising one has to get hands dirty by actually performing the evaluation \cite{baker1990transcendental}. Then anyone else interested in the proof can choose to read or discard relevant sections depending on whether she/he shares the same intuitions with the author.
 
-This is perhaps both a blessing and a curse -- by forbidding to use words like ``trival'' or ``clearly'', one often finds her/himself proving truly trivial propositions as well, for example to prove that $\mathbb Z^1\simeq \mathbb Z$. Hence there are at least two directions in which future works could take. One is to formalise more theorems of interest for example the transcendence of $\pi$; the other is to use the (meta-)programming facilities of {\tt\small Lean} to make more tactics so that learning and using {\tt\small Lean} could be more effortless.
+This is perhaps both a blessing and a curse -- by forbidding to use words like ``trivial'' or ``clearly'', one often finds her/himself proving truly trivial propositions as well, for example to prove that $\mathbb Z^1\simeq \mathbb Z$. Hence there are at least two directions in which future works could take. One is to formalise more theorems of interest for example the transcendence of $\pi$; the other is to use the (meta-)programming facilities of {\tt\small Lean} to make more tactics so that learning and using {\tt\small Lean} could be more effortless.
 
 %\bibliographystyle{alphanat}
 % \chapter{Glossary of definitions and theorems}
@@ -1988,9 +1967,12 @@ This is perhaps both a blessing and a curse -- by forbidding to use words like `
 \nocite{*}
 \printbibliography[heading=bibintoc]
 
+% \appendix
+
 % \inputminted[breaklines]{lean}{../small_things.lean}
 % \inputminted[breaklines]{lean}{../algebraic_countable_over_Z.lean}
 % \inputminted[breaklines]{lean}{../liouville_theorem.lean}
 % \inputminted[breaklines]{lean}{../e_trans_helpers2.lean}
 % \inputminted[breaklines]{lean}{../e_transcendental.lean}
+
 \end{document}
