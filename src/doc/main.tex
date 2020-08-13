@@ -54,7 +54,7 @@ I declare that this report was composed by myself, that the work contained herei
 \begin{center}
   \textbf{Acknowledgement}
 \end{center}
-I would like to thanks professor Kevin Buzzard for supervising this project whose advise has helped me to write more idiomatic {\tt \small Lean} codes. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful for the {\tt\small Lean} community for providing {\tt\small library\_search}.
+I would like to thanks professor Kevin Buzzard for supervising this project whose advise has helped me to write more idiomatic {\tt \small Lean} codes. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful for the {\tt\small Lean} community for providing wonderful tools especially {\tt\small library\_search}.
 \clearpage
 
 % Abstract
@@ -970,7 +970,7 @@ end
 
 With the above lemmas, we are ready to prove the transcendence of Liouville numbers.
 \begin{theorem}\label{thm:liouvilleTrans}
-Every Liouville number is transcendental
+Every Liouville number is transcendental.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x := 
 \end{minted}
@@ -1258,7 +1258,7 @@ On the right hand side, $\mathrm{eval}_{\bar f}(t)=\sum_{j=0}^d \left|\lambda_j\
 $$\left|I(f, t)\right|\le t e^t\mathrm{eval}_{\bar f}(t)$$
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
-  abs (II f t ht) ≤ t*t.exp*(f_eval_on_ℝ (f_bar f) t)
+  abs (II f t ht) ≤ t*t.exp*(f_eval_on_ℝ (f_bar f) t) :=
 \end{minted}
 \end{theorem}
 
@@ -1293,7 +1293,7 @@ $$
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 lemma II_integrate_by_part 
   (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : 
-  (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht)
+  (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht) :=
 \end{minted}
 \end{lemma}
 
@@ -1642,7 +1642,7 @@ f_{p,n}^{(p-1)}(X)&=\sum_{i=0}^{p-1}{p-1\choose i}(X^{p-1})^{(p-1-i)}\Pi_{p,n}^{
 &={p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)
 \end{aligned}
 \end{equation*}
-where the last equality is due to $\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for $i\ne 0$.
+where the last equality is due to $\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for $i\ne 0$ (lemma \ref{lemma:lt_p_k_ge_1}).
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
 begin
   rw [f_p, deriv_n_poly_prod, eval_sum'],
@@ -1650,7 +1650,7 @@ begin
 
   a_proof_of_§${p-1\choose 0}\mathrm{eval}_{(X^{p-1})^{(p-1)}}(0)\mathrm{eval}_{\Pi_{p,n}}(0)=(p-1)!(-1)^{np}(n!)^p$§
 
-  a_proof_of_§$\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$ for all $i\ne0$§
+  a_proof_of_§$\mathrm{eval}_{(X^{p-1})^{(p-1-i)}}(0)=0$§_for_all_§$i\ne0$§
 end
 \end{minted}
 \end{proof}
@@ -1735,7 +1735,7 @@ If $j-x\ne p-1$, either $j-x<p-1$ or $j-x > p-1$. If $j-x<p-1$ then $\mathrm{eva
 \end{proof}
 
 \begin{lemma}\label{e:lemma_prod_part}
-Let $g,p,n,f_{p,n}$ be like above. Then $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(j)}}(k)$ for any $0<k\le n$ and any $p>0$, prime or composite.
+Let $g,p,n,f_{p,n}$ be like above. Then for all natural number $j$, $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(j)}}(k)$ for any $0<k\le n$ and any $p>0$, prime or composite.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
   lemma p_fact_dvd_prod_part (n : ℕ) : 
@@ -1777,7 +1777,7 @@ By inductive hypothesis $(p-1)!\mid\Pi_{p-1,n}^{j-i}$ for any $i=0,\dots,j$. Thu
 \end{minted}
 \end{proof}
 
-Immediately bys lemma \ref{lemma:ge_p0}, \ref{e:lemma_prod_part} and equation \ref{eq:deriv_eval}, we have:
+Immediately by lemmas \ref{lemma:ge_p0}, \ref{e:lemma_prod_part} and equation \ref{eq:deriv_eval}, we have:
 \begin{corollary}
 Let $g,p,n,f_{p,n}$ be like above. If $j\ge p$ then for all $0\le k\le n$ we have $p!\mid\mathrm{eval}_{f_{p,n}^{(j)}}(k)$. Then
 $$
@@ -1822,15 +1822,15 @@ end
 
 We finally have everything we need to evaluate equation \ref{fm:important}: by previous corollaries \ref{cor:part1} \ref{cor:part2} we have:
 \begin{corollary}
-Let $g,p,n,f_{p,n}$ be like above, there is some $M\in\mathbb Z$,
+Let $g,p,n,f_{p,n}$ be like above, there is some $c\in\mathbb Z$,
 $$
-J_p(g)=-g_0(p-1)!(-1)^{np} (n!)^p + p!\cdot M
+J_p(g)=-g_0(p-1)!(-1)^{np} (n!)^p + p!\cdot c
 $$
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 theorem J_eq_final 
   (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) 
   (p : ℕ) (hp : nat.prime p) : 
-  ∃ M : ℤ, (J g p hp) = ℤembℝ ((-(g.coeff 0 * (§$\uparrow$§((p - 1).fact) * (-1) ^ (g.nat_degree * p) * §$\uparrow$§(g.nat_degree.fact) ^ p))) + (p.fact:ℤ) * M) :=
+  ∃ c : ℤ, (J g p hp) = ℤembℝ ((-(g.coeff 0 * (§$\uparrow$§((p - 1).fact) * (-1) ^ (g.nat_degree * p) * §$\uparrow$§(g.nat_degree.fact) ^ p))) + (p.fact:ℤ) * c) :=
 begin
   have J_eq := J_eq'' g e_root_g p hp, rw J_eq, rw <-ring_hom.map_neg,
   have seteq : finset.range (f_p p hp g.nat_degree).nat_degree.succ = finset.range (p-1) §$\cup$§ {p-1} §$\cup$§ finset.Ico p (f_p p hp g.nat_degree).nat_degree.succ,
@@ -1901,7 +1901,7 @@ If $p\mid (n!)^p$, since $p$ is a prime number, $p\mid n!$  implies $p\le n$.
   rw nat.prime.dvd_fact at H,
 \end{minted}
 
-For $(-1)^{np}=-1$, the same proof works mutatis mutandis,
+For $(-1)^{np}=-1$, the same proof works mutatis mutandis.
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§,firstnumber=last]{Lean}
   rest_omitted
 end
@@ -1913,6 +1913,8 @@ To fullfill the requirement of $g$ having a non-zero coefficient, we divide $g$ 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def min_degree_term (f : ℤ[X]) (hf : f ≠ 0) : ℕ := 
   finset.min' (f.support) (non_empty_supp f hf)
+
+
 def make_const_term_nonzero (f : ℤ[X]) (hf : f ≠ 0) : ℤ[X] := 
 { support := finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support,
   to_fun := (λ n, (f.coeff (n+(min_degree_term f hf)))),
