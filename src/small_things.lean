@@ -171,7 +171,7 @@ begin
   {
     intros i hi, apply hf, simp only [finset.mem_range] at hi ⊢, exact nat.lt.step hi,
   },
-  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul_eq,
+  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul,
   apply hf, simp only [finset.self_mem_range_succ],
   intro rid, rw [finset.prod_eq_zero_iff] at rid,
   choose a ha using rid,
