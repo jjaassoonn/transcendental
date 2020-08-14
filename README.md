@@ -60,12 +60,6 @@ theorem e_pow_transcendental (n : ℕ) (hn : n ≥ 1) : transcendental (e^n)
 theorem e_pow_n_irrational (n : ℕ) (hn : n ≥ 1) : irrational (e ^ n)
 ```
 
-Here is the catch. I used the following theorems directly without prove. But all the functions used were proved to be measurable and integrable on closed interval. (This axiom of its current form is not correct, we should assume $f$ being nice. But we only use $exp$ and polynomial on closed interval. Once $ftc$ is in mathlib, this part will be changed immediately.)
-
-``` lean
-axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in a..b, (deriv f) x) = f b - f a
-```
-
 Please see [this](https://jjaassoonn.github.io/e_transcendence_doc.html) for an explanation of the proof of transcendence of $e$ with reference to Lean code.
 
 I haven't finished documentation (not even close), but you can click around the proves I documented so far
