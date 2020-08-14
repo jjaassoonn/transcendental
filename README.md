@@ -52,6 +52,14 @@ The main theorem is at [e_transcendental.lean](https://github.com/jjaassoonn/tra
 theorem e_transcendental : ¬ is_algebraic ℤ e :=
 ```
 
+Almost immediately, we can prove
+```lean
+theorem e_irrational : irrational e
+
+theorem e_pow_transcendental (n : ℕ) (hn : n ≥ 1) : transcendental (e^n)
+theorem e_pow_n_irrational (n : ℕ) (hn : n ≥ 1) : irrational (e ^ n)
+```
+
 Here is the catch. I used the following theorems directly without prove. But all the functions used were proved to be measurable and integrable on closed interval. (This axiom of its current form is not correct, we should assume $f$ being nice. But we only use $exp$ and polynomial on closed interval. Once $ftc$ is in mathlib, this part will be changed immediately.)
 
 ``` lean
