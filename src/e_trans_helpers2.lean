@@ -1,5 +1,3 @@
-import measure_theory.set_integral
-import measure_theory.bochner_integration
 import measure_theory.interval_integral
 import measure_theory.lebesgue_measure
 import analysis.special_functions.exp_log
@@ -225,14 +223,74 @@ end
 
 /-- # Assumption-/
 /-Theorem
-fundamental theorem of calculus and integration by part is assumed. I am waiting for them to arrive in `mathlib` and I will update this part and prove relatvent additional assumptions.
+integration by part is assumed. I am waiting for them to arrive in `mathlib` and I will update this part and prove relatvent additional assumptions.
 -/
 
 
--- axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in set.Icc a b, (deriv f) x) = f b - f a
+axiom ftc (f: ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :  (∫ x in a..b, (deriv f) x) = f b - f a
 
-axiom integrate_by_part (f g : ℝ -> ℝ) (a b : ℝ) (h : b ≥ a) :
-    (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x))
+theorem integrate_by_part (f g : ℝ -> ℝ)
+  {hf : differentiable ℝ f} {hf2 : measurable (deriv f)} 
+  {hf3 : measurable f} {hf4 : continuous (deriv f)}
+  {hg : differentiable ℝ g} {hg2 : measurable (deriv g)} 
+  {hg3 : measurable g} {hg4 : continuous (deriv g)}
+  (a b : ℝ) (h : b ≥ a) :
+  (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x)) :=
+
+begin
+  have eq1 := ftc (f * g) a b h,
+  have eq2 :  (∫ (x : ℝ) in a..b, deriv (f * g) x) =  (∫ (x : ℝ) in a..b, (deriv f x) * g x + f x * (deriv g x)),
+  {
+    rw interval_integral.integral_of_le h,
+    rw interval_integral.integral_of_le h,
+    apply congr_arg, ext y,
+    apply deriv_mul,
+    simp only [],
+    exact hf y,
+    simp only [],
+    exact hg y,
+  },
+  rw eq2 at eq1,
+  rw interval_integral.integral_add at eq1,
+  simp only [pi.mul_apply] at eq1 ⊢,
+  rw <-eq1, simp only [add_sub_cancel'],
+  apply measurable.mul,
+  simp only [], exact hf2,
+  simp only [], exact hg3,
+  rw interval_integrable,
+  have H1 : continuous (λ x, (deriv f x) * g x),
+  {
+    apply continuous.mul _ _, exact normed_ring_top_monoid,
+    exact hf4, apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _,
+    exact hg,
+  },
+  
+  split,
+  apply measure_theory.integrable_on.mono_set (continuous.integrable_on_compact (@compact_Icc a b) H1),
+  exact set.Ioc_subset_Icc_self,
+  exact real.locally_finite_volume,
+  apply measure_theory.integrable_on.mono_set (continuous.integrable_on_compact (@compact_Icc a b) H1),
+  rw set.Ioc_eq_empty, exact (set.Icc a b).empty_subset, exact h,
+  exact real.locally_finite_volume,
+  
+  apply measurable.mul, exact hf3, exact hg2,
+  rw interval_integrable,
+  have H2 : continuous (λ x, f x * deriv g x),
+  {
+    apply continuous.mul _ _, exact normed_ring_top_monoid,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _,
+    exact hf, exact hg4,
+  },
+  split,
+  
+
+  apply measure_theory.integrable_on.mono_set (continuous.integrable_on_compact (@compact_Icc a b) H2),
+  exact set.Ioc_subset_Icc_self,
+  exact real.locally_finite_volume,
+  apply measure_theory.integrable_on.mono_set (continuous.integrable_on_compact (@compact_Icc a b) H2),
+  rw set.Ioc_eq_empty, exact (set.Icc a b).empty_subset, exact h,
+  exact real.locally_finite_volume,
+end
 
 /-Theorem
 Let $f,g:\mathbb R\to\mathbb R$ be measurable and integral functions such that $\forall x\in(a,b),0\le f(x)\le g(x)$, then
@@ -426,6 +484,54 @@ begin
         },
         rw triv, ring,
     }, rw eq, ring,
+
+    apply polynomial.differentiable,
+    apply continuous.measurable,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    rw f_eval_on_ℝ_deriv,
+    apply polynomial.differentiable,
+
+    apply continuous.measurable,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    apply polynomial.differentiable,
+    
+    rw f_eval_on_ℝ_deriv,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    apply polynomial.differentiable,
+    
+    apply differentiable.neg,
+    change differentiable ℝ (real.exp ∘ (λ (y : ℝ), (t - y))),
+    apply differentiable.comp,
+    exact real.differentiable_exp,
+    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
+    ext y, rw neg_sub, rw this, apply differentiable.neg,
+    apply differentiable.sub_const, exact differentiable_id',
+
+    apply continuous.measurable,
+    rw deriv_exp_t_x',
+    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
+    apply continuous.comp (real.continuous_exp) _,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
+    ext y, rw neg_sub, rw this, apply differentiable.neg,
+    apply differentiable.sub_const, exact differentiable_id',
+    
+    apply continuous.measurable,
+    apply continuous.neg _, exact normed_top_group,
+    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
+    apply continuous.comp (real.continuous_exp) _,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
+    ext y, rw neg_sub, rw this, apply differentiable.neg,
+    apply differentiable.sub_const, exact differentiable_id',
+
+    rw deriv_exp_t_x',
+    change continuous (real.exp ∘ (λ (y : ℝ), (t - y))),
+    apply continuous.comp (real.continuous_exp) _,
+    apply @differentiable.continuous ℝ _ ℝ _ _ ℝ _ _ _ _,
+    have : (λ (y : ℝ), t - y) = (λ (y : ℝ), -(y-t)),
+    ext y, rw neg_sub, rw this, apply differentiable.neg,
+    apply differentiable.sub_const, exact differentiable_id',
 end
 
 /-Theorem
@@ -471,13 +577,6 @@ begin
     have triv := deriv_too_much f, rw I, 
     rw [triv, II_0, add_zero] at II_integrate_by_part_m,
     assumption,
-end
-
-lemma norm_indicator {a b : ℝ} {h : a ≤ b} (f : ℝ -> ℝ) (x : ℝ) : ∥ set.indicator (set.Icc a b) f x ∥ = (set.indicator (set.Icc a b) (λ y, ∥ f y ∥)) x :=
-begin
-    conv_rhs {rw [set.indicator_apply],}, split_ifs,
-    rw set.indicator_apply, simp only [h_1, if_true],
-    rw set.indicator_apply, simp only [h_1, norm_zero, if_false],
 end
 
 /-Theorem
