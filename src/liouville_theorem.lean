@@ -241,7 +241,7 @@ begin
     rw absurd2 at hc,
     simp only [ring_hom.map_zero] at hc, rw <-hfℝ at hc, 
     replace hc : polynomial.map ℤembℝ f = polynomial.map ℤembℝ 0, simp only [polynomial.map_zero], exact hc,
-    exact f_nonzero (polynomial.map_injective ℤembℝ_inj hc),                      -- But f ∈ ℤ[x] is not a zero polynomial.
+    exact f_nonzero (polynomial.map_injective ℤembℝ ℤembℝ_inj hc),                      -- But f ∈ ℤ[x] is not a zero polynomial.
   },
   have M_pos : M > 0,                                                             -- Since M is not zero, M > 0 being abs (sth.) 
   {

@@ -19,3 +19,6 @@
 src/doc/test.lean
 /_target
 /leanpkg.path
+
+src/test.lean
+src/test2.lean

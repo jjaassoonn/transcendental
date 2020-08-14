@@ -1,6 +1,7 @@
 import data.real.basic
 import algebra.big_operators
 import data.polynomial
+import analysis.calculus.deriv
 import tactic
 
 noncomputable theory
@@ -55,6 +56,15 @@ begin
  polynomial.map_X, int.cast_mul, polynomial.eval_pow, polynomial.map_pow, polynomial.eval_mul,
  polynomial.map_mul] at ha ⊢, simp only [int.cast_coe_nat, int.cast_pow, ring_hom.eq_int_cast, int.cast_mul],
   },
+end
+
+theorem f_eval_on_ℝ_deriv (f : polynomial ℤ) : (deriv (f_eval_on_ℝ f)) = (f_eval_on_ℝ (f.derivative)) :=
+begin
+  ext,
+  simp_rw [f_eval_on_ℝ],
+  have eq := @polynomial.deriv ℝ _ x (polynomial.map ℤembℝ f),
+  rw <-polynomial.derivative_map, 
+  rw <-eq, refl,
 end
 
 -- compute list of coeff of a polynomial
@@ -171,7 +181,7 @@ begin
   {
     intros i hi, apply hf, simp only [finset.mem_range] at hi ⊢, exact nat.lt.step hi,
   },
-  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul_eq,
+  replace ih := ih triv, rw <-ih, apply polynomial.nat_degree_mul,
   apply hf, simp only [finset.self_mem_range_succ],
   intro rid, rw [finset.prod_eq_zero_iff] at rid,
   choose a ha using rid,

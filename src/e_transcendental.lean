@@ -23,9 +23,9 @@ lemma deg_f_p (p : ℕ) (hp : nat.prime p) (n : ℕ) : (f_p p hp n).nat_degree =
 begin
   rw f_p,
   -- So we have degree of `f_p` is degree of $X^{p-1}$ plus degree of $(X-1)^p\cdots(X-n)^p$
-  have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
+  have eq1 := @polynomial.nat_degree_mul ℤ _ (polynomial.X ^ (p - 1)) (∏ i in finset.range n, (polynomial.X - (polynomial.C (i+1:ℤ)))^p) _ _,
   rw eq1,
-  simp only [polynomial.C_1, polynomial.nat_degree_pow_eq, polynomial.nat_degree_X, mul_one],
+  simp only [int.cast_coe_nat, mul_one, polynomial.nat_degree_X, int.cast_add, ring_hom.eq_int_cast, int.cast_one, polynomial.nat_degree_pow],
   -- degree of $(X-1)^p\cdots(X-n)^p$ is $p\times$(degree of $(X-1)$+degree of $(X-2)$+...+ degree of $(X-n)$)
   have triv' : (∏ (i : ℕ) in finset.range n, (polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree 
               = ∑ i in finset.range n, ((polynomial.X - polynomial.C (i+1:ℤ)) ^ p).nat_degree,
@@ -36,15 +36,17 @@ begin
     rw sub_eq_zero_iff_eq at rid,
     have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
     rw <-rid, exact polynomial.nat_degree_X, have rid'' := polynomial.nat_degree_C (i+1:ℤ), linarith,
-  }, simp only [polynomial.C_1, polynomial.nat_degree_pow_eq] at triv',
+  }, 
+  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, int.cast_one, polynomial.nat_degree_pow] at triv',
   rw triv',
   -- each of $(X-i)^p$ has degree p. So The sum of degree is n*p.
-  have triv'' : (∑ (x : ℕ) in finset.range n, p * (polynomial.X - (polynomial.C (x + 1:ℤ))).nat_degree) = ∑ x in finset.range n, p,
+  have triv'' : (∑ (i : ℕ) in finset.range n, p * (polynomial.X - (polynomial.C (i + 1:ℤ))).nat_degree) = ∑ x in finset.range n, p,
   {
     apply congr_arg, ext i,
     rw polynomial.nat_degree_X_sub_C, rw mul_one,
   },
-  rw triv'', rw finset.sum_const, simp only [nat.nsmul_eq_mul, finset.card_range], ring, 
+  simp only [int.cast_coe_nat, int.cast_add, ring_hom.eq_int_cast, nat.cast_id, finset.sum_const, nsmul_eq_mul, int.cast_one, finset.card_range] at triv'' ⊢, 
+  rw triv'', ring, 
   have eq2 := (@nat.add_sub_assoc p 1 _ (p*n)),
   rw eq2, rw add_comm, exact nat.succ_le_iff.mpr (nat.prime.pos hp),
 
@@ -80,7 +82,7 @@ begin
   rw <-finset.sum_sub_distrib, apply congr_arg, ext i, rw <-mul_sub, rw <-I,
 end
 
-private lemma J_eq3 (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p):
+private lemma J_eq3 (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p):
   (∑ k in finset.range g.nat_degree.succ, (g.coeff k:ℝ) * ((k:ℝ).exp * (∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ, (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) 0)))) = 0 :=
 begin
   have eq1 : 
@@ -96,20 +98,19 @@ begin
     intros i hi Hi, rw mul_eq_zero, left, norm_cast, by_contra, exact Hi ((g.3 i).2 a),
   }, rw <-eq2,
 
-  have eq3 : (∑ x in g.support, (g.coeff x:ℝ) * (x:ℝ).exp) = (polynomial.aeval ℤ ℝ e) g,
+  have eq3 : (∑ x in g.support, (g.coeff x:ℝ) * (x:ℝ).exp) = @polynomial.aeval ℤ ℝ _ _ _ e g,
   {
     rw [polynomial.aeval_def, polynomial.eval₂, finsupp.sum], apply congr_arg, ext, simp only [ring_hom.eq_int_cast], rw e,
     apply mul_eq_mul', norm_cast, rw <-real.exp_nat_mul, simp only [mul_one],
   }, rw eq3, rw e_root_g, rw zero_mul,
 end
 
-theorem J_eq' (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) 
+theorem J_eq' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) 
               (p : ℕ) (hp : nat.prime p) : 
   (J g p hp) = - ∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ,
                 (∑ k in finset.range g.nat_degree.succ,
                   (g.coeff k : ℝ) * (f_eval_on_ℝ (deriv_n (f_p p hp g.nat_degree) j) (k:ℝ))) :=
 begin
-  type_check J_eq1,
   rw [J_eq1, J_eq2, J_eq3, finset.sum_comm], simp only [zero_sub, neg_inj],
   apply congr_arg, ext, rw finset.mul_sum,
   assumption,
@@ -135,7 +136,7 @@ begin
   intros j hj, rw ring_hom.map_mul, simp only [ring_hom.eq_int_cast], apply mul_eq_mul', exact rfl, rw f_eval_on_ℝ_nat, simp only [ring_hom.eq_int_cast],
 end
 
-theorem J_eq'' (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) 
+theorem J_eq'' (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) 
               (p : ℕ) (hp : nat.prime p) : 
   (J g p hp) =  - ℤembℝ (∑ j in finset.range (f_p p hp g.nat_degree).nat_degree.succ,
             (∑ k in finset.range g.nat_degree.succ,
@@ -476,7 +477,7 @@ begin
   rw mul_eq_zero, right, rw deriv_f_p_k_eq_zero_when_j_lt_p_sub_one, simp only [finset.mem_range] at H, exact H, exact H_1,
 end
 
-theorem J_partial_sum_from_p_sub_one_to_p (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) :
+theorem J_partial_sum_from_p_sub_one_to_p (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
    ∑ (k : ℕ) in finset.range g.nat_degree.succ, g.coeff k * polynomial.eval ↑k (deriv_n (f_p p hp g.nat_degree) (p - 1)) = 
    g.coeff 0 * (↑((p - 1).fact) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.fact) ^ p) :=
 begin
@@ -491,7 +492,7 @@ begin
   exact finset.mem_range.mp hi1, intro rid, exfalso, simp only [nat.succ_pos', not_true, finset.mem_range] at rid, exact rid,
 end
 
-theorem J_partial_sum_rest (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) :
+theorem J_partial_sum_rest (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) :
   (p.fact:ℤ) ∣ 
     ∑ (j : ℕ) in finset.Ico p (f_p p hp g.nat_degree).nat_degree.succ,
     ∑ (k : ℕ) in finset.range g.nat_degree.succ, g.coeff k * polynomial.eval (k:ℤ) (deriv_n (f_p p hp g.nat_degree) j) :=
@@ -501,7 +502,7 @@ begin
   apply when_j_ge_p_k, simp only [finset.Ico.mem] at hx, exact hx.1, exact hy,
 end
 
-theorem J_eq_final (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (p : ℕ) (hp : nat.prime p) : 
+theorem J_eq_final (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (p : ℕ) (hp : nat.prime p) : 
   ∃ M : ℤ, (J g p hp) = ℤembℝ ((-(g.coeff 0 * (↑((p - 1).fact) * (-1) ^ (g.nat_degree * p) * ↑(g.nat_degree.fact) ^ p))) + (p.fact:ℤ) * M) :=
 begin
   have J_eq := J_eq'' g e_root_g p hp, rw J_eq, rw <-ring_hom.map_neg,
@@ -553,7 +554,7 @@ begin
   intros, simp only [ring_hom.eq_int_cast], norm_cast, exact a,
 end
 
-theorem abs_J_lower_bound (g : ℤ[X]) (e_root_g : (polynomial.aeval ℤ ℝ e) g = 0) (coeff_nonzero : (g.coeff 0) ≠ 0) (p : ℕ) (hp : nat.prime p) (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
+theorem abs_J_lower_bound (g : ℤ[X]) (e_root_g : @polynomial.aeval ℤ ℝ _ _ _ e g = 0) (coeff_nonzero : (g.coeff 0) ≠ 0) (p : ℕ) (hp : nat.prime p) (hp2 : p > g.nat_degree ∧ p > (g.coeff 0).nat_abs) : ((p-1).fact:ℝ) ≤ (abs (J g p hp)) :=
 begin
   have J_eq := J_eq_final g e_root_g p hp,
   choose c eq1 using J_eq, rw eq1, 
@@ -664,10 +665,10 @@ begin
   rw polynomial.as_sum (f_bar (f*g)), rw eval_sum', rw bar_same_deg, rw <-polynomial.eval_mul,
   rw polynomial.as_sum ((f_bar f)*(f_bar g)),
   have deg_eq : (f_bar f * f_bar g).nat_degree = f.nat_degree + g.nat_degree,
-    rw polynomial.nat_degree_mul_eq, rw bar_same_deg, rw bar_same_deg, intro rid, exact h.1 (f_bar_eq_0 f rid), intro rid, exact h.2 (f_bar_eq_0 g rid),
+    rw polynomial.nat_degree_mul, rw bar_same_deg, rw bar_same_deg, intro rid, exact h.1 (f_bar_eq_0 f rid), intro rid, exact h.2 (f_bar_eq_0 g rid),
   rw deg_eq,
   replace deg_eq : (f * g).nat_degree = f.nat_degree + g.nat_degree,
-    rw polynomial.nat_degree_mul_eq, intro rid, exact h.1 rid, intro rid, exact h.2 rid,
+    rw polynomial.nat_degree_mul, intro rid, exact h.1 rid, intro rid, exact h.2 rid,
   rw deg_eq, rw eval_sum', apply finset.sum_le_sum,
   intros x hx, simp only [polynomial.eval_X, polynomial.eval_C, polynomial.eval_pow, polynomial.eval_mul], rw coeff_f_bar_mul, rw polynomial.coeff_mul,
   cases k, cases x, simp only [mul_one, finset.nat.antidiagonal_zero, finset.sum_singleton, pow_zero], rw bar_coeff, rw bar_coeff, rw abs_mul, simp only [int.coe_nat_zero], rw zero_pow, simp only [mul_zero], exact nat.succ_pos x,
@@ -1069,15 +1070,15 @@ end
 
 theorem supp_after_change (f : ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf).support = finset.image (λ i : ℕ, i-(min_degree_term f hf)) f.support := by simp only [make_const_term_nonzero]
 
-theorem aeval_ (f : ℤ[X]) (r : ℝ) : (polynomial.aeval ℤ ℝ r) f = ∑ i in f.support, (f.coeff i : ℝ) * r ^ i :=
+theorem aeval_ (f : ℤ[X]) (r : ℝ) : @polynomial.aeval ℤ ℝ _ _ _ r f = ∑ i in f.support, (f.coeff i : ℝ) * r ^ i :=
 begin
   rw [polynomial.aeval_def, polynomial.eval₂, finsupp.sum], 
   apply congr_arg, ext, simp only [ring_hom.eq_int_cast], rw mul_eq_mul', simp only [int.cast_inj], 
   refl, refl,
 end
 
-theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : (polynomial.aeval ℤ ℝ r) f = 0) :
-  (polynomial.aeval ℤ ℝ r) (make_const_term_nonzero f hf) = 0 :=
+theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : @polynomial.aeval ℤ ℝ _ _ _ r f = 0) :
+  (@polynomial.aeval ℤ ℝ _ _ _ r) (make_const_term_nonzero f hf) = 0 :=
 begin
   rw aeval_ at root_r ⊢,
   have H := @finset.sum_bij _ _ _ _ f.1 (make_const_term_nonzero f hf).1
@@ -1210,7 +1211,7 @@ end
 theorem nat_degree_decrease (f:ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf).nat_degree ≤ f.nat_degree :=
 begin
   have transform_eq := transform_eq f hf,
-  have eq1 := @polynomial.nat_degree_mul_eq ℤ _ (make_const_term_nonzero f hf) (polynomial.X ^ min_degree_term f hf) _ _,
+  have eq1 := @polynomial.nat_degree_mul ℤ _ (make_const_term_nonzero f hf) (polynomial.X ^ min_degree_term f hf) _ _,
   have triv : (make_const_term_nonzero f hf * polynomial.X ^ min_degree_term f hf).nat_degree = f.nat_degree,
     apply congr_arg, exact eq.symm transform_eq,
   rw triv at eq1, exact nat.le.intro (eq.symm eq1),
@@ -1223,7 +1224,7 @@ notation `transcendental` x := ¬(is_algebraic ℤ x)
 theorem e_transcendental : transcendental e :=
 begin
 -- main part
-  by_contra e_algebraic,
+  intro e_algebraic,
   rw is_algebraic at e_algebraic,
   choose g' g'_def using e_algebraic,
   have g'_nonzero := g'_def.1,
@@ -1231,7 +1232,7 @@ begin
   generalize g_def : make_const_term_nonzero g' g'_nonzero = g,
   have coeff_zero_nonzero : (g.coeff 0) ≠ 0,
     rw <-g_def, apply coeff_zero_after_change,
-  have e_root_g : (polynomial.aeval ℤ ℝ e) g = 0,
+  have e_root_g : (@polynomial.aeval ℤ ℝ _ _ _ e) g = 0,
     rw <-g_def,
     apply non_zero_root_same, rw e, exact (1:ℝ).exp_ne_zero, exact e_root_g',
   have coup_de_grace := coup_de_grace (M g) _ (max g.nat_degree (abs (g.coeff 0))),
@@ -1252,3 +1253,103 @@ begin
   norm_cast, exact bot_le, have triv : (g.nat_degree + 1 : ℝ).exp > 0 := (g.nat_degree + 1:ℝ).exp_pos, exact le_of_lt triv,
   norm_num, apply pow_nonneg, apply mul_nonneg, linarith, norm_cast, exact bot_le,
 end
+
+theorem aeval_sum' (s : finset ℕ) (f : ℕ -> (ℤ[X])) (t : ℝ) : @polynomial.aeval ℤ ℝ _ _ _ t (∑ i in s, f i) = ∑ i in s, @polynomial.aeval ℤ ℝ _ _ _ t (f i) :=
+begin
+  apply finset.induction_on s, simp only [finset.sum_empty, alg_hom.map_zero],
+  intros a s ha ih, rw finset.sum_insert, simp only [alg_hom.map_add], rw ih,
+  rw finset.sum_insert, exact ha, exact ha,
+end
+
+theorem e_pow_transcendental (n : ℕ) (hn : n ≥ 1) : transcendental (e^n) :=
+begin
+  intro alg,
+  rcases alg with ⟨p, p_nonzero, hp⟩,
+  have alg_e : is_algebraic ℤ e,
+  {
+    use ∑ i in finset.range (p.nat_degree + 1), polynomial.C (p.coeff i) * (polynomial.X ^ (i * n)),
+    split, 
+    
+    intro rid, rw polynomial.ext_iff at rid,
+    replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
+    simp only [classical.not_forall, polynomial.coeff_zero] at p_nonzero,
+    choose k hk using p_nonzero,
+    replace rid := rid (k * n),
+    simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
+    simp_rw [polynomial.coeff_C_mul_X] at rid,
+    rw finset.sum_eq_single k at rid,
+    simp only [mul_one, if_true, true_or, eq_self_iff_true, nat.zero_eq_mul] at rid,
+    exact hk rid,
+
+    intros j hj1 hj2, split_ifs,
+    replace h := (nat.mul_left_inj _).1 h,
+    exfalso,
+    exact hj2 (eq.symm h), exact hn, refl,
+
+    intros hk, simp only [not_lt, finset.mem_range] at hk,
+    simp only [if_true, eq_self_iff_true],
+    apply polynomial.coeff_eq_zero_of_nat_degree_lt,
+    linarith,
+
+    
+    have H := polynomial.as_sum p,
+    rw H at hp, rw aeval_sum' at hp ⊢, rw <-hp,
+    apply finset.sum_congr rfl,
+    intros i hi,
+    simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
+    apply congr_arg, unfold e, exact pow_mul' (real.exp 1) i n,
+  },
+
+  exact e_transcendental alg_e,
+end
+
+def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+
+theorem zero_algebraic : is_algebraic ℤ (0 : ℝ) :=
+begin
+  use polynomial.X,
+  split, intro rid, rw polynomial.ext_iff at rid,
+  simp only [polynomial.coeff_zero] at rid,
+  replace rid := rid 1,
+  rw polynomial.coeff_X at rid,
+  simp only [if_true, eq_self_iff_true, one_ne_zero] at rid, exact rid,
+  simp only [polynomial.aeval_X],
+end
+
+theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational x :=
+begin
+  by_cases (x = 0),
+  rw h at trans_x, exfalso, exact trans_x zero_algebraic,
+
+
+  by_contra rid,
+  unfold irrational at rid,
+  simp only [gt_iff_lt, classical.not_forall, ne.def, classical.not_imp, classical.not_not] at rid,
+  rcases rid with ⟨a, b, hb, H⟩,
+  set p : (ℤ[X]) := polynomial.C b * polynomial.X - polynomial.C a with hp,
+  have x_alg : is_algebraic ℤ x,
+  {
+    use p, split, intro rid,
+    rw polynomial.ext_iff at rid,
+    replace rid := rid 0,
+    simp only [zero_sub, polynomial.coeff_X_zero, polynomial.mul_coeff_zero, polynomial.coeff_sub, neg_eq_zero, polynomial.coeff_zero, mul_zero] at rid,
+    rw polynomial.coeff_C at rid,
+    simp only [if_true, eq_self_iff_true] at rid,
+    rw rid at H,
+    simp only [int.cast_zero, euclidean_domain.zero_div, sub_zero] at H,
+    exact h H,
+    
+    simp only [polynomial.aeval_X, alg_hom.map_sub, alg_hom.map_mul],
+    rw polynomial.aeval_C, rw polynomial.aeval_C,
+    simp only [ring_hom.eq_int_cast],
+    rw sub_eq_zero at H ⊢,
+    rw eq_div_iff at H,
+    rwa mul_comm, norm_cast at ⊢ hb, 
+    intro rid2, linarith,
+  },
+  exact trans_x x_alg,
+end
+
+theorem e_irrational : irrational e := transcendental_irrational e_transcendental
+
+theorem e_pow_n_irrational (n : ℕ) (hn : n ≥ 1) : irrational (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)

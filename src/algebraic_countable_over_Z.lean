@@ -27,11 +27,11 @@ there is a non-zero polynomial $p ∈ ℤ[T]$ such that $p(x)=0$.
 
 def algebraic_set : set ℝ := {x | is_algebraic ℤ x }
 
-def roots_real (p : ℤ[X]) : set ℝ := {x | polynomial.aeval ℤ ℝ x p = 0}
+def roots_real (p : ℤ[X]) : set ℝ := {x | @polynomial.aeval ℤ ℝ _ _ _ x p = 0}
 
 def poly_int_to_poly_real (p : ℤ[X]) : polynomial ℝ := polynomial.map ℤembℝ p
 
-def poly_int_to_poly_real_wd (p : ℤ[X]) := ∀ x : real, polynomial.aeval ℤ ℝ x p = (poly_int_to_poly_real p).eval x
+def poly_int_to_poly_real_wd (p : ℤ[X]) := ∀ x : real, @polynomial.aeval ℤ ℝ _ _ _ x p = (poly_int_to_poly_real p).eval x
 
 theorem poly_int_to_poly_real_preserve_deg (p : ℤ[X]) : p.degree = (poly_int_to_poly_real p).degree :=
 begin
