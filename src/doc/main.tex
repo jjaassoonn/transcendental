@@ -54,7 +54,8 @@ I declare that this report was composed by myself, that the work contained herei
 \begin{center}
   \textbf{Acknowledgement}
 \end{center}
-I would like to thanks professor Kevin Buzzard for supervising this project whose advise has helped me to write more idiomatic {\tt \small Lean} codes. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful for the {\tt\small Lean} community for providing wonderful tools especially {\tt\small library\_search}.
+I would like to thanks professor Kevin Buzzard for supervising this project whose advice has helped me to write more idiomatic {\tt \small Lean} code. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful for the {\tt\small Lean} community for providing wonderful tools especially {\tt\small library\_search}.
+
 \clearpage
 
 % Abstract
@@ -103,17 +104,17 @@ Around 1920s, the German mathematician David Hilbert put forward a programme to 
   \item a proof of consistency of the said foundation;
   \item Entscheidungsproblem: an algorithm to determine if any proposition is universally valid given a set of axioms.
 \end{enumerate}
-The first two aims were later proved to be impossible by Gödel and his celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, a computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer with which it execute its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm can spit out some unfathomable proofs, assuming computers are given the ability to check the correctness of proofs, so human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems, which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt \small Lean}. 
+The second aim were later proved to be impossible by Gödel and his celebrated incompleteness theorems. Via the completeness of first order logic, the Entscheidungsproblem can also be interpreted as an algorithm for producing proofs using deduction rules. Even without a panacea approach for mathematics, a computer still bears advantages against a carbon-based mathematician. Perhaps the most manifested advantage is the accuracy of a computer with which it executes its command and to recall its memories. Thus came the idea of {\bf interactive theorem proving} --- instead of hoping a computer algorithm can spit out some unfathomable proofs, assuming computers are given the ability to check the correctness of proofs, so human-comprehensible proofs can be verified by machines and thus guaranteed to be free of errors. With a collective effort, all theorems verified this way can be collected in an error-free library such that all mathematicians can utilise to prove further theorems, which can then be added to the collection, ad infinitum \cite{boyer1994qed}. Curry-Howard isomorphism provided the crucial relationship between mathematical proofs and computer programmes, more specifically relationship between propositions and types, to make such project feasible \cite{kennedy2011set}. The idea will be explained in section \ref{intro:lean} along with {\tt \small Lean}. 
 
-The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be hexagonally}'' illustrates and exemplifies the utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof is controversial in the sense that other mathematician even after great effort could not guarantee its correctness. A collaborative project using {\tt \small Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt \small HOL Light}\footnote{ibid.} verified the proof around 2014, hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt \small Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step closer to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Additionally, using {\tt \small Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise the modern notion of perfectoid spaces \cite{buzzard2020formalising}.
+The proof of ``Kepler's conjecture\footnote{the most efficient way to pack spheres should be face centred cubic}'' illustrates and exemplifies the utility of interactive theorem proving. As early as 1998, Thomas Hales had claimed a proof \cite{hales1998kepler,harrison2014history}, however the proof was controversial in the sense that other mathematicians even after great effort could not guarantee its correctness. A collaborative project using {\tt \small Isabelle}\footnote{a theorem prover relies extensively on dependent type theory and Curry-Howard correspondence.} and {\tt \small HOL Light}\footnote{ibid.} verified the proof around 2014, hence settled the controversy in 2017 \cite{hales2017formal}. There is also Georges Gonthier with his teams using {\tt \small Coq}\footnote{ibid.} who formalised the four colour theorem and Feit-Thompson theorem where the latter is a step closer to the classification of simple groups \cite{gonthier2008formal, gonthier2013machine}. Additionally, using {\tt \small Lean}\footnote{ibid.}, \Citeauthor{buzzard2020formalising} were able to formalise the modern notion of perfectoid spaces \cite{buzzard2020formalising}.
 
 \section{History of transcendental numbers}
 
-``Transcendence'' as a mathematical jargon first appeared in a Leibniz's 1682 paper where he proved that sine is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
+``Transcendence'' as a mathematical jargon first appeared in Leibniz's 1682 paper where he proved that sine is a transcendental function in the sense that for any natural number $n$ there does not exist polynomials $p_0,\cdots,p_n$ such that
 $$p_0(x)+p_1(x)\sin(x)+p_2(x)\sin(x)^2+\cdots+p_n(x)\sin(x)^n=0$$
 holds for all $x\in\mathbb R$ \cite{bourbaki1998elements}. The Swiss mathematician Johann Heinrich Lambert in his 1768 paper proved the irrationality of $e$ and $\pi$ and he also conjectured their transcendence \cite{lambert2004memoire}. It is not until 1844 that Joseph Liouville proved the existence of any transcendental number and until 1851 an explicit example of transcendental number was actually given by its decimal expansion:\cite{10.2307/1988833}
 $$\sum_{i=1}^\infty\frac1{10^{i!}}=0.11000100000\cdots.$$
-However, this construction is still artificial in nature. The first example of a real number proven to be transcendental that is not constructed for the purpose of being transcendental was $e$. Charles Hermite proved the transcendence of $e$ in 1873 with a method applicable (with help of symmetric polynomial) to $\pi$ in 1882 and later to be generalised to Lindemann-Weierstrass theorem in 1885 stating that if $\alpha_1,\cdots, \alpha_n$ are distinct algebraic numbers then $e^{\alpha_1},\cdots,e^{\alpha_n}$ are linearly independent over the algebraic numbers \cite{baker1990transcendental}. The transcendence of $\pi$ was particularly celebrated because it immediately implied the impossibility of the ancient greek challenge of squaring the circle, i.e. it is not possible to construct a square, using compass and ruler only, with equal area to a circle. This question is plainly equivalent to construct $\sqrt\pi$, which is not possible for otherwise $\pi$ is algebraic. Georg Cantor in 1874 proved that algebraic numbers are countable hence not only do transcendental numbers exist, they exist in a ubiquitous manner -- there is a bijection from the set of all transcendental numbers to $\mathbb R$ \cite{cantor1932uber,cantor1878beitrag}.
+However, this construction is still artificial in nature. The first example of a real number proven to be transcendental that is not constructed for the purpose of being transcendental was $e$. Charles Hermite proved the transcendence of $e$ in 1873 with a method applicable (with help of symmetric polynomial) to $\pi$ in 1882 and later to be generalised to Lindemann-Weierstrass theorem in 1885 stating that if $\alpha_1,\cdots, \alpha_n$ are distinct algebraic numbers then $e^{\alpha_1},\cdots,e^{\alpha_n}$ are linearly independent over the algebraic numbers \cite{baker1990transcendental}. The transcendence of $\pi$ was particularly celebrated because it immediately implied the impossibility of the ancient Greek challenge of squaring the circle, i.e. it is not possible to construct a square, using compass and ruler only, with equal area to a circle. This question is plainly equivalent to construct $\sqrt\pi$, which is not possible for otherwise $\pi$ is algebraic. Georg Cantor in 1874 proved that algebraic numbers are countable hence not only do transcendental numbers exist, they exist in a ubiquitous manner -- there is a bijection from the set of all transcendental numbers to $\mathbb R$ \cite{cantor1932uber,cantor1878beitrag}.
 
 In 1900, Hilbert proposed twenty-three questions, the 7th of which is regarding transcendental numbers: Is $a^b$ transcendental, for any algebraic number $a$ that is not $0$ or $1$ and any irrational algebraic number $b$? The answer is yes provided by Gelfond-Schneider theorem in 1934 \cite{gelfond1934septieme}. This led to some immediate consequences such that
 \begin{enumerate}
@@ -125,23 +126,23 @@ In contrast, none of $\pi\pm e$, $\pi e$,$\frac\pi e$, $\pi^\pi$, $\pi^e$, etc w
 
 \chapter{Brief introduction to {\tt Lean}}\label{intro:lean}
 
-{\tt \small Lean} was developed by Leonardo de Moura at Microsoft Research Redmond in 2013 using dependent type theory and calculus of inductive constraint \cite{avigad2015theorem}. In this chapter, basic ideas of Curry-Howard isomorphism will be demonstrated by some basic examples of mathematical theorem expressed in {\tt \small Lean} using dependent type theory.
+{\tt \small Lean} was developed by Leonardo de Moura at Microsoft Research Redmond in 2013 using dependent type theory and calculus of inductive constructions \cite{avigad2015theorem}. In this chapter, basic ideas of Curry-Howard isomorphism will be demonstrated by some basic examples of mathematical theorem expressed in {\tt \small Lean} using dependent type theory.
 
 \section{Simple type theory}
 Unlike set theory where everything from basic things like natural numbers to complex constructions like modular forms is essentially a set, type theory associate every expression with a {\tt \small type}. In set theory, an element can belong to different sets, for example $0$ is simultaneously in $\mathbb N\subseteq\mathbb Q\subseteq\mathbb R\subseteq\mathbb C$. However an expression can only have one type. $0$ without any context will have type $\mathbb N$ and, to specify the zero with type $\mathbb R$ we write $(0:\mathbb R)$. If $a$ has type $\alpha$, we write $a:\alpha$. By a universe of types we mean a collection of types. Types can be combined to form new types in the following way:
 \begin{itemize}
-  \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the element of type $\alpha\to\beta$ is a function that for any element of $\alpha$ gives an element of $\beta$. For mathematicians this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: the expression $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$ is the function from natural numbers to natural numbers that add $1$ to any input.
+  \item let $\alpha$ and $\beta$ be types then $\alpha\to\beta$ is the type of functions from $\alpha$ to $\beta$: the term of type $\alpha\to\beta$ is a function that for any term of $\alpha$ gives a term of $\beta$. For mathematicians this loosely means that for any two classes $\alpha$ and $\beta$, there is a new class $\hom(\alpha,\beta)$. Sometimes we are not bothered to give a function a name, we can use the $\lambda$ notation: the expression $(\lambda x:\alpha, \text{expression})$ has type $\alpha\to\dots$ depending on the content of expression. For example $(\lambda x:\mathbb N, x+1):\mathbb{N}\to\mathbb{N}$ is the function from natural numbers to natural numbers that adds $1$ to any input.
   \item let $\alpha$ and $\beta$ be types then $\alpha\times\beta$ is the cartesian product of $\alpha$ and $\beta$: the element of type $\alpha\times\beta$ is an ordered tuple $(a,b)$ where $a:\alpha$ and $b:\beta$.
-  \item Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of type that for any $a:\alpha$, $\beta(a)$ is a type in $\mathcal U$. Then we can form the $\Pi$-type $$\prod_{a:\alpha}\beta(a)$$ whose element is of the form $f:\prod_{a:\alpha}\beta(a)$ such that for any $x:\alpha$, $f(x):\beta(x)$. Note that function type is actually an example of $\Pi$-type where $\beta$ is a constant family of types. For this reason, we also call $\Pi$-types dependent functions. For example if $\mathrm{Vec}(\mathbb{R},n)$ is the type of $\mathbb R^n$, then 
+  \item Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types that for any $a:\alpha$, $\beta(a)$ is a type in $\mathcal U$. Then we can form the $\Pi$-type $$\prod_{a:\alpha}\beta(a)$$ whose term is of the form $f:\prod_{a:\alpha}\beta(a)$ such that for any $x:\alpha$, $f(x):\beta(x)$. Note that function type is actually an example of $\Pi$-type where $\beta$ is a constant family of types. For this reason, we also call $\Pi$-types dependent functions. For example if $\mathrm{Vec}(\mathbb{R},n)$ is the type of $\mathbb R^n$, then 
     $$n\mapsto\underbrace{(1,\cdots,1)}_{n\text{ times}}:\prod_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
-  \item We also have dependent cartesian product or $\Sigma$-type: Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types in $\mathcal U$, then the $\Sigma$-type $$\sum_{a:\alpha}\beta(a)$$ whose element is of the form $(x,y):\sum_{a:\alpha}\beta(a)$ such that $x:\alpha$ and $y:\beta(x)$. Similarly $$\left(n,\underbrace{(1,\cdots,1)}_{n\text{ times}}\right):\sum_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
+  \item We also have dependent cartesian product or $\Sigma$-type: Let $\alpha$ be a type in universe $\mathcal U$ and $\beta:\alpha\to\mathcal U$ be a family of types in $\mathcal U$, then the $\Sigma$-type $$\sum_{a:\alpha}\beta(a)$$ whose term is of the form $(x,y):\sum_{a:\alpha}\beta(a)$ such that $x:\alpha$ and $y:\beta(x)$. Similarly $$\left(n,\underbrace{(1,\cdots,1)}_{n\text{ times}}\right):\sum_{m:\mathbb N} \mathrm{Vec}(\mathbb R, m)$$
 \end{itemize}
 
 \subsection{Proposition as type}
-In type theory, a proposition $p$ can be regarded as a type whose elements is a proof of $p$.
+In type theory, a proposition $p$ can be regarded as a type whose terms are a proof of $p$.
 
 \begin{example}
-$1+1=2$ is a proposition. {\tt \small rfl} is an element of type $1+1=2$ where {\tt \small rfl} is the assertion that every term equals to itself.
+$1+1=2$ is a proposition. {\tt \small rfl} is an element of type $1+1=2$ where {\tt \small rfl} is the assertion that every term equals itself.
 \end{example}
 
 \begin{example}
@@ -161,7 +162,7 @@ Theorems are true propositions. Using the interpretation above, theorems are inh
 {\tt \small mathlib} is the collection of mathematical definitions, theorems, lemmas built on {\tt \small Lean}. {\tt \small mathlib} includes topics in algebra, topology, manifolds and combinatorics etc. The following section will briefly explain how to use {\tt \small Lean} with {\tt \small mathlib}.
 
 
-In {\tt \small Lean}, new definition can be introduced with the following syntax:
+In {\tt \small Lean}, new definitions can be introduced with the following syntax:
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines,escapeinside=||]{Lean}
 def name (arg|$_1$|:type|$_1$|) ... (arg|$_n$|:type|$_n$|) : return_type := contents
 
@@ -198,7 +199,7 @@ begin
 end
 \end{minted}
 
-To write a proof understandable to {\tt \small Lean}, one need to use {\it tactic mode}. In {\tt \small Lean}, one can use
+To write a proof understandable to {\tt \small Lean}, one needs to use {\it tactic mode}. In {\tt \small Lean}, one can use
 \begin{itemize}
   \item proof by induction: if the goal is a proposition about natural number $n$, {\tt \small induction n with n IH} is to prove the proposition by induction. This command will change the current goal to two goals. The first is to prove the proposition for $n=0$ and the second to prove the proposition for $n+1$ with the additional inductive hypothesis {\tt \small IH};
 
@@ -225,7 +226,7 @@ by_contra absurdum,
 a_proof_of_falsehood
 end
 \end{minted}
-  \item proof in a forward manner i.e. introduce new theorem into the current context or convert known theorem in the current context to approach the goal:
+  \item proof in a forward manner i.e.\ introduce new theorems into the current context or convert known theorems in the current context to approach the goal:
   \begin{itemize}
     \item {\tt \small have H := content} will introduce a new proposition whose proof is given by {\tt \small content}.
     
@@ -234,13 +235,13 @@ end
     \item If {\tt \small H} is in context then {\tt \small replace H := content} will change {\tt \small H} to (a proof of) the proposition that {\tt \small content} is proving.
     
     {\tt \small replace H : some\_proposition} will add one more goal of proving {\tt \small some\_proposition} and then replace {\tt \small H} to the proposition proven.
-    \item If {\tt \small H} is in context, {\tt \small simp at H} will simplify {\tt \small H} to using small lemmas\footnote{to be more precise, lemma with {\tt \scriptsize @[simp]} tag, i.e. lemmas declared in the following syntax {\tt \scriptsize @[simp] lemma lemma\_name args : Prop}. These lemma are usually trivial in nature such as {\tt \scriptsize nat.add\_zero} which asserts that $\forall n:\mathbb N, n + 0 = n$.}.
+    \item If {\tt \small H} is in context, {\tt \small simp at H} will simplify {\tt \small H} by rewriting equalities \footnote{to be more precise, equalities with {\tt \scriptsize @[simp]} tag, i.e.\ lemmas declared in the following syntax {\tt \scriptsize @[simp] lemma lemma\_name args : Prop}. An example of such lemma would be {\tt \scriptsize nat.add\_zero} which asserts that $\forall n:\mathbb N, n + 0 = n$.} from its database. This is called a confluent rewrite system.
     {\tt \small simp only [h1,\dots,hn]} is to simplify only using {\tt \small h1 }\dots{\tt \small{ hn}}.
-    \item {\tt \small rw} is for term rewriting. If we have {\tt \small h : lhs = rhs} or {\tt \small h : lhs<->rhs} and another {\tt \small H} in context, then {\tt \small rw h at H} will replace every occurrence of {\tt \small lhs} with {\tt \small rhs} in {\tt \small H} and {\tt \small rw <-h} will replace every occurrence of {\tt \small rhs} with {\tt \small lhs} in {\tt \small H}.
+    \item {\tt \small rw} is for term rewriting. If we have {\tt \small h : lhs = rhs } or {\tt \small lhs<->rhs} and another {\tt \small H} in context, then {\tt \small rw h at H} will replace every occurrence of {\tt \small lhs} with {\tt \small rhs} in {\tt \small H} and {\tt \small rw <-h} will replace every occurrence of {\tt \small rhs} with {\tt \small lhs} in {\tt \small H}.
   
     {\tt \small rw [h1, h2,..., hn] at H} is the same as {\tt \small rw h1 at H, rw h2 at H,..., rw hn at H}.
     
-    \item The fact that {\tt \small rw} and {\tt \small simp} change all term occurrences sometimes creates an inconvenience. If {\tt \small H} is in context, {\tt \small conv\_lhs at H \{tactics\}} will confine the scope of {\tt \small tactics} only to the left hand side of H; similarly {\tt \small conv\_rhs at H \{tactics\}} will confine the scope to the right hand side of H.
+    \item The fact that {\tt \small rw} and {\tt \small simp} change all term occurrences sometimes creates an inconvenience. If {\tt \small H } is in context, {\tt \small conv\_lhs at H \{tactics\}} will confine the scope of {\tt \small tactics} only to the left hand side of H; similarly {\tt \small conv\_rhs at H \{tactics\}} will confine the scope to the right hand side of H.
 
     \item {\tt \small generalise H : lhs = var\_name} will set {\tt \small var\_name} to {\tt \small lhs} and add (proof of) the proposition {\tt \small H : lhs = var\_name} to the current context.
     \item If {\tt \small H : ∃ x : type, property\_about\_x} is in the current context, {\tt \small choose x hx using H} will introduce {\tt \small x:type} with the assumption {\tt \small hx : property\_about\_x} to the current context. 
@@ -256,7 +257,7 @@ end
     \item {\tt \small suffices H : some\_proposition} ask for a proof of the current goal with additional {\tt \small H}, then ask for a proof of {\tt \small H}.
     \item {\tt \small norm\_cast} converts the type of numbers. For example the current goal is $(x:\mathbb R)<(y:\mathbb R)$ where $x$ and $y$ are of type $\mathbb N$, then after {\tt \small norm\_cast} the goal will become $x<y$. This should be simpler because $\mathbb R$ in {\tt \small Lean} is defined as equivalent classes of Cauchy sequence of $\mathbb Q$ while natural number is much easier to work with.
     
-    {\tt \small norm\_num} is equivalent to {\tt \small norm\_cast, simp}.
+    \item {\tt \small norm\_num} solves numerical equalities or inequalities such as $13^2 < 180$ by performing necessary calculation in the rational number.
 
     \item {\tt \small ext} will convert the current goal with axioms of extensionality. For example if the goal is to prove equality of polynomial then after {\tt \small ext} the goal would become to prove that every coefficient is equal; or if the goal is to prove equality of sets of type $\alpha$ $A=B$, then after {\tt \small ext}, an arbitrary element {\tt \small x} of type $\alpha$ will be introduced into context then the goal will become to prove $x\in A\iff x\in B$. {\tt \small ext var\_name} will force {\tt \small Lean} to introduce a new variable under the identifier {\tt \small var\_name}.
     \item If the goal is to prove {\tt \small ite h1 h2 h3} (or {\tt \small ite h1 h2 lhs = rhs}), then {\tt \small split\_ifs at H} will turn the current goal into two goals, the first one is to prove {\tt \small h2} ({\tt \small lhs = rhs} resp.) with the additional assumption {\tt \small h1}; the second one is to prove {\tt \small h3} ({\tt \small lhs = rhs} resp.) with the additional assumption {\tt \small $\neg$h1}.
@@ -287,7 +288,7 @@ end
 \end{itemize}
 
 
-A proposition if not atomic is either a conjunction, a disjunction, an implication, an equivalence, a negation or a proposition with universal quantifier or existential quantifier.
+For any two propositions $p$ and $q$, a new proposition can be formed via conjunction $p\land q$, disjunction $p\lor q$, implication $p\implies q$, equivalence $p\iff q$ and negation $\neg p$; for any type $A$ and family of propositions $p : A \to proposition$ a new proposition can be formed via universal quantifier $\forall (x:A), p(x)$ or existential quantifier $\exists (x:A), p(x)$.
 
 \subsection{prove a conjunction}\label{lean:conj}
 If the goal is to prove a conjunction of the form $h_1 \land h_2$, {\tt \small split} is used. It will change the current goal to two goals of proving $h_1$ and $h_2$ respectively. Then the general pattern is
@@ -393,11 +394,10 @@ intros x y,
 have ineq1 : min x y ≤ x := min_le_left x y,
 have ineq2 : min x y ≤ y := min_le_right x y,
     
-unfold mean, rw le_div_iff, rw mul_two, 
+unfold mean, rw le_div_iff (show (0:ℝ) < 2, by linarith), 
+rw mul_two, 
 apply add_le_add, 
 exact ineq1, exact ineq2, 
-  
-linarith,
 end
   
 theorem mean_le_max : ∀ x y : ℝ, (mean x y) ≤ max x y :=
@@ -406,11 +406,10 @@ intros x y,
 have ineq1 : x ≤ max x y := le_max_left x y,
 have ineq2 : y ≤ max x y := le_max_right x y,
   
-unfold mean, rw div_le_iff, rw mul_two,
+unfold mean, rw div_le_iff (show (0:ℝ) < 2, by linarith), 
+rw mul_two,
 apply add_le_add,
 exact ineq1, exact ineq2,
-  
-linarith,
 end |\label{example:thm_end}|
   
 theorem a_number_in_between : 
@@ -453,7 +452,7 @@ We can introduce and prove theorems about {\tt \small mean} stating that the mea
 There are five main files in this project where 
 \begin{enumerate}
 \item {\tt \small small\_things.lean} formalised results about the trivial embedding of $\mathbb Z[X]\subset \mathbb R[X]$ and manipulation of inequality in real numbers common to all three parts;
-\item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers with help of Schröder-Berstein theorem.
+\item {\tt \small algebraic\_over\_Z.lean} formalised countability of algebraic numbers with help of Schröder-Bernstein theorem.
 \item {\tt \small liouville.lean} formalised Liouville's theorem and a construction of a Liouville's number;
 \item {\tt \small e\_trans\_helpers2.lean} formalised some results about differentiation and integration. Especially the formalisations of 
 $$
@@ -498,7 +497,7 @@ end
 \label{code:countableUnify}
 \end{code}
 
-For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | \mathrm{eval}_p(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \footnotesize \_.roots} in fact has type {\tt \footnotesize finset ℝ}. The type {\tt \footnotesize finset} is a {\tt \footnotesize set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \footnotesize finset} to {\tt \footnotesize set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, the two sets must be equal, hence they have finite cardinality for a none-zero polynomial:
+For any $p\in\mathbb Z[X]$, we can define the set of roots to be $\{x \in\mathbb R | \mathrm{eval}_p(x) = 0\}$ or $\{x\in\mathbb R| \iota_x p=0\}$ where the former is builtin as {\tt \small $\uparrow$(poly\_int\_to\_poly\_real p).roots}\footnote{{\tt \footnotesize \_.roots} in fact has type {\tt \footnotesize finset ℝ}. The type {\tt \footnotesize finset} is a {\tt \footnotesize set} with a proof of finite cardinality. Here $\uparrow$ is used to convert a {\tt \footnotesize finset} to {\tt \footnotesize set} by discarding the proof of finite cardinality.} and the latter is defined as line \ref{code:rootsDef} in source code \ref{lst:rootsDef}. By line \ref{codethm:countableUnify} in source code \ref{code:countableUnify}, the two sets must be equal, hence they have finite cardinality for a nonzero polynomial:
 
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
@@ -628,7 +627,7 @@ F (m_0,\dots,m_n) &= (s(m_0),\dots,s(m_n)) \\
 G (m_0,\dots,m_n) &= (m_0,\dots,m_n)
 \end{aligned}
 \end{equation*}
-where $s:\mathbb Z\to \mathbb Z-\{0\}$ is defined previously. By Schröder-Berstein theorem, there is then a bijection $\mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and thus $\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$:
+where $s:\mathbb Z\to \mathbb Z-\{0\}$ is defined previously. By Schröder-Bernstein theorem, there is then a bijection $\mathbb{Z}^{n+1}\to\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$ and thus $\mathbb{Z}^{n+1}\simeq\mathbb{Z}^{n+1}-\{(0,\dots,0)\}$:
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def F (n : nat) : (int_n n.succ) -> (int_n' n.succ) := 
@@ -663,7 +662,7 @@ f_n((m_0,\dots,m_{n+1}))&=((m_0,\dots,m_{n}),m_{n+1})\\
 g_n(((m_0,\dots,m_{n}), m_{n+1}))&=(m_0,\dots,m_{n+1})
 \end{aligned}
 \end{equation*}
-Then by Schröder-Berstein theorem $\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$.
+Then by Schröder-Bernstein theorem $\mathbb{Z}^{n+2}\simeq\mathbb{Z}^{n+1}\times\mathbb{Z}$ for all $n\ge 1$.
 \begin{code}
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def fn (n : nat) : 
@@ -1035,7 +1034,7 @@ $\alpha$ converges.
 \end{lemma}
 
 \begin{proof}
-Since for any $n\in\mathbb N$ we have $\frac 1{10^{n}}$ is none-negative and $\frac1{10^n}\le\frac1{10^{n!}}$, we can use comparison test against $\sum_{j=0}^\infty\frac1{10^j}$ to deduce the convergence of $\alpha$.
+Since for any $n\in\mathbb N$ we have $\frac 1{10^{n}}$ is non-negative and $\frac1{10^n}\le\frac1{10^{n!}}$, we can use comparison test against $\sum_{j=0}^\infty\frac1{10^j}$ to deduce the convergence of $\alpha$.
 
 \begin{minted}[mathescape,linenos,numbersep=5pt,frame=single,framesep=2mm,breaklines, escapeinside=§§]{Lean}
 def ten_pow_n_fact_inverse (n : ℕ) : ℝ := 
@@ -1170,7 +1169,7 @@ theorem transcendental_α : transcendental α := liouville_numbers_transcendenta
 \end{corollary}
 
 \section{Hermite's theorem}\label{fmlsn:e}
-Throughout this section $f$ will be an integer polynomial with degree $d$, and $t$ is a none-negative real number.
+Throughout this section $f$ will be an integer polynomial with degree $d$, and $t$ is a non-negative real number.
 
 \begin{definition}
 we define
@@ -1734,7 +1733,7 @@ We proceed by using strong induction on $j$. For $j=0$ we need to prove $p!\mid\
     rw this, exact dvd_zero §$\uparrow$§(nat.fact p),
   a_proof_of_§$\mathrm{eval}_{\Pi_{p,n}}(k)=0$§
 \end{minted}
-For inductive case, we assume $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(m)}}(k)$ for all $m\le j$, $p>0$ and $0<k\le n$. This is certainly true for $p=1$, for $p!=1$. For $p>1$,
+For the inductive case, we assume $p!\mid\mathrm{eval}_{\Pi_{p,n}^{(m)}}(k)$ for all $m\le j$, $p>0$ and $0<k\le n$. This is certainly true for $p=1$, for $p!=1$. For $p>1$,
 \begin{equation*}
 \begin{aligned}
 \Pi_{p,n}^{(j+1)}&=\left(\left(\left(\prod_{i=0}^n(X-(i+1))\right)^p\right)'\right)^{(j)}\\

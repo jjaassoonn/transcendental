@@ -458,35 +458,6 @@ begin
   },
 end
 
-
-/-Theorem
-Let $f,g:\mathbb R\to\mathbb R$ be measurable and integral functions such that $\forall x\in(a,b),0\le f(x)\le g(x)$, then
-$$
-\int_a^b f(x)\mathrm{d}x\le\int_a^b g(x)\mathrm{d}x
-$$
--/
--- theorem integral_le_integral' (f g : ℝ -> ℝ) {h1 : measurable f ∧ measurable g ∧ measure_theory.integrable f ∧ measure_theory.integrable g} (a b : ℝ) (h : b ≥ a) (hf : ∀ x ∈ set.Icc a b, f x ≤ g x ∧ 0 ≤ f x) : (∫ x in set.Icc a b, f x) ≤ (∫ x in set.Icc a b, g x) :=
--- begin
---     -- `mathlib` has `measure_theory.integral_le_integral` built in, but it is not for set integral.
---     -- So we apply this theorem to `((set.Icc a b).indicator f)` and `((set.Icc a b).indicator g)`
---     -- `s.indicator f` is the function  (λ x, if x ∈ s then f x else 0)
---     -- We need to prove `((set.Icc a b).indicator f)` and `((set.Icc a b).indicator g)` are measurable and integrable.
---     -- These are pretty much built in.
---     apply measure_theory.integral_mono,
---     exact h1.left,
---     -- apply @measure_theory.integral_le_integral ℝ _ ((set.Icc a b).indicator f) ((set.Icc a b).indicator g),
---     dsimp only [],
---     -- library_search [h1],
---     exact h1.2.2.1,
---     apply measurable.if, apply is_measurable_Icc, 
---     dsimp, exact h1.1, exact measurable_zero,
---     apply measure_theory.integrable.integrable_on, exact h1.2.2.1,
---     simp [set.indicator],
---     apply measurable.if, apply is_measurable_Icc, dsimp, exact h1.2.1, exact measurable_zero,
---     apply measure_theory.integrable.integrable_on, exact h1.2.2.2,
---     intros c, simp [set.indicator], split_ifs, exact (hf c ⟨h_1.1, h_1.2⟩).1, exact le_refl 0,
--- end
-
 /-Theorem
 integrations on a set $S$ of two identical functions are indentical
 -/
