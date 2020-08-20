@@ -32,7 +32,7 @@ begin
   {
     apply prod_deg, 
     intros i hi, intro rid, 
-    replace rid := @pow_eq_zero (ℤ[X]) _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
+    replace rid := @pow_eq_zero (ℤ[X]) _ _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
     rw sub_eq_zero_iff_eq at rid,
     have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
     rw <-rid, exact polynomial.nat_degree_X, have rid'' := polynomial.nat_degree_C (i+1:ℤ), linarith,
@@ -988,10 +988,10 @@ by_cases (M = 0),
   rw h, use 1, intros n hn, simp only [gt_iff_lt], rw nat.zero_pow, exact nat.fact_pos n, exact nat.succ_pos n,
   
   have H := complex.is_cau_exp (M:ℂ),
-  have triv : (1/M:ℝ) > 0, apply one_div_pos_of_pos, norm_cast, exact bot_lt_iff_ne_bot.mpr h,
+  have triv : (1/M:ℝ) > 0, apply one_div_pos.2, norm_cast, exact bot_lt_iff_ne_bot.mpr h,
   have H2 := is_cau_seq.cauchy₂ H triv,
   choose i hi using H2, use i, intros n hn,
-  have H3 := hi n.succ n _ _, rw finset.sum_range_succ at H3, simp only [one_div_eq_inv, complex.abs_cast_nat, complex.abs_div, add_sub_cancel] at H3,
+  have H3 := hi n.succ n _ _, rw finset.sum_range_succ at H3, simp only [one_div, complex.abs_cast_nat, complex.abs_div, add_sub_cancel] at H3,
   have triv2 : ((M:ℂ) ^ n).abs = (↑M ^ n),
     have eq1 : ↑((M:ℝ)^n) = (M:ℂ)^n, simp only [complex.of_real_pow, complex.of_real_nat_cast], rw <-eq1, rw complex.abs_of_real, rw abs_of_pos, apply pow_pos, norm_num, exact bot_lt_iff_ne_bot.mpr h,
   rw triv2 at H3, norm_num at H3, rw div_lt_iff at H3,
@@ -1040,7 +1040,7 @@ end
 
 theorem non_empty_supp (f : ℤ[X]) (hf : f ≠ 0) : f.support.nonempty :=
 begin
-  contrapose hf, rw finset.nonempty at hf, rw not_exists at hf, simp only [classical.not_not], ext, simp only [polynomial.coeff_zero],
+  contrapose hf, rw finset.nonempty at hf, rw not_exists at hf, simp only [not_not], ext, simp only [polynomial.coeff_zero],
   have triv := (f.3 n).2, contrapose triv, rw not_imp, split, exact triv, exact hf n,
 end
 
@@ -1075,55 +1075,6 @@ begin
   rw [polynomial.aeval_def, polynomial.eval₂, finsupp.sum], 
   apply congr_arg, ext, simp only [ring_hom.eq_int_cast], rw mul_eq_mul', simp only [int.cast_inj], 
   refl, refl,
-end
-
-theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : @polynomial.aeval ℤ ℝ _ _ _ r f = 0) :
-  (@polynomial.aeval ℤ ℝ _ _ _ r) (make_const_term_nonzero f hf) = 0 :=
-begin
-  rw aeval_ at root_r ⊢,
-  have H := @finset.sum_bij _ _ _ _ f.1 (make_const_term_nonzero f hf).1
-    (λ i, ↑(f.coeff i) * r ^ (i))
-    (λ i, ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i+ (min_degree_term f hf))),
-  set i : Π (a : ℕ), a ∈ f.support → ℕ := λ a _, a - (min_degree_term f hf) with i_eq,
-  replace H := H i,
-  have hi : ∀ (a : ℕ) (ha : a ∈ f.support), i a ha ∈ (make_const_term_nonzero f hf).support,
-    intros a ha, rw i_eq, 
-    have triv : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha = a - min_degree_term f hf := rfl,
-    rw triv, rw supp_after_change, rw finset.mem_image, use a, split, exact ha, refl,
-  replace H := H hi,
-  have assump1 : ∀ (a : ℕ) (ha : a ∈ f.support), (λ (i : ℕ), ↑(f.coeff i) * r ^ i) a =
-    (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + min_degree_term f hf)) (i a ha),
-  {
-    intros a ha, 
-    have triv1 : (λ (i : ℕ), ↑(f.coeff i) * r ^ i) a = ↑(f.coeff a) * r ^ a := rfl,
-    rw triv1,
-    have triv2 : (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + (min_degree_term f hf))) (i a ha) = (↑((make_const_term_nonzero f hf).coeff (i a ha)) * r ^ ((i a ha) + min_degree_term f hf)) := rfl,
-    rw triv2, rw i_eq,
-    have triv3 : ((λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a ha) = a - min_degree_term f hf := rfl,
-    rw triv3, rw coeff_after_change, rw nat.sub_add_cancel, rw min_degree_term, exact f.support.min'_le (non_empty_supp f hf) a ha,
-  },
-  replace H := H assump1,
-  have assump2 : ∀ (a₁ a₂ : ℕ) (ha₁ : a₁ ∈ f.support) (ha₂ : a₂ ∈ f.support), i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂,
-  {
-    intros a1 a2 ha1 ha2 H, rw i_eq at H, 
-    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a1 ha1 = a1 - min_degree_term f hf, exact rfl, rw triv1 at H,
-    have triv2 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a2 ha2 = a2 - min_degree_term f hf, exact rfl, rw triv2 at H,
-    have triv3 := (@add_left_inj ℕ _ (min_degree_term f hf) (a1 - min_degree_term f hf) (a2 - min_degree_term f hf)).2 H,
-    rw nat.sub_add_cancel at triv3, rw nat.sub_add_cancel at triv3, exact triv3, rw min_degree_term, exact f.support.min'_le (non_empty_supp f hf) a2 ha2, exact f.support.min'_le (non_empty_supp f hf) a1 ha1,
-  },
-  replace H := H assump2,
-  have assump3 : ∀ (b : ℕ), b ∈ (make_const_term_nonzero f hf).support → (∃ (a : ℕ) (ha : a ∈ f.support), b = i a ha),
-    intros b hb, rw supp_after_change at hb, rw finset.mem_image at hb, rw i_eq, choose a Ha using hb, use a, use Ha.1,
-    have triv1 : (λ (a : ℕ) (ha : a ∈ f.support), a - min_degree_term f hf) a _ = a - min_degree_term f hf, exact rfl, exact Ha.1, rw triv1, exact eq.symm Ha.2,
-  replace H := H assump3,
-  rw root_r at H, 
-  have triv : ∑ (x : ℕ) in (make_const_term_nonzero f hf).support,
-      (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ (i + min_degree_term f hf)) x = 
-    ∑ (x : ℕ) in (make_const_term_nonzero f hf).support,
-      (λ (i : ℕ), ↑((make_const_term_nonzero f hf).coeff i) * r ^ i * r ^ (min_degree_term f hf)) x,
-    apply congr_arg, ext, simp only [], rw pow_add, ring,
-  rw triv at H, simp only [] at H, rw <-finset.sum_mul at H, replace H := eq.symm H, rw mul_eq_zero at H,
-  cases H, rw H, replace H := pow_eq_zero H, exfalso, exact r_nonzero H,
 end
 
 theorem non_zero_after_change (f : ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf) ≠ 0 :=
@@ -1208,6 +1159,13 @@ begin
   rw [<-eq3, <-H], exact eq1,
 end
 
+theorem non_zero_root_same (f : ℤ[X]) (hf : f ≠ 0) (r : ℝ) (r_nonzero : r ≠ 0) (root_r : @polynomial.aeval ℤ ℝ _ _ _ r f = 0) :
+  (@polynomial.aeval ℤ ℝ _ _ _ r) (make_const_term_nonzero f hf) = 0 :=
+begin
+  have eq1 := transform_eq f hf, rw eq1 at root_r, simp only [polynomial.aeval_X, alg_hom.map_pow, alg_hom.map_mul, mul_eq_zero] at root_r,
+  cases root_r, exact root_r, replace root_r := pow_eq_zero root_r, exfalso, exact r_nonzero root_r,
+end
+
 theorem nat_degree_decrease (f:ℤ[X]) (hf : f ≠ 0) : (make_const_term_nonzero f hf).nat_degree ≤ f.nat_degree :=
 begin
   have transform_eq := transform_eq f hf,
@@ -1246,7 +1204,7 @@ begin
 
 -- assumptions I used in preveious part and lemmas 
   split,
-  have triv := Hp.left.left, exact triv,
+  exact Hp.1.1,
   have triv := Hp.left.right, rw int.abs_eq_nat_abs at triv, simp only [int.coe_nat_lt] at triv, assumption,
 
   rw M, apply mul_nonneg, norm_cast, exact bot_le, apply mul_nonneg, apply mul_nonneg, norm_cast, apply mul_nonneg, exact ge_trans (max_abs_coeff_1_ge_1 g) trivial,
@@ -1272,7 +1230,7 @@ begin
     
     intro rid, rw polynomial.ext_iff at rid,
     replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
-    simp only [classical.not_forall, polynomial.coeff_zero] at p_nonzero,
+    simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
     choose k hk using p_nonzero,
     replace rid := rid (k * n),
     simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
@@ -1324,7 +1282,7 @@ begin
 
   by_contra rid,
   unfold irrational at rid,
-  simp only [gt_iff_lt, classical.not_forall, ne.def, classical.not_imp, classical.not_not] at rid,
+  simp only [gt_iff_lt, not_forall, ne.def, not_imp, not_not] at rid,
   rcases rid with ⟨a, b, hb, H⟩,
   set p : (ℤ[X]) := polynomial.C b * polynomial.X - polynomial.C a with hp,
   have x_alg : is_algebraic ℤ x,

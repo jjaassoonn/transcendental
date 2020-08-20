@@ -61,7 +61,7 @@ private lemma eval_f_a_div_b (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ)
 begin
   rw [finset.mul_sum, polynomial.eval_map, polynomial.eval₂, finsupp.sum, sum_eq], intros i hi,
   rw polynomial.apply_eq_coeff, 
-  simp only [one_div_eq_inv, ring_hom.eq_int_cast, div_pow], rw [<-mul_assoc (↑b ^ f.nat_degree)⁻¹, <-mul_assoc (↑b ^ f.nat_degree)⁻¹], 
+  simp only [one_div, ring_hom.eq_int_cast, div_pow], rw [<-mul_assoc (↑b ^ f.nat_degree)⁻¹, <-mul_assoc (↑b ^ f.nat_degree)⁻¹], 
   field_simp,
 
   suffices eq : ↑a ^ i / ↑b ^ i = ↑a ^ i * ↑b ^ (f.nat_degree - i) / ↑b ^ f.nat_degree,
@@ -91,7 +91,7 @@ begin
   }, rw eqb2 at eq1,
 
   have eqb3 : (b:ℝ)^(f.nat_degree:ℤ)= (b:ℝ)^f.nat_degree := by norm_num, rw eqb3 at eq1, conv_rhs {rw [mul_div_assoc, <-eq1]},
-  simp only [one_div_eq_inv], rw <-div_eq_mul_inv,
+  simp only [one_div], rw <-div_eq_mul_inv,
   norm_cast, linarith,
 end
 
@@ -195,14 +195,14 @@ begin
   have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
     by_contra rid,
-    simp only [classical.not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0,
+    simp only [not_not] at rid, have f_nat_deg_zero : f.nat_degree = 0,
     exact (congr_arg polynomial.nat_degree rid).trans rfl,
     rw f_nat_deg_zero at f_deg, linarith,
   },
   generalize hfℝ: f.map ℤembℝ = f_ℝ,
   have hfℝ_nonzero : f_ℝ ≠ 0,                                                     -- f ∈ ℝ[T] is not zero
   {
-    by_contra absurd, simp only [classical.not_not] at absurd, rw [polynomial.ext_iff] at absurd,
+    by_contra absurd, simp only [not_not] at absurd, rw [polynomial.ext_iff] at absurd,
     suffices : f = 0, exact f_nonzero this,
       ext, replace absurd := absurd n, simp only [polynomial.coeff_zero] at absurd ⊢,
       rw [<-hfℝ, polynomial.coeff_map, ℤembℝ] at absurd,
@@ -219,7 +219,7 @@ begin
   have M_non_zero : M ≠ 0,                                                       -- Then M is not zero :
   {
     by_contra absurd,                                                            -- Otherwise Df_ℝ(x) = 0 ∀ x ∈ (α-1, α+1)
-    simp only [classical.not_not] at absurd, rw absurd at hM,
+    simp only [not_not] at absurd, rw absurd at hM,
     replace hM : ∀ (y : ℝ), y ∈ set.Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
     {
       intros y hy,
@@ -262,7 +262,7 @@ begin
   {
     intros x hx, rw [<-hdistances', finset.mem_insert, finset.mem_insert] at hx,
     cases hx,                                                                     -- because it is either 1 / M which is positive
-      rw hx, simp only [one_div_eq_inv, gt_iff_lt, inv_pos], exact M_pos,
+      rw hx, simp only [one_div, gt_iff_lt, inv_pos], exact M_pos,
     cases hx,                                                                     -- or 1
       rw hx, exact zero_lt_one,                                                   -- or |β - α| for some β which is a root of f but is not α.
       rw [<-roots_distance_to_α] at hx, simp only [exists_prop, finset.mem_image] at hx,
@@ -281,7 +281,7 @@ begin
   rw [<-hA], apply half_pos, exact B_pos,                                          -- Then A is postive as B is postive
   /- goal : ∀ (a b : ℤ), b > 0 → |α - a/b| > A / bⁿ where n is the degree of f.      
      We use proof by contradiction -/
-  by_contra absurd, simp only [gt_iff_lt, classical.not_forall, not_lt, classical.not_imp] at absurd,
+  by_contra absurd, simp only [gt_iff_lt, not_forall, not_lt, not_imp] at absurd,
   choose a ha using absurd,                                                       -- So assume a and b are integers such that |α - a/b| ≤ A / b^n
   choose b hb using ha,                               
   have hb2 : b ^ f.nat_degree ≥ 1,                                                -- Since b > 0 and n > 1, bⁿ ≥ 1                                                                               -- So A/bⁿ ≤ A
@@ -341,7 +341,7 @@ begin
     {
       norm_num [hx0r], 
       rw [neg_div, div_neg, abs_neg, div_div_cancel'],
-      rw [<-roots_def] at hab2, by_contra absurd, simp only [classical.not_not] at absurd,
+      rw [<-roots_def] at hab2, by_contra absurd, simp only [not_not] at absurd,
       have H := polynomial.mem_roots _, rw polynomial.is_root at H,
       replace H := H.2 absurd, exact hab2 H,
       exact hfℝ_nonzero,
@@ -380,7 +380,7 @@ begin
         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
       },
       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),                   -- Also 1/(M*bⁿ) > A/bⁿ since A < B ≤ 1/M
     {
@@ -415,7 +415,7 @@ begin
     {
       norm_num [hx0r], 
       rw [div_div_cancel'], have : ↑a / ↑b - α = - (α - ↑a / ↑b), linarith, rw [this, abs_neg],
-      by_contra absurd, simp only [classical.not_not] at absurd,
+      by_contra absurd, simp only [not_not] at absurd,
       have H := polynomial.mem_roots _, rw polynomial.is_root at H,
       replace H := H.2 absurd, rw roots_def at H, exact hab2 H,
       exact hfℝ_nonzero,
@@ -456,7 +456,7 @@ begin
         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
       },
       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, exact pow_pos hb.1 f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
     },
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
@@ -499,11 +499,11 @@ begin
   
   by_cases (abs ((a:ℝ) * (q:ℝ) - (b:ℝ) * (p:ℝ)) = 0),                             -- Then aq ≠ bp
   {                                                                   
-    rw h at hq, simp only [one_div_eq_inv, gt_iff_lt, euclidean_domain.zero_div, inv_pos] at hq, have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2, linarith,
+    rw h at hq, simp only [one_div, gt_iff_lt, euclidean_domain.zero_div, inv_pos] at hq, have hq1 := hq.1, have hq2 := hq.2, have hq21 := hq2.1, have hq22 := hq2.2, linarith,
   },
   {
     have ineq2: (abs (a * q - b * p)) ≠ 0,
-      by_contra rid, simp only [abs_eq_zero, classical.not_not] at rid, norm_cast at h, 
+      by_contra rid, simp only [abs_eq_zero, not_not] at rid, norm_cast at h, 
       simp only [abs_eq_zero] at h, exact h rid,
     have ineq2':= abs_pos_iff.2 ineq2, rw [abs_abs] at ineq2',
     replace ineq2' : 1 ≤ abs (a * q - b * p), linarith,
@@ -646,7 +646,7 @@ def ten_pow_n_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n
 lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : ten_pow_n_fact_inverse n ≥ 0 :=
 begin
     unfold ten_pow_n_fact_inverse,
-    simp only [one_div_eq_inv, inv_nonneg, ge_iff_le, inv_pow'], have h := le_of_lt (@pow_pos _ _ (10:real) _ n.fact),
+    simp only [one_div, inv_nonneg, ge_iff_le, inv_pow'], have h := le_of_lt (@pow_pos _ _ (10:real) _ n.fact),
     norm_cast at h ⊢, exact h, norm_num,
 end
 
@@ -669,7 +669,7 @@ end
 
 lemma ten_pow_n_fact_inverse_le_ten_pow_n_inverse (n : nat) : ten_pow_n_fact_inverse n ≤ ten_pow_n_inverse n :=
 begin
-  simp only [ten_pow_n_fact_inverse, ten_pow_n_inverse, one_div_eq_inv, inv_pow'],
+  simp only [ten_pow_n_fact_inverse, ten_pow_n_inverse, one_div, inv_pow'],
   rw [inv_le], simp only [inv_inv'], apply pow_le_pow, linarith, apply n_le_n_fact, apply pow_pos,
   linarith, rw inv_pos, apply pow_pos, linarith,
 end
@@ -722,7 +722,7 @@ begin
   use p, rw finset.sum_range_succ, rw hk,
 
   rw [ten_pow_n_fact_inverse, div_pow], rw one_pow, rw nat.succ_eq_add_one,
-  rw <-eqm', rw <-hp,  conv_rhs {simp only [one_div_eq_inv, nat.cast_add, nat.cast_one, nat.cast_mul], rw <-div_add_div_same, simp only [one_div_eq_inv]}, rw mul_div_mul_right, simp only [one_div_eq_inv], exact add_comm (10 ^ nat.fact k * ↑m)⁻¹ (↑pk / 10 ^ nat.fact k),
+  rw <-eqm', rw <-hp,  conv_rhs {simp only [one_div, nat.cast_add, nat.cast_one, nat.cast_mul], rw <-div_add_div_same, simp only [one_div]}, rw mul_div_mul_right, simp only [one_div], exact add_comm (10 ^ nat.fact k * ↑m)⁻¹ (↑pk / 10 ^ nat.fact k),
   
   intro rid, rw <-hm at rid, norm_cast at rid, have eq := @nat.pow_pos 10 _ ((k + 1).fact - k.fact), linarith, linarith,
 end
