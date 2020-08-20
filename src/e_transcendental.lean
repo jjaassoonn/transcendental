@@ -32,7 +32,7 @@ begin
   {
     apply prod_deg, 
     intros i hi, intro rid, 
-    replace rid := @pow_eq_zero (ℤ[X]) _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
+    replace rid := @pow_eq_zero (ℤ[X]) _ _ (polynomial.X - polynomial.C (i+1:ℤ)) p rid,
     rw sub_eq_zero_iff_eq at rid,
     have rid' : (polynomial.C (i+1:ℤ)).nat_degree = 1,
     rw <-rid, exact polynomial.nat_degree_X, have rid'' := polynomial.nat_degree_C (i+1:ℤ), linarith,
@@ -988,10 +988,10 @@ by_cases (M = 0),
   rw h, use 1, intros n hn, simp only [gt_iff_lt], rw nat.zero_pow, exact nat.fact_pos n, exact nat.succ_pos n,
   
   have H := complex.is_cau_exp (M:ℂ),
-  have triv : (1/M:ℝ) > 0, apply one_div_pos_of_pos, norm_cast, exact bot_lt_iff_ne_bot.mpr h,
+  have triv : (1/M:ℝ) > 0, apply one_div_pos.2, norm_cast, exact bot_lt_iff_ne_bot.mpr h,
   have H2 := is_cau_seq.cauchy₂ H triv,
   choose i hi using H2, use i, intros n hn,
-  have H3 := hi n.succ n _ _, rw finset.sum_range_succ at H3, simp only [one_div_eq_inv, complex.abs_cast_nat, complex.abs_div, add_sub_cancel] at H3,
+  have H3 := hi n.succ n _ _, rw finset.sum_range_succ at H3, simp only [one_div, complex.abs_cast_nat, complex.abs_div, add_sub_cancel] at H3,
   have triv2 : ((M:ℂ) ^ n).abs = (↑M ^ n),
     have eq1 : ↑((M:ℝ)^n) = (M:ℂ)^n, simp only [complex.of_real_pow, complex.of_real_nat_cast], rw <-eq1, rw complex.abs_of_real, rw abs_of_pos, apply pow_pos, norm_num, exact bot_lt_iff_ne_bot.mpr h,
   rw triv2 at H3, norm_num at H3, rw div_lt_iff at H3,
@@ -1040,7 +1040,7 @@ end
 
 theorem non_empty_supp (f : ℤ[X]) (hf : f ≠ 0) : f.support.nonempty :=
 begin
-  contrapose hf, rw finset.nonempty at hf, rw not_exists at hf, simp only [classical.not_not], ext, simp only [polynomial.coeff_zero],
+  contrapose hf, rw finset.nonempty at hf, rw not_exists at hf, simp only [not_not], ext, simp only [polynomial.coeff_zero],
   have triv := (f.3 n).2, contrapose triv, rw not_imp, split, exact triv, exact hf n,
 end
 
@@ -1230,7 +1230,7 @@ begin
     
     intro rid, rw polynomial.ext_iff at rid,
     replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
-    simp only [classical.not_forall, polynomial.coeff_zero] at p_nonzero,
+    simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
     choose k hk using p_nonzero,
     replace rid := rid (k * n),
     simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
@@ -1282,7 +1282,7 @@ begin
 
   by_contra rid,
   unfold irrational at rid,
-  simp only [gt_iff_lt, classical.not_forall, ne.def, classical.not_imp, classical.not_not] at rid,
+  simp only [gt_iff_lt, not_forall, ne.def, not_imp, not_not] at rid,
   rcases rid with ⟨a, b, hb, H⟩,
   set p : (ℤ[X]) := polynomial.C b * polynomial.X - polynomial.C a with hp,
   have x_alg : is_algebraic ℤ x,

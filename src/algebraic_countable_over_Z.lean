@@ -213,7 +213,7 @@ begin
         split_ifs,
         exact h.2,
 
-        simp only [not_and, classical.not_not] at h, simp only [finset.mem_range] at hm_left,
+        simp only [not_and, not_not] at h, simp only [finset.mem_range] at hm_left,
         replace h := h hm_left, exfalso, exact qm_ne0 h,
 
         intro hm,
@@ -283,10 +283,10 @@ begin
       replace hq : ∃ x, q.1 x ≠ 0, rw <-not_forall, intro rid, replace rid : q.1 = 0, ext m, exact rid m, exact hq rid,
       choose x hx using hq,
       rw hp at rid, simp only [not_and, ne.def, polynomial.coeff_zero, finset.mem_filter, finset.mem_range, finset.filter_congr_decidable,
- polynomial.coeff_mk, classical.not_not] at rid,
+ polynomial.coeff_mk, not_not] at rid,
  replace rid := rid x.1, split_ifs at rid, exact h.2 rid,
 
-      simp only [not_and, classical.not_not] at h,
+      simp only [not_and, not_not] at h,
       replace h := h _,
       have triv : x = ⟨x.val % n, _⟩, rw fin.eq_iff_veq, simp only [],
       rw nat.mod_eq_of_lt, exact x.2, rw <-triv at h, exact hx h, exact x.2,
@@ -295,12 +295,12 @@ begin
     {
       ext m,
       simp only [identify, polynomial.coeff_mk, not_and, ne.def, finset.mem_filter, finset.mem_range,
- classical.not_not], simp only [not_and, ne.def, finset.mem_filter, finset.mem_range, subtype.coe_mk, polynomial.coeff_mk, classical.not_not,
+ not_not], simp only [not_and, ne.def, finset.mem_filter, finset.mem_range, subtype.coe_mk, polynomial.coeff_mk, not_not,
  subtype.val_eq_coe],
       split_ifs,
       apply congr_arg,
       ext, simp only [], rw nat.mod_eq_of_lt, exact h.1,
-      simp only [not_and, classical.not_not] at h,
+      simp only [not_and, not_not] at h,
       replace h := h m.2, rw <-h, apply congr_arg,
       ext, simp only [], rw nat.mod_eq_of_lt, exact m.2,
     },
