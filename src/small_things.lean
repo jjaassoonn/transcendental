@@ -7,6 +7,8 @@ import tactic
 noncomputable theory
 open_locale big_operators
 
+def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+
 theorem same_sum {s : finset ℕ} (f g : ℕ -> ℝ) (h : ∀ i ∈ s, f i = g i) : (∑ i in s, f i) = ∑ i in s, g i :=
 begin
 exact finset.sum_congr rfl h,

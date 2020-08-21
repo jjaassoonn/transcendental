@@ -1261,8 +1261,6 @@ begin
   exact e_transcendental alg_e,
 end
 
-def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
-
 theorem zero_algebraic : is_algebraic ℤ (0 : ℝ) :=
 begin
   use polynomial.X,

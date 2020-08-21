@@ -96,7 +96,7 @@ begin
     ext,
     -- We use lemma `deriv_n_coeff` and all coefficient of zero polynomial is $0$.
     rw deriv_n_coeff, simp only [int.coe_nat_succ, polynomial.coeff_zero, mul_eq_zero], right,
-    -- Then the problem reduces to prove that $d+1$-th coeffcient of $f$ is zero. But $f$ has degree $d$. So we just need $d<d+1$. This is proved by `linarith`.
+    -- Then the problem reduces to prove that $d+1$-th coeffcient of $f$ is zero. But $f$ has degree $d$. So we just need $d< d+1$. This is proved by `linarith`.
     apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end
 
@@ -119,7 +119,8 @@ begin
     exact add_comm (nat.choose n (k + 1)) (nat.choose n k),
 end
 
-/-Theorem
+/--
+Theorem
 We also have that for $p,q\in\mathbb Z[x]$,
 \[
     (p\times q)^{(n)} = \sum_{i=0}^n\left({n\choose i}p^{(i)}q^{(n-i)}\right)    
@@ -135,7 +136,7 @@ begin
 
     {
         -- For inductive case
-        -- We use $(pq)^{(n+1)}=d(pq)^{(n)}$, inductive hypothesis and that derivative is linear.
+        -- We use $(pq)^{(n+1)}=d(pq)^{(n)} $, inductive hypothesis and that derivative is linear.
         rw deriv_n, rw function.iterate_succ', dsimp, rw <-deriv_n,
         rw IH, simp only [polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add, polynomial.derivative_sum, polynomial.derivative_mul, zero_mul, polynomial.derivative_C, zero_add], 
         -- The rest of the proves is essentially openning and closing brackets and renaming summing indeces.
