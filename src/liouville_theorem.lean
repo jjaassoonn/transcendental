@@ -15,7 +15,6 @@ notation `transcendental` x := ¬(is_algebraic ℤ x)
 -/
 
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
-def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 -- x ↦ |f(x)| is continuous
 theorem abs_f_eval_around_α_continuous (f : ℝ[X]) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
@@ -638,9 +637,9 @@ end
 -/
 
 -- function n ↦ 1/10^n! 
-def ten_pow_n_fact_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n.fact
+def ten_pow_n_fact_inverse (n : ℕ) : ℝ := (1/10)^n.fact
 -- function n ↦ 1/10^n
-def ten_pow_n_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n
+def ten_pow_n_inverse (n : ℕ) : ℝ := (1/10)^n
 
 -- 1/10^{n!} is nonnegative.
 lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : ten_pow_n_fact_inverse n ≥ 0 :=
