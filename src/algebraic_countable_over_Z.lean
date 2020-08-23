@@ -495,7 +495,7 @@ end
 def real_set : set ℝ := @set.univ ℝ                                               -- the set ℝ
 notation `transcendental` x := ¬(is_algebraic ℤ x)
 
-theorem transcendental_number_exists : ∃ x : ℝ, transcendental x :=        -- Since ℝ is uncouble, algebraic numbers are countable
+theorem transcendental_number_exists : ∃ x : ℝ, transcendental x :=               -- Since ℝ is uncouble, algebraic numbers are countable
 begin                                                                             
   have H : algebraic_set ≠ real_set,                                              -- ℝ ≠ algebraic_set
   {                                                                               -- otherwise ℝ must be countable which is not true
