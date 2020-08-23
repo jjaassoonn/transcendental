@@ -187,7 +187,8 @@ N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't 
      f to be an integer polynomial of degree > 1.
 -/
 
-lemma about_irrational_root (α : real) (hα : irrational α) (f : ℤ[X]) 
+lemma about_irrational_root 
+  (α : real) (hα : irrational α) (f : ℤ[X]) 
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
@@ -600,7 +601,7 @@ begin
 
   choose A hA using about_irrational_root x irr_x f f_deg about_root,             -- So we can apply the lemma about irrational root:
   have A_pos := hA.1,                                                             -- There is an A > 0 such that for any integers a b with b > 0
-  have exists_r := pow_big_enough A A_pos,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
+  have exists_r := pow_big_enough A A_pos,                                        -- |x - a/b| > A/bⁿ where n is the degree of f.
   choose r hr using exists_r,                                                     -- Let r ∈ ℕ such tht 1/A ≤ 2^r (equivalently 1/2^r ≤ A)
   have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
   generalize hm : r + f.nat_degree = m,                                           -- Let m := r + n
