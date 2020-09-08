@@ -169,7 +169,7 @@ have ineq2 : min x y ≤ y := min_le_right x y,
 unfold mean, rw le_div_iff (show (0 < (2:ℝ)), by linarith),
 rw mul_two, 
 apply add_le_add, 
-exact ineq1, exact ineq2, 
+exact ineq1, exact ineq2,
 end
   
 theorem mean_le_max : ∀ x y : ℝ, (mean x y) ≤ max x y :=
@@ -208,10 +208,9 @@ end
 
 /- # Conlusion
  - what is the long term goal?
+ - what is the value of such approach in terms of pedagogy? 
  - what is the value of such approach in terms of researching?
- - what is the value of such approach in terms of pedagogy?                       -/
-
-
+    * Univalent axiom : (A = B) ≃ (A ≃ B)                                         -/
 
 
 
