@@ -13,6 +13,7 @@
             ]
         }
     ],
+    "printcode.fontSize": 15,
 
     // "cSpell.words": [
     //     "Archimedean",

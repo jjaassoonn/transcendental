@@ -1,9 +1,10 @@
 \documentclass{report}
 
-% \usepackage{hyperref}
+\usepackage{hyperref}
 \usepackage{fontspec}
 \setmainfont{CMU Serif}
 \setmonofont{FiraCode-Regular}
+\usepackage{xeCJK}
 
 \usepackage{graphicx}
 
@@ -35,7 +36,7 @@
 
 \title{A formalisation of transcendence of $e$}
 \author{Jujian Zhang (CID: 01803812)\\[.5cm]{Supervisor: Prof. Kevin Buzzard}}
-\date{2020}
+\date{2019/20}
 
 \begin{document}
 \maketitle
@@ -49,12 +50,13 @@ I declare that this report was composed by myself, that the work contained herei
 \begin{flushright}
   \includegraphics[height=1.5\baselineskip]{signature.png}
 \end{flushright}
-\clearpage
+
+\clearpage\thispagestyle{empty}\addtocounter{page}{-1}
 
 \begin{center}
   \textbf{Acknowledgement}
 \end{center}
-I would like to thank my supervisor for this project - Professor Kevin Buzzard who has helped me to write more idiomatic {\tt \small Lean} code. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful to the {\tt\small Lean} community for providing wonderful tools especially {\tt\small library\_search}. This report is proof read by my supervisor, Professor Kevin Buzzard and my dearest friend Pengxin Yu. Without their help, this project would remain a mess.
+I would like to thank my supervisor for this project - Professor Kevin Buzzard who has helped me to write more idiomatic {\tt \small Lean} code. He introduced me to the area of formalisation, hence I owe this unique experience to him. I am also thankful to the {\tt\small Lean} community for providing wonderful tools especially {\tt\small library\_search}. This report is proof read by my supervisor, Professor Kevin Buzzard and my dearest friend Pengxin Yu. Without their help, this project would remain a mess. I also owe gratitute to everyone in my household, especially to my {\it 伴侣} Lihan Jiang, whose accompany has made such an unprecedented and difficult time joyous and vibrant.
 
 \clearpage
 
@@ -1955,9 +1957,13 @@ There is a prime number $p$ such that $p>n$, $p>|g_0|$ and $(p-1)!>M^p$ where $M
 \chapter*{Conclusion and future work}
 \addcontentsline{toc}{chapter}{Conclusion and future work}
 
-This project lives in an interdisciplinary area between mathematics and computer science. Even interactive theorem proving is not necessarily suitable for every mathematician, its pedagogical value is enormous because by formalising theorems the logic of proofs are disentangled and one is forced to be precise and explicit. Hence a proof in {\tt \small Lean} often challenge users to prove intuitions in a rigorous manner. For example, Alan Baker deemed the evaluation of $J_p(g)$ in equation \ref{fm:important} to be clear, but by formalising one has to get hands dirty by actually performing the evaluation \cite{baker1990transcendental}. Then anyone else interested in the proof can choose to read or discard relevant sections depending on whether she/he shares the same intuitions with the author.
+This project lives in an interdisciplinary area between mathematics and computer science. Even interactive theorem proving is not necessarily suitable for every mathematician, its pedagogical value is enormous because by formalising theorems the logic of proofs are disentangled and one is forced to be precise and explicit. Hence a proof in {\tt \small Lean} often challenge users to prove intuitions in a rigorous manner. For example, Alan Baker deemed the evaluation of $J_p(g)$ in equation \ref{fm:important} to be clear, but by formalising one has to get hands dirty by actually performing the evaluation \cite{baker1990transcendental}. Then anyone else interested in the proof can choose to read or discard relevant sections depending on whether s/he shares the same intuitions with the author.
 
 This is perhaps both a blessing and a curse -- by forbidding to use words like ``trivial'' or ``clearly'', one often finds her/himself proving truly trivial propositions as well, for example to prove that $\mathbb Z^1\simeq \mathbb Z$. Hence there are at least two directions in which future works could take. One is to formalise more theorems of interest for example the transcendence of $\pi$; the other is to use the (meta-)programming facilities of {\tt\small Lean} to make more tactics so that learning and using {\tt\small Lean} could be more effortless.
+
+The value of formalisation for research purpose might not manifest just now, however, with a full-grown library of formalised theorems, computers should be able to help much more with proofs for even now tools such as {\tt\small library\_search} in {\tt\small Lean} are trying to actively synthesize theorems for a proof. A more subtle aspect of a more specialised branch of dependent type theory, namely homotopy type theory, is that the univalent foundations, which is compatible with either constructivism or intuitionistic logic, can provide justification for identification of isomorphic objects\footnote{without abusing notation}\cite{hottbook}.
+
+%\ref{hottbook}
 
 %\bibliographystyle{alphanat}
 % \chapter{Glossary of definitions and theorems}
