@@ -14,7 +14,7 @@
         }
     ],
     "printcode.fontSize": 15,
-
+    "zenMode.centerLayout": false,
     // "cSpell.words": [
     //     "Archimedean",
     //     "Berstein",

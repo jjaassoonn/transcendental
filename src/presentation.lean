@@ -3,7 +3,7 @@ import liouville_theorem
 import e_transcendental
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 variables (p q : Prop)
 
@@ -28,6 +28,21 @@ The main result in this project is the following:
 
 ------------------------------------------------------------------------------------
 
+
+
+
+/- # Motivation
+ - what is the long term goal?
+ - what is the value of such approach in terms of pedagogy? 
+ - what is the value of such approach in terms of researching?
+    * example of Kepler conjecture;
+    * automation;
+    * Univalent axiom : (A = B) ≃ (A ≃ B).                                        -/
+
+
+
+
+------------------------------------------------------------------------------------
 
 
 
@@ -124,7 +139,7 @@ The main result in this project is the following:
 
 ------------------------------------------------------------------------------------
 
-/-### p -> q 
+/-# p -> q 
 - Implication is function application.
 -/
 
@@ -133,17 +148,17 @@ example (proof_p_imp_q : p -> q) (proof_p : p) : q :=
   proof_p_imp_q proof_p
 
 
-/-### ⊥ ; ¬p
-- false proposition (⊥) is a proposition without any term (like `∅`).
+/-# ⊥ ; ¬p
+- false proposition (⊥) is a type without any term (like `∅`).
 - negation of p is `p -> ⊥`.
 -/
-example : ¬ ⊥ := λ absurdum, absurdum
+example : ¬ ⊥ := id
 
 ------------------------------------------------------------------------------------
 
 
 
-/-### p ∧ q
+/-# p ∧ q
 
 - Conjunction is cartesian product.
 
@@ -157,7 +172,7 @@ example (proof_pq : p ∧ q) : p := proof_pq.1
 
 
 ------------------------------------------------------------------------------------
-/-### p ∨ q
+/-# p ∨ q
 
 - Disjunction is the coproduct, like in category theory with the following universal property:
       f₁           f₂
@@ -169,7 +184,7 @@ example (proof_pq : p ∧ q) : p := proof_pq.1
      left         right
 -/
 
-example (p q : Prop) (proof_of_p : p) : p ∨ q := or.intro_left q proof_of_p
+example (proof_of_p : p) : p ∨ q := or.intro_left q proof_of_p
 
 ------------------------------------------------------------------------------------
 
@@ -187,10 +202,10 @@ example (p q : Prop) (proof_of_p : p) : p ∨ q := or.intro_left q proof_of_p
 
 ------------------------------------------------------------------------------------
 /- 
-## Universal Quantifier as Π-type
+# Universal Quantifier as Π-type
 `Π (a : A), B a` and `∀ a : A, B a` 
 
-## Existential Quantifier as Σ-type  
+# Existential Quantifier as Σ-type  
 
 `Σ (a : A), B a` and `∃ a : A, B a`                                           -/ 
 
@@ -204,66 +219,58 @@ example : ∃ x : ℕ, x > 0 := ⟨2, two_pos⟩
 
 ------------------------------------------------------------------------------------
 
-
-def mean (x y : ℝ) : ℝ := (x + y) / 2
-  
-theorem min_le_mean : ∀ x y : ℝ, min x y ≤ (mean x y) :=
+theorem e_pow_transcendental' (n : ℕ) (hn : n ≥ 1) : transcendental (e^n) :=
 begin
-intros x y,
-have ineq1 : min x y ≤ x := min_le_left x y,
-have ineq2 : min x y ≤ y := min_le_right x y,
+  intro alg,
+  rcases alg with ⟨p, p_nonzero, hp⟩,
+  have e_algebraic : is_algebraic ℤ e,
+  {
+    set q := ∑ i in finset.range (p.nat_degree + 1), polynomial.C (p.coeff i) * (polynomial.X ^ (i * n)),
+    use q,
+    split,
     
-unfold mean, 
-rw le_div_iff (show (0 < (2:ℝ)), by linarith),
-rw mul_two, 
-apply add_le_add, 
-exact ineq1, exact ineq2,
-end
-  
-theorem mean_le_max : ∀ x y : ℝ, (mean x y) ≤ max x y :=
-begin
-intros x y,
-have ineq1 : x ≤ max x y := le_max_left x y,
-have ineq2 : y ≤ max x y := le_max_right x y,
-  
-unfold mean, 
-rw div_le_iff (show (0 < (2:ℝ)), by linarith),
-rw mul_two,
-apply add_le_add,
-exact ineq1, exact ineq2,
-end
-  
-theorem a_number_in_between : 
-  ∀ x y : ℝ, x ≤ y -> ∃ z : ℝ, x ≤ z ∧ z ≤ y :=
-begin
-intros x y hxy,
-have ineq1 := min_le_mean x y,
-have ineq2 := mean_le_max x y,
-have min_eq_x := min_eq_left hxy,
-have max_eq_y := max_eq_right hxy,
-use mean x y,
-split,
+    -- q is non-zero
+    {
+      intro rid, 
+      rw polynomial.ext_iff at rid,
+      replace p_nonzero := (not_iff_not.2 (@polynomial.ext_iff ℤ _ p 0)).1 p_nonzero,
+      simp only [not_forall, polynomial.coeff_zero] at p_nonzero,
+      choose k hk using p_nonzero,
+      replace rid := rid (k * n),
+      simp only [polynomial.mul_coeff_zero, polynomial.finset_sum_coeff, polynomial.coeff_zero] at rid,
+      simp_rw [polynomial.coeff_C_mul_X] at rid,
+      rw finset.sum_eq_single k at rid,
+      simp only [mul_one, if_true, true_or, eq_self_iff_true, nat.zero_eq_mul] at rid,
+      exact hk rid,
 
-{ conv_lhs {rw <-min_eq_x}, exact ineq1, },
-{ conv_rhs {rw <-max_eq_y}, exact ineq2, },
+      intros j hj1 hj2, split_ifs,
+      replace h := (nat.mul_left_inj _).1 h,
+      exfalso,
+      exact hj2 (eq.symm h), exact hn, refl,
+
+      intros hk, 
+      simp only [not_lt, finset.mem_range] at hk,
+      simp only [if_true, eq_self_iff_true],
+      apply polynomial.coeff_eq_zero_of_nat_degree_lt,
+      linarith, 
+    },
+
+    -- q(e) = 0
+    {
+      have H := polynomial.as_sum p,
+      rw H at hp, rw aeval_sum' at hp ⊢, rw <-hp,
+      apply finset.sum_congr rfl,
+      intros i hi,
+      simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
+      
+
+      refine congr rfl _,
+      exact pow_mul' e i n,
+    }
+  },
+
+  exact e_transcendental e_algebraic,
 end
 
 
 -----------------------------------------------------------------------------------
-
-
-
-
-
-/- # Conlusion
- - what is the long term goal?
- - what is the value of such approach in terms of pedagogy? 
- - what is the value of such approach in terms of researching?
-    * example of Kepler conjecture;
-    * library_search;
-    * Univalent axiom : (A = B) ≃ (A ≃ B).                                        -/
-
-
-
-
-------------------------------------------------------------------------------------
