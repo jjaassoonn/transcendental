@@ -263,7 +263,6 @@ begin
       intros i hi,
       simp only [polynomial.aeval_X, polynomial.aeval_C, alg_hom.map_pow, alg_hom.map_mul],
       
-
       refine congr rfl _,
       exact pow_mul' e i n,
     }
